@@ -54,6 +54,7 @@ import getWalletTransactionsOptions from './helpers/getWalletTransactionsOptions
 import { isDesktop } from '../blue_modules/environment';
 import ManageWallets from '../screen/wallets/ManageWallets';
 import ReceiveDetails from '../screen/receive/ReceiveDetails';
+import BTMLocations from '../screen/btm/BTMLocations';
 
 const DetailViewStackScreensStack = () => {
   const theme = useTheme();
@@ -322,6 +323,13 @@ const DetailViewStackScreensStack = () => {
           statusBarStyle: 'light',
           headerShown: true,
           presentation: 'modal',
+        })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="BTMLocations"
+        component={BTMLocations}
+        options={navigationStyle({
+          title: loc.btm.locations_title,
         })(theme)}
       />
     </DetailViewStack.Navigator>

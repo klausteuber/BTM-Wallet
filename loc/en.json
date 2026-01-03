@@ -40,6 +40,10 @@
     "successMessage": "Voucher redeemed successfully! Your funds should arrive in your Bitcoin wallet shortly.",
     "title": "Redeem Azte.co voucher"
   },
+  "btm": {
+    "locations_title": "BTM Locations",
+    "find_btm": "Find a Bitcoin ATM"
+  },
   "entropy": {
     "save": "Save",
     "title": "Entropy",
