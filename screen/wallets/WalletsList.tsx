@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useRef, useMemo } from 'react';
 import { useFocusEffect, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
 import { Alert, findNodeHandle, Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Icon } from '@rneui/themed';
 import { getClipboardContent } from '../../blue_modules/clipboard';
 import { isDesktop } from '../../blue_modules/environment';
 import * as fs from '../../blue_modules/fs';
@@ -354,10 +355,16 @@ const WalletsList: React.FC = () => {
     [dataSource.length, isLoading],
   );
 
-  const renderScanButton = useCallback(() => {
-    if (wallets.length > 0) {
-      return (
-        <FContainer ref={walletActionButtonsRef.current}>
+  const renderFloatingButtons = useCallback(() => {
+    return (
+      <FContainer ref={walletActionButtonsRef.current}>
+        <FButton
+          onPress={onBTMLocationsPressed}
+          icon={<Icon name="location-on" type="material" color={colors.buttonAlternativeTextColor} />}
+          text={loc.btm.find_btm}
+          testID="HomeScreenBTMButton"
+        />
+        {wallets.length > 0 && (
           <FButton
             onPress={onScanButtonPressed}
             onLongPress={sendButtonLongPress}
@@ -365,13 +372,11 @@ const WalletsList: React.FC = () => {
             text={loc.send.details_scan}
             testID="HomeScreenScanButton"
           />
-        </FContainer>
-      );
-    } else {
-      return null;
-    }
+        )}
+      </FContainer>
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanImage, wallets.length]);
+  }, [scanImage, wallets.length, colors.buttonAlternativeTextColor, onBTMLocationsPressed]);
 
   const sectionListKeyExtractor = useCallback((item: any, index: any) => {
     return `${item}${index}}`;
@@ -380,6 +385,10 @@ const WalletsList: React.FC = () => {
   const onScanButtonPressed = useCallback(() => {
     scanQrHelper().then(onBarScanned);
   }, [onBarScanned]);
+
+  const onBTMLocationsPressed = useCallback(() => {
+    navigation.navigate('BTMLocations');
+  }, [navigation]);
 
   const pasteFromClipboard = useCallback(async () => {
     onBarScanned(await getClipboardContent());
@@ -504,7 +513,7 @@ const WalletsList: React.FC = () => {
         ignoreTopInset={true} // Ignore top inset as the screen header already handles it
         {...refreshProps}
       />
-      {renderScanButton()}
+      {renderFloatingButtons()}
     </>
   );
 };
