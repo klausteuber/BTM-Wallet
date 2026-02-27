@@ -7,13 +7,13 @@ git_url(ENV["GIT_URL"])
 # Default to "appstore" but can be overridden
 type(ENV["MATCH_TYPE"] || "appstore")
 
-# App identifiers for all BlueWallet apps
+# App identifiers for America Bitcoin ATM
 app_identifier([
-  "io.bluewallet.bluewallet", 
-  "io.bluewallet.bluewallet.watch", 
-  "io.bluewallet.bluewallet.watch.extension", 
-  "io.bluewallet.bluewallet.Stickers", 
-  "io.bluewallet.bluewallet.MarketWidget"
+  "com.americabitcoinatm.wallet",
+  "com.americabitcoinatm.wallet.watch",
+  "com.americabitcoinatm.wallet.watch.extension",
+  "com.americabitcoinatm.wallet.Stickers",
+  "com.americabitcoinatm.wallet.MarketWidget"
 ])
 
 # Your Apple Developer account email address
