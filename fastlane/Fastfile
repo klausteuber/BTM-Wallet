@@ -1,3 +1,6 @@
+# Standard library helpers used by Fastlane utility methods below.
+require "digest"
+
 # Define app identifiers once for reuse across lanes
 def app_identifiers
   [
@@ -312,6 +315,40 @@ platform :ios do
     end
   end
 
+  def sync_submission_icons
+    iphone_icon_path = File.join(project_root, "ios", "BlueWallet", "Images.xcassets", "AppIcon.appiconset", "1024.png")
+    watch_icon_path = File.join(project_root, "ios", "BlueWalletWatch", "Assets.xcassets", "AppIcon.appiconset", "1024.png")
+    metadata_path = File.join(project_root, "fastlane", "metadata", "ios")
+
+    {
+      "iPhone icon" => iphone_icon_path,
+      "Apple Watch icon" => watch_icon_path
+    }.each do |label, path|
+      UI.user_error!("#{label} not found at #{path}") unless File.exist?(path)
+    end
+
+    iphone_icon_digest = Digest::SHA256.file(iphone_icon_path).hexdigest
+    watch_icon_digest = Digest::SHA256.file(watch_icon_path).hexdigest
+
+    if iphone_icon_digest != watch_icon_digest
+      UI.user_error!(
+        "The Apple Watch icon does not match the iPhone icon. Update #{watch_icon_path} before submitting to App Review."
+      )
+    end
+
+    FileUtils.mkdir_p(metadata_path)
+
+    {
+      "app_icon.jpg" => "App Store iPhone icon",
+      "watch_icon.jpg" => "App Store Apple Watch icon"
+    }.each do |filename, label|
+      output_path = File.join(metadata_path, filename)
+      success = system("/usr/bin/sips", "-s", "format", "jpeg", iphone_icon_path, "--out", output_path, out: File::NULL, err: File::NULL)
+      UI.user_error!("Failed to refresh #{label} at #{output_path}") unless success
+      UI.message("Synced #{label} from #{iphone_icon_path}")
+    end
+  end
+
   desc "Register new devices from a file"
   lane :register_devices_from_txt do
     UI.message("Registering new devices from file...")
@@ -500,6 +537,38 @@ platform :ios do
   )
 
   UI.success("Successfully uploaded IPA to TestFlight!")
+end
+
+desc "Upload IPA, metadata, and submit to App Review"
+lane :submit_to_app_store_lane do |options|
+  ipa_path = ENV['IPA_OUTPUT_PATH']
+  UI.user_error!("IPA file not found at path: #{ipa_path}") if ipa_path.nil? || ipa_path.empty? || !File.exist?(ipa_path)
+
+  submit_for_review = options[:submit_for_review].nil? ? true : options[:submit_for_review]
+  automatic_release = options[:automatic_release].nil? ? false : options[:automatic_release]
+  sync_submission_icons
+
+  deliver_options = {
+    ipa: ipa_path,
+    metadata_path: File.join(project_root, "fastlane", "metadata", "ios"),
+    skip_screenshots: true,
+    force: true,
+    submit_for_review: submit_for_review,
+    automatic_release: automatic_release,
+    run_precheck_before_submit: true,
+    precheck_include_in_app_purchases: false
+  }
+
+  api_key_path = ENV["APPLE_API_KEY_PATH"] || "./appstore_api_key.json"
+  deliver_options[:api_key_path] = api_key_path if File.exist?(api_key_path)
+
+  UI.message("Submitting IPA to App Store Connect from path: #{ipa_path}")
+  UI.message("Metadata path: #{deliver_options[:metadata_path]}")
+  UI.message("Submit for review: #{submit_for_review}")
+  UI.message("Automatic release: #{automatic_release}")
+
+  deliver(deliver_options)
+  UI.success("Successfully uploaded and submitted build to App Store Connect")
 end
 
 desc "Upload iOS source maps to Bugsnag"
@@ -879,11 +948,38 @@ end
 #       Global Lanes
 # ===========================
 
-desc "Deploy to TestFlight"
+private_lane :setup_app_store_connect_api_key do
+  api_key_path = ENV["APPLE_API_KEY_PATH"] || "./appstore_api_key.json"
+
+  if File.exist?(api_key_path) && ENV["APPLE_API_KEY_ID"] && ENV["APPLE_API_ISSUER_ID"]
+    UI.message("Configuring App Store Connect API key from #{api_key_path}")
+    app_store_connect_api_key(
+      key_id: ENV["APPLE_API_KEY_ID"],
+      issuer_id: ENV["APPLE_API_ISSUER_ID"],
+      key_filepath: api_key_path,
+      duration: 1200,
+      in_house: false
+    )
+  elsif ENV["FASTLANE_USER"] && ENV["FASTLANE_PASSWORD"]
+    UI.message("Using FASTLANE_USER/FASTLANE_PASSWORD authentication")
+    cached_app_store_connect_login
+  else
+    UI.user_error!(
+      "Missing App Store credentials. Set APPLE_API_KEY_PATH + APPLE_API_KEY_ID + APPLE_API_ISSUER_ID, " \
+      "or FASTLANE_USER + FASTLANE_PASSWORD."
+    )
+  end
+end
+
+desc "Deploy iOS build to TestFlight (default) or App Store review"
 lane :deploy do |options|
   UI.message("Starting deployment process...")
 
-  update_wwdr_certificate
+  begin
+    update_wwdr
+  rescue StandardError => e
+    UI.important("Skipping WWDR update because the action is unavailable: #{e.message}")
+  end
   setup_app_store_connect_api_key
   setup_provisioning_profiles
   clear_derived_data_lane
@@ -894,7 +990,18 @@ lane :deploy do |options|
   end
 
   build_app_lane
-  upload_to_testflight_lane
+
+  release_target = options[:release_target].to_s.downcase
+  should_submit_to_app_store = options[:app_store] == true || ["appstore", "app_store", "review"].include?(release_target)
+
+  if should_submit_to_app_store
+    submit_to_app_store_lane(
+      submit_for_review: options[:submit_for_review],
+      automatic_release: options[:automatic_release]
+    )
+  else
+    upload_to_testflight_lane
+  end
 
   delete_keychain(name: "temp_keychain")
 

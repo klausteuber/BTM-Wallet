@@ -2,7 +2,6 @@ import React from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Alert, Image, Linking, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { getApplicationName, getBuildNumber, getBundleId, getUniqueIdSync, getVersion, hasGmsSync } from 'react-native-device-info';
-import { Icon } from '@rneui/themed';
 import Rate, { AndroidMarket } from 'react-native-rate';
 import A from '../../blue_modules/analytics';
 import { BlueCard, BlueTextCentered } from '../../BlueComponents';
@@ -11,32 +10,36 @@ import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
 import ListItem from '../../components/ListItem';
 import { useTheme } from '../../components/themes';
-import loc, { formatStringAddTwoWhiteSpaces } from '../../loc';
+import loc from '../../loc';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { useSettings } from '../../hooks/context/useSettings';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
+import { ATM_LOCATIONS_SUBTITLE, ATM_LOCATIONS_TITLE } from './atmLocationsConfig';
 
 const branch = require('../../current-branch.json');
+const COMPANY_WEBSITE_URL = 'https://americabitcoinatm.com';
+const HELP_CENTER_URL = 'https://americabitcoinatm.com/help-center/';
+const APP_PRIVACY_URL = 'https://americabitcoinatm.com/app-privacy-policy/';
+const BRAND_BLUE = '#040766';
+const BRAND_RED = '#ED122E';
 
 const About: React.FC = () => {
   const { navigate } = useExtendedNavigation();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
   const { isElectrumDisabled } = useSettings();
+  const logoWidth = Math.min(width - 88, 280);
 
   const stylesHook = StyleSheet.create({
-    textBackup: {
+    brandTitle: {
       color: colors.foregroundColor,
     },
-    buildWith: {
-      backgroundColor: colors.inputBackgroundColor,
+    brandDescription: {
+      color: colors.alternativeTextColor,
     },
-    buttonLink: {
-      backgroundColor: colors.lightButton,
-    },
-    textLink: {
-      color: colors.foregroundColor,
+    copyToClipboardText: {
+      color: BRAND_RED,
     },
   });
 
@@ -56,30 +59,29 @@ const About: React.FC = () => {
     navigate('Licensing');
   };
 
-  const handleOnTwitterPress = () => {
-    Linking.openURL('https://twitter.com/bluewalletio');
+  const handleOnWebsitePress = () => {
+    Linking.openURL(COMPANY_WEBSITE_URL);
   };
 
-  const handleOnDiscordPress = () => {
-    Linking.openURL('https://discord.gg/btWq2Aby2z');
+  const handleOnAtmLocationsPress = () => {
+    navigate('AtmLocations');
   };
 
-  const handleOnTelegramPress = () => {
-    Linking.openURL('https://t.me/bluewallethat');
+  const handleOnHelpCenterPress = () => {
+    Linking.openURL(HELP_CENTER_URL);
   };
 
-  const handleOnGithubPress = () => {
-    Linking.openURL('https://github.com/BlueWallet/BlueWallet');
+  const handleOnPrivacyPress = () => {
+    Linking.openURL(APP_PRIVACY_URL);
   };
 
   const handleOnRatePress = () => {
     const options = {
-      AppleAppID: '1376878040',
-      GooglePackageName: 'io.bluewallet.bluewallet',
+      GooglePackageName: 'com.americabitcoinatm.wallet',
       preferredAndroidMarket: AndroidMarket.Google,
       preferInApp: Platform.OS !== 'android',
       openAppStoreIfInAppFails: true,
-      fallbackPlatformURL: 'https://bluewallet.io',
+      fallbackPlatformURL: COMPANY_WEBSITE_URL,
     };
     Rate.rate(options, success => {
       if (success) {
@@ -92,9 +94,17 @@ const About: React.FC = () => {
     <SafeAreaScrollView testID="AboutScrollView" contentInsetAdjustmentBehavior="automatic" automaticallyAdjustContentInsets>
       <BlueCard>
         <View style={styles.center}>
-          <Image style={styles.logo} source={require('../../img/bluebeast.png')} />
-          <Text style={styles.textFree}>{loc.settings.about_free}</Text>
-          <Text style={[styles.textBackup, stylesHook.textBackup]}>{formatStringAddTwoWhiteSpaces(loc.settings.about_backup)}</Text>
+          <View style={styles.brandBanner}>
+            <Image
+              style={[styles.brandLogo, { width: logoWidth, height: Math.round(logoWidth / 3.53) }]}
+              source={require('../../img/america-bitcoin-logo.png')}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={[styles.brandTitle, stylesHook.brandTitle]}>Self-custody Bitcoin wallet from America Bitcoin ATM</Text>
+          <Text style={[styles.brandDescription, stylesHook.brandDescription]}>
+            Manage your wallet, find nearby kiosks, and get support from the America Bitcoin ecosystem without mixed branding.
+          </Text>
           {((Platform.OS === 'android' && hasGmsSync()) || Platform.OS !== 'android') && (
             <Button onPress={handleOnRatePress} title={loc.settings.about_review + ' ⭐🙏'} />
           )}
@@ -102,52 +112,48 @@ const About: React.FC = () => {
       </BlueCard>
       <ListItem
         leftIcon={{
-          name: 'twitter',
+          name: 'globe',
           type: 'font-awesome',
-          color: '#1da1f2',
+          color: BRAND_BLUE,
         }}
-        onPress={handleOnTwitterPress}
-        title={loc.settings.about_sm_twitter}
+        onPress={handleOnWebsitePress}
+        title="Website"
+        subtitle="americabitcoinatm.com"
+        subtitleNumberOfLines={2}
       />
       <ListItem
         leftIcon={{
-          name: 'telegram',
+          name: 'map-marker',
           type: 'font-awesome',
-          color: '#0088cc',
+          color: BRAND_RED,
         }}
-        onPress={handleOnTelegramPress}
-        title={loc.settings.about_sm_telegram}
+        onPress={handleOnAtmLocationsPress}
+        title={ATM_LOCATIONS_TITLE}
+        subtitle={ATM_LOCATIONS_SUBTITLE}
+        subtitleNumberOfLines={2}
       />
       <ListItem
         leftIcon={{
-          name: 'discord',
-          type: 'font-awesome-5',
-          color: '#7289da',
+          name: 'life-ring',
+          type: 'font-awesome',
+          color: colors.foregroundColor,
         }}
-        onPress={handleOnDiscordPress}
-        title={loc.settings.about_sm_discord}
+        onPress={handleOnHelpCenterPress}
+        title="Help Center"
+        subtitle="Articles and support from America Bitcoin ATM"
+        subtitleNumberOfLines={2}
       />
-      <BlueCard>
-        <View style={[styles.buildWith, stylesHook.buildWith]}>
-          <BlueSpacing20 />
-          <BlueTextCentered>{loc.settings.about_awesome} 👍</BlueTextCentered>
-          <BlueSpacing20 />
-          <BlueTextCentered>React Native</BlueTextCentered>
-          <BlueTextCentered>bitcoinjs-lib</BlueTextCentered>
-          <BlueTextCentered>Nodejs</BlueTextCentered>
-          <BlueTextCentered>Electrum server</BlueTextCentered>
-          <BlueSpacing20 />
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleOnGithubPress}
-            android_ripple={{ color: colors.androidRippleColor }}
-            style={({ pressed }) => [Platform.OS === 'ios' && pressed ? styles.pressed : null, styles.buttonLink, stylesHook.buttonLink]}
-          >
-            <Icon size={22} name="github" type="font-awesome-5" color={colors.foregroundColor} />
-            <Text style={[styles.textLink, stylesHook.textLink]}>{formatStringAddTwoWhiteSpaces(loc.settings.about_sm_github)}</Text>
-          </Pressable>
-        </View>
-      </BlueCard>
+      <ListItem
+        leftIcon={{
+          name: 'shield',
+          type: 'font-awesome',
+          color: colors.foregroundColor,
+        }}
+        onPress={handleOnPrivacyPress}
+        title="Privacy Policy"
+        subtitle="How the wallet app handles your data"
+        subtitleNumberOfLines={2}
+      />
       <ListItem
         leftIcon={{
           name: 'book',
@@ -225,7 +231,7 @@ const About: React.FC = () => {
           }}
           style={({ pressed }) => [pressed && styles.pressed]}
         >
-          <Text style={styles.copyToClipboardText}>{loc.transactions.details_copy}</Text>
+          <Text style={[styles.copyToClipboardText, stylesHook.copyToClipboardText]}>{loc.transactions.details_copy}</Text>
         </Pressable>
       </View>
       <BlueSpacing20 />
@@ -249,41 +255,36 @@ const styles = StyleSheet.create({
   center: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 54,
+    marginTop: 32,
   },
-  logo: {
-    width: 102,
-    height: 124,
-  },
-  textFree: {
-    maxWidth: 260,
-    marginVertical: 24,
-    color: '#9AA0AA',
-    fontSize: 15,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  textBackup: {
-    maxWidth: 260,
-    marginBottom: 40,
-    fontSize: 15,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  buildWith: {
-    padding: 16,
-    paddingTop: 0,
-    borderRadius: 8,
-  },
-  buttonLink: {
-    borderRadius: 12,
+  brandBanner: {
+    width: '100%',
+    borderRadius: 16,
+    backgroundColor: BRAND_BLUE,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
-    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    marginBottom: 24,
   },
-  textLink: {
-    marginLeft: 8,
-    fontWeight: '600',
+  brandLogo: {
+    maxWidth: '100%',
+  },
+  brandTitle: {
+    maxWidth: 320,
+    fontSize: 22,
+    fontWeight: '700',
+    lineHeight: 28,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  brandDescription: {
+    maxWidth: 320,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+    fontWeight: '500',
+    marginBottom: 32,
   },
   pressed: {
     opacity: 0.6,

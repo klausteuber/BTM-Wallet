@@ -286,8 +286,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logoImage: {
-    width: 100,
-    height: 75,
+    width: 96,
+    height: 96,
   },
   passwordContainer: {
     width: '100%',

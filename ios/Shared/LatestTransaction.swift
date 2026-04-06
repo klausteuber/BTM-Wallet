@@ -10,5 +10,5 @@ import Foundation
 
 struct LatestTransaction {
   let isUnconfirmed: Bool?
-  let epochValue: Int?
+  let epochValue: Int64?
 }

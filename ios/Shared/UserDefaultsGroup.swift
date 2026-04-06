@@ -56,7 +56,7 @@ class UserDefaultsGroup {
         return Double(allWalletsBalance) ?? 0
     }
 
-    // Int: EPOCH value, Bool: Latest transaction is unconfirmed
+    // Int64: EPOCH value, Bool: Latest transaction is unconfirmed
     static func getAllWalletsLatestTransactionTime() -> LatestTransaction {
         guard let allWalletsTransactionTime = suite?.string(forKey: UserDefaultsGroupKey.AllWalletsLatestTransactionTime.rawValue) else {
             return LatestTransaction(isUnconfirmed: false, epochValue: 0)
@@ -65,7 +65,7 @@ class UserDefaultsGroup {
         if allWalletsTransactionTime == UserDefaultsGroupKey.LatestTransactionIsUnconfirmed.rawValue {
             return LatestTransaction(isUnconfirmed: true, epochValue: 0)
         } else {
-            return LatestTransaction(isUnconfirmed: false, epochValue: Int(allWalletsTransactionTime) ?? 0)
+            return LatestTransaction(isUnconfirmed: false, epochValue: Int64(allWalletsTransactionTime) ?? 0)
         }
     }
 }

@@ -3,6 +3,7 @@ import ListItem from '../../components/ListItem';
 import loc from '../../loc';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation.ts';
+import { ATM_LOCATIONS_SUBTITLE, ATM_LOCATIONS_TITLE } from './atmLocationsConfig';
 
 const ToolsScreen = () => {
   const { navigate } = useExtendedNavigation();
@@ -19,8 +20,20 @@ const ToolsScreen = () => {
     navigate('GenerateWord');
   };
 
+  const navigateToAtmLocations = () => {
+    navigate('AtmLocations');
+  };
+
   return (
     <SafeAreaScrollView>
+      <ListItem
+        title={ATM_LOCATIONS_TITLE}
+        subtitle={ATM_LOCATIONS_SUBTITLE}
+        onPress={navigateToAtmLocations}
+        testID="AtmLocations"
+        chevron
+        leftIcon={{ name: 'map-marker', type: 'font-awesome', color: '#FC0D44' }}
+      />
       <ListItem title={loc.is_it_my_address.title} onPress={navigateToIsItMyAddress} testID="IsItMyAddress" chevron />
       <ListItem title={loc.settings.network_broadcast} onPress={navigateToBroadcast} testID="Broadcast" chevron />
       <ListItem title={loc.autofill_word.title} onPress={navigateToGenerateWord} testID="GenerateWord" chevron />

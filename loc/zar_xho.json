@@ -40,7 +40,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Ukudala igumbi lokugcina elifihlakeleyo",
     "create_password_explanation": "Inombolo yakho yokuvula igumbi lokugcina inkohliso akumele ifane ne nombolo yokuvula  igumbi lakho  elinyanisekileyo",
-    "help": "Phantsi kweemeko unokunyaneliswa ukuba uchaze a inombolo yokuvula. BlueWallet ukugcina imali yakho ikhuselekile, unokudala enye ukugcinwa kwekhowudi, ngegama eligqithisiweyo. Phantsi kwefuthe, unako ukutyhila le phasiwedi kumntu wesithatu. Ukuba ungenayo BlueWallet, iya kuvula ukugcinwa kwetyala ‘entsha’. Oku kuya kubonakala Umlenze kumntu wesithathu kodwa uza kugcina ngasese ukugcinwa kwakho ngemali ekhuselekile..",
+    "help": "Phantsi kweemeko unokunyaneliswa ukuba uchaze a inombolo yokuvula. America Bitcoin ATM Wallet ukugcina imali yakho ikhuselekile, unokudala enye ukugcinwa kwekhowudi, ngegama eligqithisiweyo. Phantsi kwefuthe, unako ukutyhila le phasiwedi kumntu wesithatu. Ukuba ungenayo America Bitcoin ATM Wallet, iya kuvula ukugcinwa kwetyala ‘entsha’. Oku kuya kubonakala Umlenze kumntu wesithathu kodwa uza kugcina ngasese ukugcinwa kwakho ngemali ekhuselekile..",
     "help2": "Igumbi lokugcina elitsha liza kusebenza ngokupheleleyo, kwaye unako ukugcina okunye ‘ + ‘lxabiso elincinci apho likhangeleka ngakumbi.",
     "password_should_not_match": "Inombolo yakho yokuvula igumbi lokugcina inkohliso akumele ifane ne nombolo yokuvula  igumbi lakho  elinyanisekileyo",
     "title": "Ukuphika"

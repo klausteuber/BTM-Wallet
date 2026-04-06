@@ -64,7 +64,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Skep fantasie berging wagwoord",
     "create_password_explanation": "Die wagwoord vir fop berging moet verskil van die wagwoord vir hoof berging",
-    "help": "Onder sekere omstandighede mag jy dalk geforseer word om jou wagwoord te deel teen jou wil. Om jou te beskerm kan Bluewallet ‘n tweede “fop” beursie skep wat as skerm kan dien. Indien jy hierdie wagwoord deel sal die 3de party nie toegang tot jou hoof fondse kry nie.",
+    "help": "Onder sekere omstandighede mag jy dalk geforseer word om jou wagwoord te deel teen jou wil. Om jou te beskerm kan America Bitcoin ATM Wallet ‘n tweede “fop” beursie skep wat as skerm kan dien. Indien jy hierdie wagwoord deel sal die 3de party nie toegang tot jou hoof fondse kry nie.",
     "help2": "Fop berging is heeltemal funksioneel",
     "password_should_not_match": "Die wagwoord vir fantasie berging moet verskil van die wagwoord vir hoof berging.",
     "title": "Geloofwaardige Ontkenbaarheid"

@@ -45,6 +45,7 @@ import EncryptStorage from '../screen/settings/EncryptStorage';
 import Language from '../screen/settings/Language';
 import LightningSettings from '../screen/settings/LightningSettings';
 import NotificationSettings from '../screen/settings/NotificationSettings';
+import AtmLocations from '../screen/settings/AtmLocations';
 import SelfTest from '../screen/settings/SelfTest';
 import ReleaseNotes from '../screen/settings/ReleaseNotes';
 import ToolsScreen from '../screen/settings/tools';
@@ -54,6 +55,7 @@ import getWalletTransactionsOptions from './helpers/getWalletTransactionsOptions
 import { isDesktop } from '../blue_modules/environment';
 import ManageWallets from '../screen/wallets/ManageWallets';
 import ReceiveDetails from '../screen/receive/ReceiveDetails';
+import { ATM_LOCATIONS_TITLE } from '../screen/settings/atmLocationsConfig';
 
 const DetailViewStackScreensStack = () => {
   const theme = useTheme();
@@ -290,6 +292,11 @@ const DetailViewStackScreensStack = () => {
         name="NotificationSettings"
         component={NotificationSettings}
         options={navigationStyle({ title: loc.settings.notifications })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="AtmLocations"
+        component={AtmLocations}
+        options={navigationStyle({ title: ATM_LOCATIONS_TITLE })(theme)}
       />
       <DetailViewStack.Screen name="SelfTest" component={SelfTest} options={navigationStyle({ title: loc.settings.selfTest })(theme)} />
       <DetailViewStack.Screen

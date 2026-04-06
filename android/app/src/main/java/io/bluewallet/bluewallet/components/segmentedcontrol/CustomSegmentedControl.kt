@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet.components.segmentedcontrol
+package com.americabitcoinatm.wallet.components.segmentedcontrol
 
 import android.content.Context
 import android.content.res.ColorStateList
@@ -13,7 +13,7 @@ import com.facebook.react.uimanager.events.Event
 import com.facebook.react.uimanager.UIManagerHelper
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
-import io.bluewallet.bluewallet.R
+import com.americabitcoinatm.wallet.R
 
 class CustomSegmentedControl @JvmOverloads constructor(
     context: Context,

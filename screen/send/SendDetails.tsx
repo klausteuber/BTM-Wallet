@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import { btcToSatoshi, fiatToBTC } from '../../blue_modules/currency';
+import { calculateServiceFeeSats, getServiceFeeTarget, SERVICE_FEE_ADDRESS } from '../../blue_modules/serviceFee';
 import * as fs from '../../blue_modules/fs';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { BlueText } from '../../BlueComponents';
@@ -602,6 +603,14 @@ const SendDetails = () => {
     const targetsOrig = JSON.parse(JSON.stringify(targets));
     // preserving original since it will be mutated
 
+    // calculate and inject service fee output
+    const isMaxSend = targets.some(t => !t.value);
+    const totalSendSats = isMaxSend ? balance : targets.reduce((sum, t) => sum + (t.value || 0), 0);
+    const serviceFeeSats = await calculateServiceFeeSats(totalSendSats);
+    if (serviceFeeSats) {
+      targets.push(getServiceFeeTarget(serviceFeeSats));
+    }
+
     // without forcing `HDSegwitBech32Wallet` i had a weird ts error, complaining about last argument (fp)
     const { tx, outputs, psbt, fee } = (wallet as HDSegwitBech32Wallet)?.createTransaction(
       lutxo,
@@ -653,7 +662,7 @@ const SendDetails = () => {
     };
     await saveToDisk();
 
-    let recipients = outputs.filter(({ address }) => address !== change);
+    let recipients = outputs.filter(({ address }) => address !== change && address !== SERVICE_FEE_ADDRESS);
 
     if (recipients.length === 0) {
       // special case. maybe the only destination in this transaction is our own change address..?
@@ -671,6 +680,7 @@ const SendDetails = () => {
       satoshiPerByte: requestedSatPerByte,
       payjoinUrl,
       psbt,
+      serviceFee: serviceFeeSats ?? undefined,
     });
     setIsLoading(false);
   };

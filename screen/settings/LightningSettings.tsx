@@ -11,7 +11,7 @@ import { Button } from '../../components/Button';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { GROUP_IO_BLUEWALLET } from '../../blue_modules/currency';
+import { GROUP_SHARED_PREFS } from '../../blue_modules/currency';
 import { clearLNDHub, getLNDHub, setLNDHub } from '../../helpers/lndHub';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
@@ -77,7 +77,7 @@ const LightningSettings: React.FC = () => {
   }, [params?.url]);
 
   const setLndhubURI = (value: string) => {
-    // in case user scans a QR with a deeplink like `bluewallet:setlndhuburl?url=https%3A%2F%2Flndhub.herokuapp.com`
+    // in case user scans a QR with a deeplink like `abtm:setlndhuburl?url=https%3A%2F%2Flndhub.herokuapp.com`
     const setLndHubUrl = DeeplinkSchemaMatch.getUrlFromSetLndhubUrlAction(value);
 
     setURI(typeof setLndHubUrl === 'string' ? setLndHubUrl.trim() : value.trim());
@@ -86,7 +86,7 @@ const LightningSettings: React.FC = () => {
     setIsLoading(true);
     let normalizedURI;
     try {
-      await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+      await DefaultPreference.setName(GROUP_SHARED_PREFS);
       if (URI) {
         normalizedURI = new URL(URI.replace(/([^:]\/)\/+/g, '$1')).toString();
         await LightningCustodianWallet.isValidNodeAddress(normalizedURI);
@@ -128,9 +128,9 @@ const LightningSettings: React.FC = () => {
           type: 'font-awesome',
           color: colors.foregroundColor,
         }}
-        onPress={() => Linking.openURL('https://github.com/BlueWallet/LndHub')}
+        onPress={() => Linking.openURL('https://americabitcoinatm.com/lndhub')}
         titleStyle={{ color: colors.buttonAlternativeTextColor }}
-        title="github.com/BlueWallet/LndHub"
+        title="americabitcoinatm.com/lndhub"
         // TODO: looks like there's no `color` prop on `Button`, does this make any sense?
         // color={colors.buttonTextColor}
         buttonStyle={stylesHook.buttonStyle}

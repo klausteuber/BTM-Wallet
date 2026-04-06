@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet
+package com.americabitcoinatm.wallet
 
 import android.os.Bundle
 import android.util.Log
@@ -35,7 +35,7 @@ class SettingsActivity : AppCompatActivity() {
     class SettingsFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             // Set the SharedPreferences name to match the app's preferences
-            preferenceManager.sharedPreferencesName = "group.io.bluewallet.bluewallet"
+            preferenceManager.sharedPreferencesName = "group.com.americabitcoinatm.wallet"
             
             // Load preferences from XML
             setPreferencesFromResource(R.xml.settings_preferences, rootKey)

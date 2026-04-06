@@ -8,7 +8,7 @@ const PREFERRED_CURRENCY_STORAGE_KEY = 'preferredCurrency';
 const PREFERRED_CURRENCY_LOCALE_STORAGE_KEY = 'preferredCurrencyLocale';
 const EXCHANGE_RATES_STORAGE_KEY = 'exchangeRates';
 const LAST_UPDATED = 'LAST_UPDATED';
-export const GROUP_IO_BLUEWALLET = 'group.io.bluewallet.bluewallet';
+export const GROUP_SHARED_PREFS = 'group.com.americabitcoinatm.wallet';
 const BTC_PREFIX = 'BTC_';
 
 export interface CurrencyRate {
@@ -46,7 +46,7 @@ function getCurrencyFormatter(): Intl.NumberFormat {
 }
 
 async function setPreferredCurrency(item: FiatUnitType): Promise<void> {
-  await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+  await DefaultPreference.setName(GROUP_SHARED_PREFS);
   try {
     await DefaultPreference.set(PREFERRED_CURRENCY_STORAGE_KEY, item.endPointKey);
     await DefaultPreference.set(PREFERRED_CURRENCY_LOCALE_STORAGE_KEY, item.locale.replace('-', '_'));
@@ -85,7 +85,7 @@ async function updateExchangeRate(): Promise<void> {
 
     try {
       const exchangeRatesString = JSON.stringify(exchangeRates);
-      await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+      await DefaultPreference.setName(GROUP_SHARED_PREFS);
       await DefaultPreference.set(EXCHANGE_RATES_STORAGE_KEY, exchangeRatesString);
     } catch (error) {
       await DefaultPreference.clear(EXCHANGE_RATES_STORAGE_KEY);
@@ -93,7 +93,7 @@ async function updateExchangeRate(): Promise<void> {
     }
   } catch (error) {
     try {
-      await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+      await DefaultPreference.setName(GROUP_SHARED_PREFS);
       const ratesValue = await DefaultPreference.get(EXCHANGE_RATES_STORAGE_KEY);
       let ratesString: string | null = null;
 
@@ -123,7 +123,7 @@ async function updateExchangeRate(): Promise<void> {
 }
 
 async function getPreferredCurrency(): Promise<FiatUnitType> {
-  await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+  await DefaultPreference.setName(GROUP_SHARED_PREFS);
   const preferredCurrencyValue = await DefaultPreference.get(PREFERRED_CURRENCY_STORAGE_KEY);
   let preferredCurrency: string | null = null;
 
@@ -157,7 +157,7 @@ async function getPreferredCurrency(): Promise<FiatUnitType> {
 
 async function _restoreSavedExchangeRatesFromStorage(): Promise<void> {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const ratesValue = await DefaultPreference.get(EXCHANGE_RATES_STORAGE_KEY);
     let ratesString: string | null = null;
 
@@ -188,7 +188,7 @@ async function _restoreSavedExchangeRatesFromStorage(): Promise<void> {
 
 async function _restoreSavedPreferredFiatCurrencyFromStorage(): Promise<void> {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const storedCurrencyValue = await DefaultPreference.get(PREFERRED_CURRENCY_STORAGE_KEY);
     let storedCurrency: string | null = null;
 
@@ -225,7 +225,7 @@ async function _restoreSavedPreferredFiatCurrencyFromStorage(): Promise<void> {
 
 async function isRateOutdated(): Promise<boolean> {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const rateValue = await DefaultPreference.get(EXCHANGE_RATES_STORAGE_KEY);
     let rateString: string | null = null;
 
@@ -304,7 +304,7 @@ function BTCToLocalCurrency(bitcoin: BigNumber.Value): string {
 
 async function mostRecentFetchedRate(): Promise<CurrencyRate> {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const currencyInfoValue = await DefaultPreference.get(EXCHANGE_RATES_STORAGE_KEY);
     let currencyInformationString: string | null = null;
 

@@ -160,7 +160,7 @@ const useDeviceQuickActions = () => {
                 ? ''
                 : formatBalance(Number(wallet.getBalance()), wallet.getPreferredBalanceUnit(), true),
             userInfo: {
-              url: `bluewallet://wallet/${wallet.getID()}`,
+              url: `abtm://wallet/${wallet.getID()}`,
             },
             icon: Platform.select({
               android: 'quickactions',

@@ -22,7 +22,7 @@ struct PriceView: View {
         getView(for: entry.family)
       }
     default:
-      defaultView.background(Color(UIColor.systemBackground))
+      defaultView.background(Color.widgetBackground)
     }
   }
   
@@ -45,7 +45,7 @@ struct PriceView: View {
       ZStack {
         if family == .accessoryRectangular {
           AccessoryWidgetBackground()
-            .background(Color(UIColor.systemBackground))
+            .background(Color.widgetBackground)
             .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
           AccessoryWidgetBackground()
@@ -75,7 +75,7 @@ struct PriceView: View {
           .foregroundColor(priceChangePercentage.contains("-") ? .red : .green)
       }
     }
-    .widgetURL(URL(string: "bluewallet://marketprice"))
+    .widgetURL(URL(string: "abtm://marketprice"))
   }
   
   private var accessoryInlineView: some View {
@@ -123,7 +123,7 @@ struct PriceView: View {
     }
     .padding(.all, 8)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(UIColor.systemBackground))
+    .background(Color.widgetBackground)
     .clipShape(RoundedRectangle(cornerRadius: 10))
   }
   
@@ -175,8 +175,13 @@ struct PriceView: View {
 struct PriceView_Previews: PreviewProvider {
   static var previews: some View {
     Group {
+      #if os(watchOS)
+      PriceView(entry: PriceWidgetEntry(date: Date(), family: .accessoryRectangular, currentMarketData: MarketData(nextBlock: "", sats: "", price: "$10,000", rate: 10000, dateString: "2019-09-18T17:27:00+00:00"), previousMarketData: emptyMarketData))
+        .previewContext(WidgetPreviewContext(family: .accessoryRectangular)).padding()
+      #else
       PriceView(entry: PriceWidgetEntry(date: Date(), family: .systemSmall, currentMarketData: MarketData(nextBlock: "", sats: "", price: "$10,000", rate: 10000, dateString: "2019-09-18T17:27:00+00:00"), previousMarketData: emptyMarketData))
         .previewContext(WidgetPreviewContext(family: .systemSmall)).padding()
+      #endif
       if #available(iOSApplicationExtension 16.0, *) {
         PriceView(entry: PriceWidgetEntry(date: Date(), family: .accessoryCircular, currentMarketData: MarketData(nextBlock: "", sats: "", price: "$10,000", rate: 10000, dateString: "2019-09-18T17:27:00+00:00"), previousMarketData: emptyMarketData))
           .previewContext(WidgetPreviewContext(family: .accessoryCircular))

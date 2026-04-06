@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet
+package com.americabitcoinatm.wallet
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent

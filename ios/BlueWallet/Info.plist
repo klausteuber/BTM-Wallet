@@ -4,14 +4,14 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>io.bluewallet.bluewallet.fetchTxsForWallet</string>
+		<string>com.americabitcoinatm.wallet.fetchTxsForWallet</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>BlueWallet</string>
+	<string>America Bitcoin ATM</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -25,7 +25,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>io.bluewallet.psbt</string>
+				<string>com.americabitcoinatm.psbt</string>
 			</array>
 		</dict>
 		<dict>
@@ -54,7 +54,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>io.bluewallet.psbt.txn</string>
+				<string>com.americabitcoinatm.psbt.txn</string>
 			</array>
 		</dict>
 		<dict>
@@ -68,7 +68,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>io.bluewallet.backup</string>
+				<string>com.americabitcoinatm.backup</string>
 			</array>
 		</dict>
 		<dict>
@@ -82,7 +82,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>io.bluewallet.bwcosigner</string>
+				<string>com.americabitcoinatm.bwcosigner</string>
 			</array>
 		</dict>
 	</array>
@@ -93,7 +93,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>America Bitcoin ATM</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -109,9 +109,8 @@
 			<array>
 				<string>bitcoin</string>
 				<string>lightning</string>
-				<string>bluewallet</string>
+				<string>abtm</string>
 				<string>lapp</string>
-				<string>blue</string>
 			</array>
 		</dict>
 	</array>
@@ -191,8 +190,8 @@
 	<string>In order to import an image for scanning, we need your permission to access your photo library.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
-		<string>io.bluewallet.bluewallet.receiveonchain</string>
-		<string>io.bluewallet.bluewallet.xpub</string>
+		<string>com.americabitcoinatm.wallet.receiveonchain</string>
+		<string>com.americabitcoinatm.wallet.xpub</string>
 	</array>
 	<key>UIAppFonts</key>
 	<array>
@@ -251,7 +250,7 @@
 			<key>UTTypeDescription</key>
 			<string>Partially Signed Bitcoin Transaction</string>
 			<key>UTTypeIdentifier</key>
-			<string>io.bluewallet.psbt</string>
+			<string>com.americabitcoinatm.psbt</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -264,7 +263,7 @@
 			<key>UTTypeDescription</key>
 			<string>BW COSIGNER</string>
 			<key>UTTypeIdentifier</key>
-			<string>io.bluewallet.bwcosigner</string>
+			<string>com.americabitcoinatm.bwcosigner</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -281,7 +280,7 @@
 			<key>UTTypeDescription</key>
 			<string>Bitcoin Transaction</string>
 			<key>UTTypeIdentifier</key>
-			<string>io.bluewallet.psbt.txn</string>
+			<string>com.americabitcoinatm.psbt.txn</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -298,7 +297,7 @@
 			<key>UTTypeDescription</key>
 			<string>Electrum Backup</string>
 			<key>UTTypeIdentifier</key>
-			<string>io.bluewallet.backup</string>
+			<string>com.americabitcoinatm.backup</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -335,7 +334,7 @@
 		</dict>
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
-	<string>io.bluewallet.bluewallet</string>
+	<string>com.americabitcoinatm.wallet</string>
 	<key>bugsnag</key>
 	<dict>
 		<key>apiKey</key>

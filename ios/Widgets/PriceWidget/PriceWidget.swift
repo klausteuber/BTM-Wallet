@@ -25,11 +25,15 @@ struct PriceWidget: Widget {
 
   @available(iOS 16.0, *)
   private var supportedFamilies: [WidgetFamily] {
-        if #available(iOSApplicationExtension 16.0, *) {
-            return [.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular]
-        } else {
-            return [.systemSmall]
-        }
+        #if os(watchOS)
+            return [.accessoryCircular, .accessoryInline, .accessoryRectangular]
+        #else
+            if #available(iOSApplicationExtension 16.0, *) {
+                return [.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular]
+            } else {
+                return [.systemSmall]
+            }
+        #endif
     }
 }
 
@@ -37,8 +41,10 @@ struct PriceWidget: Widget {
 struct PriceWidget_Previews: PreviewProvider {
   static var previews: some View {
         Group {
-            PriceWidgetEntryView(entry: PreviewData.entry)
-                .previewContext(WidgetPreviewContext(family: .systemSmall))
+            #if !os(watchOS)
+                PriceWidgetEntryView(entry: PreviewData.entry)
+                    .previewContext(WidgetPreviewContext(family: .systemSmall))
+            #endif
             if #available(iOSApplicationExtension 16.0, *) {
                 PriceWidgetEntryView(entry: PreviewData.entry)
                     .previewContext(WidgetPreviewContext(family: .accessoryCircular))
@@ -55,9 +61,17 @@ let previewMarketData = MarketData(nextBlock: "", sats: "", price: "$10,000", ra
 
 @available(iOS 14.0, *)
 struct PreviewData {
+    static let previewFamily: WidgetFamily = {
+        #if os(watchOS)
+            return .accessoryRectangular
+        #else
+            return .systemSmall
+        #endif
+    }()
+
     static let entry = PriceWidgetEntry(
         date: Date(),
-        family: .systemSmall,
+        family: previewFamily,
         currentMarketData: previewMarketData,
         previousMarketData: emptyMarketData
     )

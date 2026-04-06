@@ -21,7 +21,7 @@ import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
 import { Divider } from '@rneui/themed';
 import { Header } from '../../components/Header';
 import AddressInput from '../../components/AddressInput';
-import { GROUP_IO_BLUEWALLET } from '../../blue_modules/currency';
+import { GROUP_SHARED_PREFS } from '../../blue_modules/currency';
 import { Action } from '../../components/types';
 import ListItem, { PressableWrapper } from '../../components/ListItem';
 import HeaderMenuButton from '../../components/HeaderMenuButton';
@@ -192,7 +192,7 @@ const ElectrumSettings: React.FC = () => {
               message: serverHost.endsWith('.onion') ? loc.settings.electrum_error_connect_tor : loc.settings.electrum_error_connect,
             });
           }
-          await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+          await DefaultPreference.setName(GROUP_SHARED_PREFS);
 
           // Clear current data for the preferred host
           console.log('Clearing current data for the preferred host');

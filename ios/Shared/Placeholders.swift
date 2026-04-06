@@ -11,6 +11,5 @@ import Foundation
 
 
 let emptyMarketData = MarketData(nextBlock: "...", sats: "...", price: "...", rate: 0)
-let emptyWalletData = WalletData(balance: 0, latestTransactionTime:  LatestTransaction(isUnconfirmed: false, epochValue: Int(Date().timeIntervalSince1970)))
-
+let emptyWalletData = WalletData(balance: 0, latestTransactionTime:  LatestTransaction(isUnconfirmed: false, epochValue: Int64(Date().timeIntervalSince1970)))
 

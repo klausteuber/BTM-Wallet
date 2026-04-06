@@ -92,6 +92,7 @@ export type DetailViewStackParamList = {
     onBarScanned?: string;
   };
   NotificationSettings: undefined;
+  AtmLocations: undefined;
   SelfTest: undefined;
   ReleaseNotes: undefined;
   ToolsScreen: undefined;

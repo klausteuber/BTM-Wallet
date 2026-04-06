@@ -4,7 +4,6 @@
 
 import WatchKit
 import Foundation
-import EFQRCode
 
 class ViewQRCodefaceController: WKInterfaceController {
   
@@ -54,15 +53,10 @@ class ViewQRCodefaceController: WKInterfaceController {
       imageInterface.setImage(nil)
       return
     }
-    DispatchQueue.global(qos: .userInteractive).async {
-      guard let cgImage = EFQRCode.generate(for: address) else {
-        return
-      }
-      DispatchQueue.main.async {
-        let image = UIImage(cgImage: cgImage)
-        self.imageInterface.setImage(image)
-      }
-    }
+    // QR code display not available on watchOS — show address text instead
+    addressLabel.setText(address)
+    imageInterface.setHidden(true)
+    addressLabel.setHidden(false)
   }
 
   @IBAction @objc func toggleViewButtonPressed() {

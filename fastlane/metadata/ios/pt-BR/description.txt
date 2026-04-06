@@ -1,6 +1,6 @@
 Uma carteira Bitcoin que permite armazenar, enviar e receber Bitcoins. Focada em segurança e simplicidade.
 
-BlueWallet, uma carteira de bitcoin onde você detém a posse das chaves privadas. Uma carteira Bitcoin criada para a comunidade por usuários do Bitcoin.
+America Bitcoin Wallet, uma carteira de bitcoin onde você detém a posse das chaves privadas. Uma carteira Bitcoin criada para a comunidade por usuários do Bitcoin.
 
 Você pode fazer transações instantaneamente com qualquer pessoa no mundo e transformar o sistema financeiro direto do seu bolso.
 

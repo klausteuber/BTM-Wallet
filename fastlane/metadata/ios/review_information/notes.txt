@@ -1,1 +1,18 @@
-test
+App is fully functional without login, reviewer credentials, or external accounts.
+
+Recommended review path:
+1. Launch the app and tap Add Wallet.
+2. Select Bitcoin and create a new wallet.
+3. Open the wallet to view wallet details, balance, and transaction history.
+4. Use Receive to generate a Bitcoin address and QR code.
+5. Use Scan / Send to verify QR parsing and the send flow.
+
+Review notes:
+- Core reviewable functionality is the self-custody on-chain Bitcoin wallet flow.
+- Widgets are optional and not required for review.
+- No hardware wallet, custom Electrum server, or Lightning setup is required for review.
+- Deep links supported for review: bitcoin: and abtm:
+
+Support: https://americabitcoinatm.com/help-center/
+Terms of service: https://americabitcoinatm.com/terms-of-service/
+Privacy policy: https://americabitcoinatm.com/app-privacy-policy/

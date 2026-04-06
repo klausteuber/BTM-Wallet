@@ -1,14 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DefaultPreference from 'react-native-default-preference';
 import { BlueApp } from '../class';
-import { GROUP_IO_BLUEWALLET } from '../blue_modules/currency';
+import { GROUP_SHARED_PREFS } from '../blue_modules/currency';
 
 // Function to get the value from DefaultPreference first, then fallback to AsyncStorage 
 // as DefaultPreference uses truly native storage.
 // If found in AsyncStorage, migrate it to DefaultPreference and remove it from AsyncStorage.
 export const getLNDHub = async (): Promise<string | undefined> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     let value = await DefaultPreference.get(BlueApp.LNDHUB) as string | null;
 
     // If not found, check AsyncStorage and migrate it to DefaultPreference
@@ -31,7 +31,7 @@ export const getLNDHub = async (): Promise<string | undefined> => {
 
 export const setLNDHub = async (value: string): Promise<void> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     await DefaultPreference.set(BlueApp.LNDHUB, value);
   } catch (error) {
     console.error('Error setting LNDHub preference:', error);
@@ -40,7 +40,7 @@ export const setLNDHub = async (value: string): Promise<void> => {
 
 export const clearLNDHub = async (): Promise<void> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     await DefaultPreference.clear(BlueApp.LNDHUB);
     await AsyncStorage.removeItem(BlueApp.LNDHUB);
   } catch (error) {

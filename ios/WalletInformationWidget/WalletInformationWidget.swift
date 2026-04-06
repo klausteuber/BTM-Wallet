@@ -83,6 +83,14 @@ struct WalletInformationWidgetEntryView: View {
 
 struct WalletInformationWidget: Widget {
     let kind: String = "WalletInformationWidget"
+    
+    private var supportedFamilies: [WidgetFamily] {
+        #if os(watchOS)
+            return [.accessoryRectangular]
+        #else
+            return [.systemSmall]
+        #endif
+    }
 
     var body: some WidgetConfiguration {
         if #available(iOSApplicationExtension 16.0, *) {
@@ -90,14 +98,14 @@ struct WalletInformationWidget: Widget {
                 WalletInformationWidgetEntryView(entry: entry)
             }
             .configurationDisplayName("Balance")
-            .description("View your accumulated balance.").supportedFamilies([.systemSmall])
+            .description("View your accumulated balance.").supportedFamilies(supportedFamilies)
             .contentMarginsDisabledIfAvailable()
         } else {
             return StaticConfiguration(kind: kind, provider: WalletInformationWidgetProvider()) { entry in
                 WalletInformationWidgetEntryView(entry: entry)
             }
             .configurationDisplayName("Balance")
-            .description("View your accumulated balance.").supportedFamilies([.systemSmall])
+            .description("View your accumulated balance.").supportedFamilies(supportedFamilies)
             .contentMarginsDisabledIfAvailable()
         }
     }
@@ -106,6 +114,16 @@ struct WalletInformationWidget: Widget {
 struct WalletInformationWidget_Previews: PreviewProvider {
     static var previews: some View {
         WalletInformationWidgetEntryView(entry: WalletInformationWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: Double(0)), allWalletsBalance: WalletData(balance: 0, latestTransactionTime: LatestTransaction(isUnconfirmed: nil, epochValue: nil))))
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
+            .previewContext(
+                WidgetPreviewContext(
+                    family: {
+                        #if os(watchOS)
+                            return .accessoryRectangular
+                        #else
+                            return .systemSmall
+                        #endif
+                    }()
+                )
+            )
     }
 }

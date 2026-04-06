@@ -66,7 +66,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Crear informació xifrada falsa",
     "create_password_explanation": "La contrasenya no pot ser la mateixa que la del seu moneder principal.",
-    "help": "Sota certes circumstàncies, vostè podria ser obligat a revelar la contrasenya del seu moneder. Per a mantenir les seves monedes segures, BlueWallet pot crear un altre moneder xifrat, amb una altra contrasenya. Si es veu obligat, pot revelar la contrasenya per al fals moneder a un tercer de manera que ells creuran que és el seu moneder principal",
+    "help": "Sota certes circumstàncies, vostè podria ser obligat a revelar la contrasenya del seu moneder. Per a mantenir les seves monedes segures, America Bitcoin ATM Wallet pot crear un altre moneder xifrat, amb una altra contrasenya. Si es veu obligat, pot revelar la contrasenya per al fals moneder a un tercer de manera que ells creuran que és el seu moneder principal",
     "help2": "El moneder \"false\" és completament funcional. Pot dipositar una quantitat mínima perquè sigui més creïble.",
     "password_should_not_match": "La contrasenya no pot ser la mateixa que la del seu moneder principal.",
     "title": "Negació plausible"

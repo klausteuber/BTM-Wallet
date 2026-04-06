@@ -1,1 +1,1 @@
-bitcoin,wallet,bitcoin wallet,blockchain,btc,cryptocurrency,bitcoin,samourai,electrum,ethereum
+bitcoin,wallet,btc,self custody,send,receive,qr,watch only,backup

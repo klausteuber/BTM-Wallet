@@ -1,6 +1,6 @@
 Portfel, który umożliwia trzymanie, wysyłanie i przyjmowanie płatności w Bitcoinie. Kładzie nacisk na bezpieczeństo i prostotę.
 
-W BlueWallet, Ty jesteś właścicielem Twojego własnego portfela Bitcoin. To portfel stworzony przez użytkowników Bitcoina dla społeczności.
+W America Bitcoin Wallet, Ty jesteś właścicielem Twojego własnego portfela Bitcoin. To portfel stworzony przez użytkowników Bitcoina dla społeczności.
 
 Możesz przeprowadzać transakcje natychmiast z kimkolwiek na świecie i przekształcić system finansowy prosto z Twojej kieszeni.
 

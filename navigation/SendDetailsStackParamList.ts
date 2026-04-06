@@ -66,6 +66,7 @@ export type SendDetailsStackParamList = {
     satoshiPerByte: number;
     payjoinUrl?: string | null;
     psbt: Psbt;
+    serviceFee?: number; // service fee in satoshis
   };
   PsbtWithHardwareWallet: {
     memo?: string;

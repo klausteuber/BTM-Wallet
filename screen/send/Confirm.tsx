@@ -73,7 +73,7 @@ const Confirm: React.FC = () => {
   const { isBiometricUseCapableAndEnabled } = useBiometrics();
   const navigation = useExtendedNavigation<ConfirmNavigationProp>();
   const route = useRoute<ConfirmRouteProp>(); // Get the route and its params
-  const { recipients, targets, walletID, fee, memo, tx, satoshiPerByte, psbt, payjoinUrl } = route.params; // Destructure params
+  const { recipients, targets, walletID, fee, memo, tx, satoshiPerByte, psbt, payjoinUrl, serviceFee } = route.params;
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const { navigate, setOptions, goBack } = navigation;
@@ -337,6 +337,11 @@ const Confirm: React.FC = () => {
           <Text style={styles.cardText} testID="TransactionFee">
             {loc.send.create_fee}: {formatBalance(feeSatoshi, BitcoinUnit.BTC)} ({satoshiToLocalCurrency(feeSatoshi)})
           </Text>
+          {serviceFee ? (
+            <Text style={styles.cardText} testID="ServiceFee">
+              {loc.send.service_fee}: {formatBalance(serviceFee, BitcoinUnit.BTC)} ({satoshiToLocalCurrency(serviceFee)})
+            </Text>
+          ) : null}
           {state.isLoading ? (
             <ActivityIndicator />
           ) : (
