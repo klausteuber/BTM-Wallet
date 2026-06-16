@@ -73,7 +73,7 @@ export type DetailViewStackParamList = {
     };
   };
   AztecoRedeem: { aztecoVoucher: AztecoVoucher };
-  WalletExport: undefined;
+  WalletExport: { walletID: string };
   ExportMultisigCoordinationSetupRoot: undefined;
   Settings: undefined;
   Currency: undefined;
@@ -108,7 +108,9 @@ export type DetailViewStackParamList = {
   };
   ReceiveDetails: {
     walletID?: string;
-    address: string;
+    address?: string;
+    mode?: 'atm' | 'default';
+    entryPoint?: 'atm' | 'advanced';
   };
   ScanQRCode: ScanQRCodeParamList;
   PaymentCodeList: {

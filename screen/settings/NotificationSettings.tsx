@@ -15,6 +15,7 @@ import {
   checkPermissions,
   checkNotificationPermissionStatus,
   NOTIFICATIONS_NO_AND_DONT_ASK_FLAG,
+  registerWalletsForNotifications,
 } from '../../blue_modules/notifications';
 import { BlueCard, BlueText } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
@@ -29,12 +30,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20, BlueSpacing40 } from '../../components/BlueSpacing';
 import { useLocale } from '@react-navigation/native';
+import { useStorage } from '../../hooks/context/useStorage';
 
 const NotificationSettings: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNotificationsEnabledState, setNotificationsEnabledState] = useState<boolean | undefined>(undefined);
   const [tokenInfo, setTokenInfo] = useState('<empty>');
   const { direction } = useLocale();
+  const { wallets } = useStorage();
   const [URI, setURI] = useState<string | undefined>();
   const [tapCount, setTapCount] = useState(0);
   const { colors } = useTheme();
@@ -90,6 +93,7 @@ const NotificationSettings: React.FC = () => {
         const permissionsGranted = await tryToObtainPermissions();
         if (permissionsGranted) {
           await setLevels(true);
+          await registerWalletsForNotifications(wallets);
           await AsyncStorage.removeItem(NOTIFICATIONS_NO_AND_DONT_ASK_FLAG);
         } else {
           showNotificationPermissionAlert();

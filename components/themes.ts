@@ -140,11 +140,15 @@ export class BlueCurrentTheme {
   static closeImage: Theme['closeImage'];
   static scanImage: Theme['scanImage'];
 
+  static updateTheme(theme: Theme): void {
+    BlueCurrentTheme.colors = theme.colors;
+    BlueCurrentTheme.closeImage = theme.closeImage;
+    BlueCurrentTheme.scanImage = theme.scanImage;
+  }
+
   static updateColorScheme(): void {
     const isColorSchemeDark = Appearance.getColorScheme() === 'dark';
-    BlueCurrentTheme.colors = isColorSchemeDark ? BlueDarkTheme.colors : BlueDefaultTheme.colors;
-    BlueCurrentTheme.closeImage = isColorSchemeDark ? BlueDarkTheme.closeImage : BlueDefaultTheme.closeImage;
-    BlueCurrentTheme.scanImage = isColorSchemeDark ? BlueDarkTheme.scanImage : BlueDefaultTheme.scanImage;
+    BlueCurrentTheme.updateTheme(isColorSchemeDark ? BlueDarkTheme : BlueDefaultTheme);
   }
 }
 

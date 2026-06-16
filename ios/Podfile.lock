@@ -1318,6 +1318,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-maps (1.20.1):
+    - React-Core
   - react-native-menu (1.2.4):
     - React
   - react-native-safe-area-context (5.5.2):
@@ -2010,6 +2012,7 @@ DEPENDENCIES:
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-secure-key-store (from `../node_modules/react-native-secure-key-store`)
@@ -2172,6 +2175,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-menu:
     :path: "../node_modules/@react-native-menu/menu"
   react-native-safe-area-context:
@@ -2339,6 +2344,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: e1dc1c14b246540c048afc6dadfce2efe9f21f95
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 1b6097f71e3cf785a40d22be7904f17e924965bb
+  react-native-maps: 9febd31278b35cd21e4fad2cf6fa708993be5dab
   react-native-menu: 475e400d9b57949c076a0844e130044b45f2aa3d
   react-native-safe-area-context: 0f7bf11598f9a61b7ceac8dc3f59ef98697e99e1
   react-native-secure-key-store: eb45b44bdec3f48e9be5cdfca0f49ddf64892ea6
@@ -2400,6 +2406,6 @@ SPEC CHECKSUMS:
   Yoga: e14bad835e12b6c7e2260fc320bd00e0f4b45add
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: eb430c3fd96af23d4962c4c041798d65efc6843e
+PODFILE CHECKSUM: 3f22f977387010737c55789481352ecc2acd5853
 
 COCOAPODS: 1.16.2

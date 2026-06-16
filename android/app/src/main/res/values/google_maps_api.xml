@@ -1,0 +1,4 @@
+<resources>
+    <!-- Replace this value with your Android Google Maps SDK key to render native map tiles. -->
+    <string name="google_maps_key" translatable="false"></string>
+</resources>

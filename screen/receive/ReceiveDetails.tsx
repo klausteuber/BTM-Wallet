@@ -1,8 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BackHandler, InteractionManager, LayoutAnimation, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {
+  Alert,
+  BackHandler,
+  InteractionManager,
+  LayoutAnimation,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Share from 'react-native-share';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon } from '@rneui/themed';
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { fiatToBTC, satoshiToBTC } from '../../blue_modules/currency';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
@@ -27,15 +42,17 @@ import { useStorage } from '../../hooks/context/useStorage';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc, { formatBalance } from '../../loc';
 import { BitcoinUnit, Chain } from '../../models/bitcoinUnits';
-import { ReceiveDetailsStackParamList } from '../../navigation/ReceiveDetailsStackParamList';
+import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
 import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
 import { SuccessView } from '../send/success';
 import { BlueSpacing20, BlueSpacing40 } from '../../components/BlueSpacing';
 import { BlueLoading } from '../../components/BlueLoading';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
+import { ATM_RECEIVE_QR_FULLSCREEN_SIZE, getReceiveQRCodeSize } from './receiveQrSizing';
 
 const segmentControlValues = [loc.wallets.details_address, loc.bip47.payment_code];
-const HORIZONTAL_PADDING = 20;
+const AMERICA_BLUE = '#040766';
+const AMERICA_RED = '#ED122E';
 
 type StickyHeaderProps = {
   wallet: any;
@@ -62,14 +79,51 @@ const StickyHeader = React.memo(({ wallet, isBIP47Enabled, tabValues, currentTab
   );
 });
 
-type NavigationProps = NativeStackNavigationProp<ReceiveDetailsStackParamList, 'ReceiveDetails'>;
-type RouteProps = RouteProp<ReceiveDetailsStackParamList, 'ReceiveDetails'>;
+type AtmActionButtonProps = {
+  title: string;
+  iconName: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'alert';
+};
+
+const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: AtmActionButtonProps) => {
+  const { colors } = useTheme();
+  const isPrimary = variant === 'primary';
+  const isAlert = variant === 'alert';
+  const backgroundColor = isPrimary ? AMERICA_BLUE : isAlert ? AMERICA_RED : (colors.lightButton ?? '#F4F6FB');
+  const borderColor = isPrimary || isAlert ? backgroundColor : (colors.lightBorder ?? '#D9DAE5');
+  const textColor = isPrimary || isAlert ? '#FFFFFF' : AMERICA_BLUE;
+  const iconBubbleColor = isPrimary || isAlert ? 'rgba(255,255,255,0.18)' : '#FFFFFF';
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.atmActionButton,
+        { backgroundColor, borderColor, opacity: pressed ? 0.86 : 1 },
+        isPrimary || isAlert ? styles.atmActionButtonElevated : null,
+      ]}
+    >
+      <View style={[styles.atmActionIconBubble, { backgroundColor: iconBubbleColor }]}>
+        <Icon color={textColor} name={iconName} size={18} type="ionicon" />
+      </View>
+      <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.atmActionButtonText, { color: textColor }]}>
+        {title}
+      </Text>
+    </Pressable>
+  );
+};
+
+type NavigationProps = NativeStackNavigationProp<DetailViewStackParamList, 'ReceiveDetails'>;
+type RouteProps = RouteProp<DetailViewStackParamList, 'ReceiveDetails'>;
 
 const ReceiveDetails = () => {
-  const { walletID, address } = useRoute<RouteProps>().params;
+  const { walletID, address, entryPoint = 'advanced' } = useRoute<RouteProps>().params;
   const { wallets, saveToDisk, sleep, fetchAndSaveWalletTransactions } = useStorage();
   const { isElectrumDisabled } = useSettings();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [customLabel, setCustomLabel] = useState('');
   const [customAmount, setCustomAmount] = useState('');
   const [customUnit, setCustomUnit] = useState<BitcoinUnit>(BitcoinUnit.BTC);
@@ -82,7 +136,6 @@ const ReceiveDetails = () => {
   const [showConfirmedBalance, setShowConfirmedBalance] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
   const [currentTab, setCurrentTab] = useState(segmentControlValues[0]);
-  const { goBack, setParams, setOptions } = useExtendedNavigation<NavigationProps>();
   const bottomModalRef = useRef<BottomModalHandle | null>(null);
   const [intervalMs, setIntervalMs] = useState(5000);
   const [eta, setEta] = useState('');
@@ -90,6 +143,19 @@ const ReceiveDetails = () => {
   const [initialUnconfirmed, setInitialUnconfirmed] = useState(0);
   const [displayBalance, setDisplayBalance] = useState('');
   const [qrCodeSize, setQRCodeSize] = useState(90);
+  const [isAtmQrVisible, setIsAtmQrVisible] = useState(false);
+  const [isWalletBackedUp, setIsWalletBackedUp] = useState(false);
+  const [hasCopiedAtmAddress, setHasCopiedAtmAddress] = useState(false);
+  // Unified receive: every entry point now uses the scan-optimized "ATM" layout, so this is always true.
+  // (Kept as a named flag so the layout branches below stay readable and easy to revert per-section.)
+  const isAtmMode = true;
+  // The forced seed-backup flow stays scoped to wallets created through the ATM onboarding flow.
+  const isAtmOnboarding = entryPoint === 'atm';
+  const allowAtmExitRef = useRef(false);
+  const hasShownDepositReminderRef = useRef(false);
+  const copiedAddressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigation = useExtendedNavigation<NavigationProps>();
+  const { goBack, setParams, setOptions } = navigation;
 
   const wallet = walletID ? wallets.find(w => w.getID() === walletID) : undefined;
   const isBIP47Enabled = wallet?.isBIP47Enabled();
@@ -115,7 +181,58 @@ const ReceiveDetails = () => {
     modalButton: {
       backgroundColor: colors.modalButton,
     },
+    atmHint: {
+      color: colors.alternativeTextColor,
+    },
+    atmPanel: {
+      borderColor: colors.lightBorder,
+      backgroundColor: colors.elevated,
+    },
+    atmBadgeText: {
+      color: '#FFFFFF',
+    },
+    atmBackupBody: {
+      color: colors.alternativeTextColor,
+    },
+    atmAddressCard: {
+      backgroundColor: colors.lightButton ?? '#F4F6FB',
+      borderColor: colors.lightBorder,
+    },
+    atmAddressLabel: {
+      color: colors.alternativeTextColor,
+    },
+    atmAddressValue: {
+      color: colors.foregroundColor,
+    },
+    atmBackupCard: {
+      backgroundColor: colors.elevated,
+      borderColor: colors.lightBorder,
+    },
+    atmModalOverlay: {
+      backgroundColor: colors.foregroundColor === '#ffffff' ? 'rgba(4, 7, 102, 0.96)' : 'rgba(4, 7, 102, 0.98)',
+    },
+    atmContentTop: {
+      paddingTop: insets.top + 8,
+    },
+    atmCloseButton: {
+      top: insets.top + 6,
+    },
+    atmFullscreenTop: {
+      paddingTop: insets.top + 16,
+    },
   });
+
+  useEffect(() => {
+    setIsWalletBackedUp(wallet?.getUserHasSavedExport() ?? false);
+  }, [wallet]);
+
+  useEffect(() => {
+    return () => {
+      if (copiedAddressTimeoutRef.current) {
+        clearTimeout(copiedAddressTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const setAddressBIP21Encoded = useCallback(
     (addr: string) => {
@@ -177,7 +294,10 @@ const ReceiveDetails = () => {
     }
 
     if (!newAddress) {
-      presentAlert({ title: loc.errors.error, message: loc.receive.address_not_found });
+      presentAlert({
+        title: loc.errors.error,
+        message: loc.receive.address_not_found,
+      });
       return;
     }
 
@@ -212,10 +332,13 @@ const ReceiveDetails = () => {
   }, [address, setAddressBIP21Encoded]);
 
   const toolTipActions = useMemo(() => {
+    if (isAtmMode) {
+      return [];
+    }
     const action = { ...CommonToolTipActions.PaymentsCode };
     action.menuState = isBIP47Enabled;
     return [action];
-  }, [isBIP47Enabled]);
+  }, [isAtmMode, isBIP47Enabled]);
 
   const onPressMenuItem = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -228,11 +351,14 @@ const ReceiveDetails = () => {
   );
 
   useEffect(() => {
-    wallet?.allowBIP47() &&
-      setOptions({
-        headerRight: () => HeaderRight,
-      });
-  }, [HeaderRight, colors.foregroundColor, setOptions, wallet]);
+    setOptions({
+      // ATM mode hides the native header entirely so the QR can sit as high as possible for the
+      // kiosk scan bay; a floating close button (below) replaces the header's close affordance.
+      headerShown: !isAtmMode,
+      title: isAtmMode ? '' : loc.receive.header,
+      headerRight: !isAtmMode && wallet?.allowBIP47() ? () => HeaderRight : undefined,
+    });
+  }, [HeaderRight, isAtmMode, setOptions, wallet]);
 
   // re-fetching address balance periodically
   useEffect(() => {
@@ -325,6 +451,93 @@ const ReceiveDetails = () => {
     return () => subscription.remove();
   }, [goBack]);
 
+  const navigateToWalletExport = useCallback(() => {
+    if (!walletID) {
+      return;
+    }
+
+    allowAtmExitRef.current = true;
+    setIsAtmQrVisible(false);
+    navigation.navigate('WalletExport', { walletID });
+  }, [navigation, walletID]);
+
+  const markBackupAsDone = useCallback(async () => {
+    if (!wallet) {
+      return;
+    }
+
+    wallet.setUserHasSavedExport(true);
+    setIsWalletBackedUp(true);
+    await saveToDisk();
+    triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
+  }, [saveToDisk, wallet]);
+
+  const handleAtmCopyAddress = useCallback(() => {
+    if (!address) {
+      return;
+    }
+
+    Clipboard.setString(address);
+    triggerHapticFeedback(HapticFeedbackTypes.Selection);
+    setHasCopiedAtmAddress(true);
+
+    if (copiedAddressTimeoutRef.current) {
+      clearTimeout(copiedAddressTimeoutRef.current);
+    }
+
+    copiedAddressTimeoutRef.current = setTimeout(() => {
+      setHasCopiedAtmAddress(false);
+    }, 1600);
+  }, [address]);
+
+  useEffect(() => {
+    if (!isAtmOnboarding || isWalletBackedUp || !wallet) {
+      return;
+    }
+
+    const unsubscribe = navigation.addListener('beforeRemove', event => {
+      if (allowAtmExitRef.current || isWalletBackedUp) {
+        allowAtmExitRef.current = false;
+        return;
+      }
+
+      const nextScreen = (event.data.action as { payload?: { name?: string } })?.payload?.name;
+      if (nextScreen === 'WalletExport') {
+        return;
+      }
+
+      event.preventDefault();
+
+      Alert.alert(loc.receive.atm_backup_leave_title, loc.receive.atm_backup_leave_message, [
+        { text: loc._.cancel, style: 'cancel' },
+        { text: loc.receive.atm_backup_cta, onPress: navigateToWalletExport },
+        {
+          text: loc.receive.atm_backup_leave_button,
+          style: 'destructive',
+          onPress: () => {
+            allowAtmExitRef.current = true;
+            navigation.dispatch(event.data.action);
+          },
+        },
+      ]);
+    });
+
+    return unsubscribe;
+  }, [isAtmOnboarding, isWalletBackedUp, navigation, navigateToWalletExport, wallet]);
+
+  useEffect(() => {
+    if (!isAtmOnboarding || isWalletBackedUp || !showConfirmedBalance || hasShownDepositReminderRef.current) {
+      return;
+    }
+
+    hasShownDepositReminderRef.current = true;
+    Alert.alert(loc.receive.atm_backup_strong_title, loc.receive.atm_backup_strong_message, [
+      { text: loc._.cancel, style: 'cancel' },
+      { text: loc.receive.atm_backup_cta, onPress: navigateToWalletExport },
+      { text: loc.receive.atm_backup_done, onPress: markBackupAsDone },
+    ]);
+  }, [isAtmOnboarding, isWalletBackedUp, markBackupAsDone, navigateToWalletExport, showConfirmedBalance]);
+
   const renderConfirmedBalance = () => {
     return (
       <View style={styles.scrollBody}>
@@ -361,29 +574,101 @@ const ReceiveDetails = () => {
     );
   };
 
-  const onLayout = useCallback((e: { nativeEvent: { layout: { height: number; width: number } } }) => {
-    const { height, width } = e.nativeEvent.layout;
-
-    const isPortrait = height > width;
-    const maxQRSize = 500;
-
-    if (isPortrait) {
-      const heightBasedSize = Math.min(height * 0.6, maxQRSize);
-      const widthBasedSize = width * 0.85 - HORIZONTAL_PADDING * 2;
-      setQRCodeSize(Math.min(heightBasedSize, widthBasedSize));
-    } else {
-      const heightBasedSize = Math.min(height * 0.7, maxQRSize);
-      const widthBasedSize = width * 0.45;
-      setQRCodeSize(Math.min(heightBasedSize, widthBasedSize));
-    }
-  }, []);
+  const onLayout = useCallback(
+    (e: { nativeEvent: { layout: { height: number; width: number } } }) => {
+      const { height, width } = e.nativeEvent.layout;
+      setQRCodeSize(getReceiveQRCodeSize({ height, width, isAtmMode }));
+    },
+    [isAtmMode],
+  );
 
   const renderTabContent = () => {
+    if (isAtmMode && currentTab === segmentControlValues[0]) {
+      return (
+        <View style={[styles.container, styles.qrTopContainer, stylesHook.atmContentTop]}>
+          {address && (
+            <View style={styles.atmScrollBody}>
+              <View style={[styles.atmPanel, stylesHook.atmPanel]}>
+                {/* QR is the first element so it sits near the top of the phone screen and lands inside the
+                    ATM kiosk scan bay's field of view when the customer presents their phone. */}
+                <View style={styles.qrCodeContainer}>
+                  <QRCodeComponent
+                    value={isCustom ? bip21encoded : address}
+                    isLogoRendered={false}
+                    isMenuAvailable={false}
+                    size={qrCodeSize}
+                  />
+                </View>
+                {isCustom && getDisplayAmount() && (
+                  <BlueText testID="BitcoinAmountText" style={styles.atmAmountText} numberOfLines={1}>
+                    {getDisplayAmount()}
+                  </BlueText>
+                )}
+                {isCustom && customLabel?.length > 0 && (
+                  <BlueText style={[styles.atmAmountLabel, stylesHook.atmHint]} numberOfLines={1}>
+                    {customLabel}
+                  </BlueText>
+                )}
+                <BlueText style={styles.atmHelperText}>{loc.receive.atm_helper}</BlueText>
+                <View style={styles.atmBadge}>
+                  <BlueText style={[styles.atmBadgeText, stylesHook.atmBadgeText]}>{loc.wallets.atm_badge}</BlueText>
+                </View>
+                <View style={[styles.atmAddressCard, stylesHook.atmAddressCard]}>
+                  <View style={styles.atmAddressMetaRow}>
+                    <BlueText style={[styles.atmAddressLabel, stylesHook.atmAddressLabel]}>{loc.receive.atm_address_label}</BlueText>
+                    {hasCopiedAtmAddress ? (
+                      <View style={styles.atmAddressCopiedChip}>
+                        <Icon color={AMERICA_BLUE} name="checkmark-circle" size={14} type="ionicon" />
+                        <Text style={styles.atmAddressCopiedChipText}>{loc.receive.atm_copied}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text numberOfLines={2} ellipsizeMode="middle" selectable style={[styles.atmAddressValue, stylesHook.atmAddressValue]}>
+                    {address}
+                  </Text>
+                </View>
+                <BlueText style={[styles.atmHintText, stylesHook.atmHint]}>{loc.receive.atm_brightness_tip}</BlueText>
+                <View style={styles.atmButtonStack}>
+                  <AtmActionButton
+                    title={loc.receive.atm_fullscreen}
+                    iconName="scan-outline"
+                    onPress={() => setIsAtmQrVisible(true)}
+                    variant="primary"
+                  />
+                  <View style={styles.atmActionSpacer} />
+                  <AtmActionButton
+                    title={loc.receive.atm_copy_address}
+                    iconName={hasCopiedAtmAddress ? 'checkmark-circle-outline' : 'copy-outline'}
+                    onPress={handleAtmCopyAddress}
+                    variant="secondary"
+                  />
+                  <View style={styles.atmActionSpacer} />
+                  <AtmActionButton
+                    title={loc.receive.atm_share}
+                    iconName="share-social-outline"
+                    onPress={handleShareButtonPressed}
+                    variant="secondary"
+                  />
+                  <View style={styles.atmActionSpacer} />
+                  <AtmActionButton
+                    title={loc.receive.details_setAmount}
+                    iconName="pricetag-outline"
+                    onPress={showCustomAmountModal}
+                    variant="secondary"
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      );
+    }
+
     if (currentTab === segmentControlValues[0]) {
       return (
-        <View style={styles.container}>
+        <View style={[styles.container, styles.qrTopContainer]}>
           {address && (
-            <View style={styles.scrollBody}>
+            <View style={[styles.scrollBody, styles.qrTopBody]}>
               {isCustom && (
                 <>
                   {getDisplayAmount() && (
@@ -432,6 +717,7 @@ const ReceiveDetails = () => {
 
   useFocusEffect(
     useCallback(() => {
+      allowAtmExitRef.current = false;
       const task = InteractionManager.runAfterInteractions(async () => {
         try {
           if (wallet) {
@@ -481,7 +767,12 @@ const ReceiveDetails = () => {
     setCustomAmount(tempCustomAmount);
     setCustomUnit(tempCustomUnit);
     // address is always defined here
-    setBip21encoded(DeeplinkSchemaMatch.bip21encode(address!, { amount, label: tempCustomLabel }));
+    setBip21encoded(
+      DeeplinkSchemaMatch.bip21encode(address!, {
+        amount,
+        label: tempCustomLabel,
+      }),
+    );
     setShowAddress(true);
   };
 
@@ -521,7 +812,7 @@ const ReceiveDetails = () => {
   const handleShareButtonPressed = () => {
     let message: string | false = false;
     if (currentTab === segmentControlValues[0]) {
-      message = bip21encoded;
+      message = isCustom ? bip21encoded : (address ?? false);
     } else {
       message = (wallet && 'getBIP47PaymentCode' in wallet && wallet.getBIP47PaymentCode()) ?? false;
     }
@@ -537,7 +828,7 @@ const ReceiveDetails = () => {
   return (
     <View style={[styles.flex, stylesHook.root]}>
       <SafeAreaScrollView
-        centerContent
+        centerContent={currentTab !== segmentControlValues[0]}
         contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustsScrollIndicatorInsets
         automaticallyAdjustKeyboardInsets
@@ -546,9 +837,9 @@ const ReceiveDetails = () => {
         contentContainerStyle={[styles.root, stylesHook.root]}
         keyboardShouldPersistTaps="always"
         onLayout={onLayout}
-        stickyHeaderIndices={wallet && isBIP47Enabled ? [0] : []}
+        stickyHeaderIndices={wallet && isBIP47Enabled && !isAtmMode ? [0] : []}
       >
-        {wallet && isBIP47Enabled && (
+        {wallet && isBIP47Enabled && !isAtmMode && (
           <StickyHeader
             wallet={wallet}
             isBIP47Enabled={isBIP47Enabled}
@@ -571,24 +862,80 @@ const ReceiveDetails = () => {
           </View>
         )}
 
-        <View style={styles.share}>
-          <BlueCard>
-            {showAddress && currentTab === loc.wallets.details_address && (
-              <BlueButtonLink
-                style={styles.link}
-                testID="SetCustomAmountButton"
-                title={loc.receive.details_setAmount}
-                onPress={showCustomAmountModal}
+        {isAtmOnboarding && wallet && !isWalletBackedUp && (showAddress || showPendingBalance || showConfirmedBalance) && (
+          <View style={styles.atmBackupSection}>
+            <View style={[styles.atmBackupCard, stylesHook.atmBackupCard]}>
+              <BlueText style={styles.atmBackupTitle}>{loc.receive.atm_backup_title}</BlueText>
+              <BlueSpacing20 />
+              <BlueText style={[styles.atmBackupBody, stylesHook.atmBackupBody]}>{loc.receive.atm_backup_body}</BlueText>
+              <View style={styles.atmBackupActionRow}>
+                <AtmActionButton
+                  title={loc.receive.atm_backup_cta}
+                  iconName="shield-checkmark-outline"
+                  onPress={navigateToWalletExport}
+                  variant="alert"
+                />
+              </View>
+              <View style={styles.atmBackupActionSpacer} />
+              <View style={styles.atmBackupActionRow}>
+                <AtmActionButton title={loc.receive.atm_backup_done} iconName="checkmark-circle-outline" onPress={markBackupAsDone} />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {!isAtmMode && (
+          <View style={styles.share}>
+            <BlueCard>
+              {showAddress && currentTab === loc.wallets.details_address && (
+                <BlueButtonLink
+                  style={styles.link}
+                  testID="SetCustomAmountButton"
+                  title={loc.receive.details_setAmount}
+                  onPress={showCustomAmountModal}
+                />
+              )}
+              <Button
+                onPress={handleShareButtonPressed}
+                title={loc.receive.details_share}
+                disabled={!bip21encoded && !(currentTab === segmentControlValues[1] && isBIP47Enabled)}
               />
-            )}
-            <Button
-              onPress={handleShareButtonPressed}
-              title={loc.receive.details_share}
-              disabled={!bip21encoded && !(currentTab === segmentControlValues[1] && isBIP47Enabled)}
-            />
-          </BlueCard>
-        </View>
+            </BlueCard>
+          </View>
+        )}
       </SafeAreaScrollView>
+
+      {isAtmMode && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={loc._.close}
+          testID="NavigationCloseButton"
+          onPress={() => goBack()}
+          hitSlop={10}
+          style={[styles.atmCloseButton, stylesHook.atmCloseButton]}
+        >
+          <Icon name="close" type="ionicon" size={22} color={AMERICA_BLUE} />
+        </Pressable>
+      )}
+
+      <Modal animationType="fade" transparent visible={isAtmQrVisible} onRequestClose={() => setIsAtmQrVisible(false)}>
+        <View style={[styles.atmModalOverlay, stylesHook.atmModalOverlay]}>
+          <Pressable onPress={() => setIsAtmQrVisible(false)} style={styles.atmModalClose}>
+            <BlueText style={styles.atmModalCloseText}>{loc._.close}</BlueText>
+          </Pressable>
+          <View style={[styles.atmModalContent, stylesHook.atmFullscreenTop]}>
+            {address ? (
+              <QRCodeComponent
+                value={isCustom ? bip21encoded : address}
+                isLogoRendered={false}
+                isMenuAvailable={false}
+                size={ATM_RECEIVE_QR_FULLSCREEN_SIZE}
+              />
+            ) : null}
+            <BlueText style={styles.atmModalTitle}>{loc.receive.atm_helper}</BlueText>
+          </View>
+        </View>
+      </Modal>
 
       <BottomModal
         ref={bottomModalRef}
@@ -659,6 +1006,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'space-between',
   },
+  atmScrollBody: {
+    width: '100%',
+  },
   flex: {
     flex: 1,
   },
@@ -721,6 +1071,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  qrTopContainer: {
+    justifyContent: 'flex-start',
+    paddingTop: 8,
+  },
+  qrTopBody: {
+    flex: 0,
+    justifyContent: 'flex-start',
+  },
   tip: {
     marginHorizontal: 16,
     borderRadius: 12,
@@ -736,6 +1094,224 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
+  },
+  atmPanel: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    shadowColor: AMERICA_BLUE,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+  },
+  atmBadge: {
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: AMERICA_RED,
+    marginBottom: 4,
+  },
+  atmBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  atmAmountText: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 14,
+    color: AMERICA_BLUE,
+  },
+  atmAmountLabel: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  atmHelperText: {
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+    color: AMERICA_BLUE,
+  },
+  atmAddressCard: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  atmAddressMetaRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  atmAddressLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  atmAddressValue: {
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  atmAddressCopiedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  atmAddressCopiedChipText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: AMERICA_BLUE,
+    fontWeight: '700',
+    marginLeft: 4,
+  },
+  atmHintText: {
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 12,
+  },
+  atmButtonStack: {
+    marginTop: 14,
+    width: '100%',
+  },
+  atmActionButton: {
+    width: '100%',
+    minHeight: 54,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  atmActionButtonElevated: {
+    shadowColor: AMERICA_BLUE,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+  },
+  atmActionIconBubble: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  atmActionButtonText: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '700',
+    flex: 1,
+    flexShrink: 1,
+  },
+  atmActionSpacer: {
+    height: 10,
+  },
+  atmBackupSection: {
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  atmBackupCard: {
+    borderRadius: 24,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D9DAE5',
+  },
+  atmBackupTitle: {
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '700',
+    color: AMERICA_BLUE,
+  },
+  atmBackupBody: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  atmBackupActionRow: {
+    width: '100%',
+  },
+  atmBackupActionSpacer: {
+    height: 10,
+  },
+  atmCloseButton: {
+    position: 'absolute',
+    left: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E4EE',
+    zIndex: 20,
+    shadowColor: AMERICA_BLUE,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  atmModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingHorizontal: 24,
+  },
+  atmModalClose: {
+    position: 'absolute',
+    top: 60,
+    right: 24,
+    zIndex: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  atmModalCloseText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  atmModalContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  atmModalTitle: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '700',
+    marginBottom: 24,
   },
 });
 

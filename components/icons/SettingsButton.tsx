@@ -1,15 +1,27 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { useTheme } from '../themes';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc from '../../loc';
 import ToolTipMenu from '../TooltipMenu';
 import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
+import { ATM_LOCATIONS_SUBTITLE, ATM_LOCATIONS_TITLE } from '../../screen/settings/atmLocationsConfig';
 
 const SettingsButton = () => {
   const { colors } = useTheme();
   const { navigate } = useExtendedNavigation();
+
+  const atmLocationsAction = useMemo(
+    () => ({
+      id: 'atmLocations',
+      text: ATM_LOCATIONS_TITLE,
+      subtitle: ATM_LOCATIONS_SUBTITLE,
+      icon: Platform.OS === 'ios' ? { iconValue: 'map' } : undefined,
+    }),
+    [],
+  );
+
   const onPress = () => {
     navigate('Settings');
   };
@@ -17,6 +29,9 @@ const SettingsButton = () => {
   const onPressMenuItem = useCallback(
     (menuItem: string) => {
       switch (menuItem) {
+        case atmLocationsAction.id:
+          navigate('AtmLocations');
+          break;
         case CommonToolTipActions.ManageWallet.id:
           navigate('ManageWallets');
           break;
@@ -24,10 +39,10 @@ const SettingsButton = () => {
           break;
       }
     },
-    [navigate],
+    [atmLocationsAction.id, navigate],
   );
 
-  const actions = useMemo(() => [CommonToolTipActions.ManageWallet], []);
+  const actions = useMemo(() => [atmLocationsAction, CommonToolTipActions.ManageWallet], [atmLocationsAction]);
   return (
     <ToolTipMenu onPressMenuItem={onPressMenuItem} actions={actions}>
       <TouchableOpacity

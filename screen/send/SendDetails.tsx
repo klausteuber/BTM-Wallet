@@ -58,6 +58,10 @@ import ActionSheet from '../ActionSheet';
 import { isCancel, pickTransaction } from '../../blue_modules/fs';
 import { Measure } from '../../class/measure';
 
+// Minimum on-chain send amount, in satoshis. 0.0001 BTC is the minimum deposit
+// accepted by the America Bitcoin ATM Kraken company wallet.
+const MINIMUM_SEND_AMOUNT_SATS = 10000;
+
 interface IPaymentDestinations {
   address: string; // btc address or payment code
   amountSats?: number | string;
@@ -492,7 +496,7 @@ const SendDetails = () => {
       if (!transaction.amount || Number(transaction.amount) < 0 || parseFloat(String(transaction.amount)) === 0) {
         error = loc.send.details_amount_field_is_not_valid;
         console.log('validation error');
-      } else if (parseFloat(String(transaction.amountSats)) <= 500) {
+      } else if (parseFloat(String(transaction.amountSats)) < MINIMUM_SEND_AMOUNT_SATS) {
         error = loc.send.details_amount_field_is_less_than_minimum_amount_sat;
         console.log('validation error');
       } else if (!requestedSatPerByte || parseFloat(requestedSatPerByte) < 0) {

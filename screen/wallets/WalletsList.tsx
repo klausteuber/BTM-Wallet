@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useRef, useMemo } from 'react';
 import { useFocusEffect, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
-import { Alert, findNodeHandle, Image, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, findNodeHandle, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Icon } from '@rneui/themed';
 import { getClipboardContent } from '../../blue_modules/clipboard';
 import { isDesktop } from '../../blue_modules/environment';
 import * as fs from '../../blue_modules/fs';
@@ -14,6 +15,7 @@ import { TransactionListItem } from '../../components/TransactionListItem';
 import WalletsCarousel from '../../components/WalletsCarousel';
 import { useSizeClass, SizeClass } from '../../blue_modules/sizeClass';
 import loc from '../../loc';
+import { Chain } from '../../models/bitcoinUnits';
 import ActionSheet from '../ActionSheet';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
@@ -24,6 +26,7 @@ import { useSettings } from '../../hooks/context/useSettings';
 import useMenuElements from '../../hooks/useMenuElements';
 import SafeAreaSectionList from '../../components/SafeAreaSectionList';
 import { scanQrHelper } from '../../helpers/scan-qr.ts';
+import { createATMReceiveResetAction } from './atmReceiveNavigation';
 
 const WalletsListSections = { CAROUSEL: 'CAROUSEL', TRANSACTIONS: 'TRANSACTIONS' };
 
@@ -103,13 +106,14 @@ const WalletsList: React.FC = () => {
   const { wallets, getTransactions, refreshAllWalletTransactions } = useStorage();
   const { isTotalBalanceEnabled, isElectrumDisabled } = useSettings();
   const { width } = useWindowDimensions();
-  const { colors, scanImage } = useTheme();
+  const { colors } = useTheme();
   const navigation = useExtendedNavigation<NavigationProps>();
   const isFocused = useIsFocused();
   const route = useRoute<RouteProps>();
   const dataSource = getTransactions(undefined, 10);
   const walletsCount = useRef<number>(wallets.length);
   const walletActionButtonsRef = useRef<any>();
+  const atmWallets = useMemo(() => wallets.filter(item => item.chain === Chain.ONCHAIN && item.allowReceive()), [wallets]);
 
   const stylesHook = StyleSheet.create({
     walletsListWrapper: {
@@ -122,6 +126,20 @@ const WalletsList: React.FC = () => {
     listHeaderText: {
       color: colors.foregroundColor,
       flexShrink: 1,
+    },
+    footerCard: {
+      backgroundColor: colors.elevated,
+      borderColor: colors.lightBorder,
+      shadowColor: colors.shadowColor,
+    },
+    footerTitle: {
+      color: colors.foregroundColor,
+    },
+    footerText: {
+      color: colors.alternativeTextColor,
+    },
+    footerIcon: {
+      backgroundColor: colors.lightButton,
     },
   });
 
@@ -217,6 +235,35 @@ const WalletsList: React.FC = () => {
     [navigation],
   );
 
+  const openAtmReceiveForWallet = useCallback(
+    (wallet: TWallet) => {
+      navigation.dispatch(createATMReceiveResetAction(wallet.getID()));
+    },
+    [navigation],
+  );
+
+  const handleOpenAtmReceive = useCallback(() => {
+    if (atmWallets.length === 0) {
+      navigation.navigate('AddWalletRoot');
+      return;
+    }
+
+    if (atmWallets.length === 1) {
+      openAtmReceiveForWallet(atmWallets[0]);
+      return;
+    }
+
+    navigation.navigate('SelectWallet', {
+      availableWallets: atmWallets,
+      noWalletExplanationText: loc.wallets.atm_select_wallet_explanation,
+      onWalletSelect: wallet => openAtmReceiveForWallet(wallet),
+    });
+  }, [atmWallets, navigation, openAtmReceiveForWallet]);
+
+  const handleOpenAtmLocations = useCallback(() => {
+    navigation.navigate('AtmLocations');
+  }, [navigation]);
+
   const handleClick = useCallback(
     (item?: TWallet) => {
       if (item?.getID) {
@@ -259,7 +306,7 @@ const WalletsList: React.FC = () => {
           numberOfLines={2}
           adjustsFontSizeToFit={true}
         >
-          {`${loc.transactions.list_title}${'  '}`}
+          {`${loc.wallets.home_activity_title}${'  '}`}
         </Text>
       </View>
     );
@@ -338,10 +385,25 @@ const WalletsList: React.FC = () => {
       switch (section.section.key) {
         case WalletsListSections.TRANSACTIONS:
           if (dataSource.length === 0 && !isLoading) {
+            const hasWallets = wallets.length > 0;
             return (
               <View style={styles.footerRoot} testID="NoTransactionsMessage">
-                <Text style={styles.footerEmpty}>{loc.wallets.list_empty_txs1}</Text>
-                <Text style={styles.footerStart}>{loc.wallets.list_empty_txs2}</Text>
+                <View style={[styles.footerCard, stylesHook.footerCard]}>
+                  <View style={[styles.footerIcon, stylesHook.footerIcon]}>
+                    <Icon
+                      name={hasWallets ? 'receipt-outline' : 'shield-checkmark-outline'}
+                      type="ionicon"
+                      color={colors.foregroundColor}
+                      size={22}
+                    />
+                  </View>
+                  <Text style={[styles.footerTitle, stylesHook.footerTitle]}>
+                    {hasWallets ? loc.wallets.home_empty_activity_title : loc.wallets.home_empty_setup_title}
+                  </Text>
+                  <Text style={[styles.footerText, stylesHook.footerText]}>
+                    {hasWallets ? loc.wallets.home_empty_activity_text : loc.wallets.home_empty_setup_text}
+                  </Text>
+                </View>
               </View>
             );
           } else {
@@ -351,49 +413,57 @@ const WalletsList: React.FC = () => {
           return null;
       }
     },
-    [dataSource.length, isLoading],
+    [
+      colors.foregroundColor,
+      dataSource.length,
+      isLoading,
+      stylesHook.footerCard,
+      stylesHook.footerIcon,
+      stylesHook.footerText,
+      stylesHook.footerTitle,
+      wallets.length,
+    ],
   );
 
-  const renderScanButton = useCallback(() => {
-    if (wallets.length > 0) {
-      return (
-        <FContainer ref={walletActionButtonsRef.current}>
-          <FButton
-            onPress={onScanButtonPressed}
-            onLongPress={sendButtonLongPress}
-            icon={<Image resizeMode="stretch" source={scanImage} />}
-            text={loc.send.details_scan}
-            testID="HomeScreenScanButton"
-          />
-        </FContainer>
-      );
-    } else {
-      return null;
+  const handlePrimaryActionButtonPressed = useCallback(() => {
+    if (atmWallets.length === 0) {
+      navigation.navigate('AddWalletRoot');
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanImage, wallets.length]);
 
-  const sectionListKeyExtractor = useCallback((item: any, index: any) => {
-    return `${item}${index}}`;
-  }, []);
-
-  const onScanButtonPressed = useCallback(() => {
-    scanQrHelper().then(onBarScanned);
-  }, [onBarScanned]);
+    handleOpenAtmReceive();
+  }, [atmWallets.length, handleOpenAtmReceive, navigation]);
 
   const pasteFromClipboard = useCallback(async () => {
     onBarScanned(await getClipboardContent());
   }, [onBarScanned]);
 
-  const sendButtonLongPress = useCallback(async () => {
+  const primaryButtonLongPress = useCallback(async () => {
+    if (atmWallets.length === 0) {
+      ActionSheet.showActionSheetWithOptions(
+        {
+          title: loc.wallets.atm_setup_title,
+          options: [loc._.cancel, loc.wallets.atm_import_wallet],
+          cancelButtonIndex: 0,
+        },
+        buttonIndex => {
+          if (buttonIndex === 1) {
+            // @ts-ignore react-navigation nested modal params
+            navigation.navigate('AddWalletRoot', { screen: 'ImportWallet' });
+          }
+        },
+      );
+      return;
+    }
+
     const isClipboardEmpty = (await getClipboardContent())?.trim().length === 0;
 
-    const options = [loc._.cancel, loc.wallets.list_long_choose, loc.wallets.list_long_scan];
+    const options = [loc._.cancel, loc.wallets.atm_action_show_qr, loc.wallets.list_long_choose, loc.wallets.list_long_scan];
     if (!isClipboardEmpty) {
       options.push(loc.wallets.paste_from_clipboard);
     }
 
-    const props = { title: loc.send.header, options, cancelButtonIndex: 0 };
+    const props = { title: loc.receive.atm_title, options, cancelButtonIndex: 0 };
 
     const anchor = findNodeHandle(walletActionButtonsRef.current);
 
@@ -406,6 +476,9 @@ const WalletsList: React.FC = () => {
         case 0:
           break;
         case 1:
+          handleOpenAtmReceive();
+          break;
+        case 2:
           fs.showImagePickerAndReadImage()
             .then(onBarScanned)
             .catch(error => {
@@ -413,17 +486,57 @@ const WalletsList: React.FC = () => {
               presentAlert({ title: loc.errors.error, message: error.message });
             });
           break;
-        case 2:
+        case 3:
           scanQrHelper().then(onBarScanned);
           break;
-        case 3:
+        case 4:
           if (!isClipboardEmpty) {
             pasteFromClipboard();
           }
           break;
       }
     });
-  }, [onBarScanned, pasteFromClipboard]);
+  }, [atmWallets.length, handleOpenAtmReceive, navigation, onBarScanned, pasteFromClipboard]);
+
+  const renderScanButton = useCallback(() => {
+    const actionText =
+      atmWallets.length === 0
+        ? loc.wallets.atm_home_create_short
+        : atmWallets.length === 1
+          ? loc.wallets.atm_home_show_qr_short
+          : loc.wallets.atm_home_show_qr_multi_short;
+
+    const actionIcon =
+      atmWallets.length === 0 ? (
+        <Icon name="add-circle-outline" type="ionicon" color="#FFFFFF" />
+      ) : (
+        <Icon name="qr-code-outline" type="ionicon" color="#FFFFFF" size={18} />
+      );
+
+    return (
+      <FContainer ref={walletActionButtonsRef}>
+        <FButton
+          onPress={handlePrimaryActionButtonPressed}
+          onLongPress={primaryButtonLongPress}
+          icon={actionIcon}
+          text={actionText}
+          testID="HomeScreenScanButton"
+          variant="primary"
+        />
+        <FButton
+          onPress={handleOpenAtmLocations}
+          icon={<Icon name="location-outline" type="ionicon" color={colors.foregroundColor} />}
+          text={loc.wallets.atm_home_map}
+          testID="HomeScreenAtmMapButton"
+          variant="secondary"
+        />
+      </FContainer>
+    );
+  }, [atmWallets.length, colors.foregroundColor, handleOpenAtmLocations, handlePrimaryActionButtonPressed, primaryButtonLongPress]);
+
+  const sectionListKeyExtractor = useCallback((item: any, index: any) => {
+    return `${item}${index}}`;
+  }, []);
 
   const refreshProps = isDesktop || isElectrumDisabled ? {} : { refreshing: isLoading, onRefresh };
 
@@ -442,7 +555,7 @@ const WalletsList: React.FC = () => {
 
   // Constants for layout calculations
   const TRANSACTION_ITEM_HEIGHT = 80;
-  const CAROUSEL_HEIGHT = 195;
+  const CAROUSEL_HEIGHT = 258;
   const SECTION_HEADER_HEIGHT = 56; // Base height
   const LARGE_TITLE_EXTRA_HEIGHT = 20; // Additional height for large titles
 
@@ -526,19 +639,40 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   footerRoot: {
-    top: 80,
-    height: 160,
-    marginBottom: 80,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    marginBottom: 116,
   },
-  footerEmpty: {
+  footerCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    elevation: 1,
+  },
+  footerIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  footerTitle: {
     fontSize: 18,
-    color: '#9aa0aa',
+    lineHeight: 23,
+    fontWeight: '700',
     textAlign: 'center',
   },
-  footerStart: {
-    fontSize: 18,
-    color: '#9aa0aa',
+  footerText: {
+    marginTop: 7,
+    fontSize: 15,
+    lineHeight: 22,
     textAlign: 'center',
-    fontWeight: '600',
+    maxWidth: 295,
   },
 });

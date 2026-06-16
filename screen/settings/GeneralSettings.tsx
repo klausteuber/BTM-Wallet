@@ -10,6 +10,7 @@ import { useStorage } from '../../hooks/context/useStorage';
 import { useSettings } from '../../hooks/context/useSettings';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
+import { ThemePreference, useThemePreference } from '../../components/Context/ThemePreferenceProvider';
 
 type NavigationProp = NativeStackNavigationProp<DetailViewStackParamList, 'GeneralSettings'>;
 
@@ -22,6 +23,7 @@ const styles = StyleSheet.create({
 const GeneralSettings: React.FC = () => {
   const { wallets } = useStorage();
   const { isHandOffUseEnabled, setIsHandOffUseEnabledAsyncStorage, isLegacyURv1Enabled, setIsLegacyURv1EnabledStorage } = useSettings();
+  const { themePreference, setThemePreferenceStorage } = useThemePreference();
   const { navigate } = useNavigation<NavigationProp>();
   const { colors } = useTheme();
 
@@ -31,6 +33,10 @@ const GeneralSettings: React.FC = () => {
 
   const onHandOffUseEnabledChange = async (value: boolean) => {
     await setIsHandOffUseEnabledAsyncStorage(value);
+  };
+
+  const onThemePreferencePress = async (preference: ThemePreference) => {
+    await setThemePreferenceStorage(preference);
   };
 
   const stylesWithThemeHook = {
@@ -51,12 +57,35 @@ const GeneralSettings: React.FC = () => {
         </>
       )}
       <ListItem title={loc.settings.privacy} onPress={navigateToPrivacy} testID="SettingsPrivacy" chevron />
+      <ListItem
+        title={loc.settings.appearance_system}
+        subtitle={loc.settings.appearance_explanation}
+        onPress={() => onThemePreferencePress(ThemePreference.System)}
+        testID="AppearanceSystem"
+        checkmark={themePreference === ThemePreference.System}
+      />
+      <ListItem
+        title={loc.settings.appearance_light}
+        onPress={() => onThemePreferencePress(ThemePreference.Light)}
+        testID="AppearanceLight"
+        checkmark={themePreference === ThemePreference.Light}
+      />
+      <ListItem
+        title={loc.settings.appearance_dark}
+        onPress={() => onThemePreferencePress(ThemePreference.Dark)}
+        testID="AppearanceDark"
+        checkmark={themePreference === ThemePreference.Dark}
+      />
+      <BlueSpacing20 />
       {Platform.OS === 'ios' ? (
         <>
           <ListItem
             title={loc.settings.general_continuity}
             Component={PressableWrapper}
-            switch={{ onValueChange: onHandOffUseEnabledChange, value: isHandOffUseEnabled }}
+            switch={{
+              onValueChange: onHandOffUseEnabledChange,
+              value: isHandOffUseEnabled,
+            }}
             subtitle={loc.settings.general_continuity_e}
           />
         </>
@@ -64,7 +93,10 @@ const GeneralSettings: React.FC = () => {
       <ListItem
         Component={PressableWrapper}
         title="Legacy URv1 QR"
-        switch={{ onValueChange: setIsLegacyURv1EnabledStorage, value: isLegacyURv1Enabled }}
+        switch={{
+          onValueChange: setIsLegacyURv1EnabledStorage,
+          value: isLegacyURv1Enabled,
+        }}
       />
       <BlueSpacing20 />
     </SafeAreaScrollView>

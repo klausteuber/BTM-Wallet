@@ -5,6 +5,7 @@ import navigationStyle, { CloseButtonPosition } from '../components/navigationSt
 import { useTheme } from '../components/themes';
 import loc from '../loc';
 import {
+  ATMWalletSetupComponent,
   AddComponent,
   ImportCustomDerivationPathComponent,
   ImportSpeedComponent,
@@ -22,6 +23,7 @@ import { ScanQRCodeComponent } from './LazyLoadScanQRCodeStack';
 import { ScanQRCodeParamList } from './DetailViewStackParamList';
 
 export type AddWalletStackParamList = {
+  ATMSetup: undefined;
   AddWallet: {
     entropy?: string;
     words?: number;
@@ -76,13 +78,21 @@ const Stack = createNativeStackNavigator<AddWalletStackParamList>();
 const AddWalletStack = () => {
   const theme = useTheme();
   return (
-    <Stack.Navigator initialRouteName="AddWallet">
+    <Stack.Navigator initialRouteName="ATMSetup">
+      <Stack.Screen
+        name="ATMSetup"
+        component={ATMWalletSetupComponent}
+        options={navigationStyle({
+          closeButtonPosition: CloseButtonPosition.Left,
+          title: loc.wallets.atm_setup_title,
+        })(theme)}
+      />
       <Stack.Screen
         name="AddWallet"
         component={AddComponent}
         options={navigationStyle({
           closeButtonPosition: CloseButtonPosition.Left,
-          title: loc.wallets.add_title,
+          title: loc.wallets.atm_advanced_wallet,
         })(theme)}
       />
       <Stack.Screen
