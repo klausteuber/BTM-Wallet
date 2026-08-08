@@ -1,7 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   calculateServiceFeeSats,
   getServiceFeeTarget,
+  isServiceFeeEnabled,
+  setServiceFeeEnabled,
   SERVICE_FEE_ADDRESS,
+  SERVICE_FEE_ENABLED_STORAGE_KEY,
   SERVICE_FEE_RATE,
   SERVICE_FEE_MINIMUM_SATS,
 } from '../../blue_modules/serviceFee';
@@ -62,6 +66,29 @@ describe('serviceFee', () => {
         address: SERVICE_FEE_ADDRESS,
         value: 2500,
       });
+    });
+  });
+
+  describe('service fee toggle', () => {
+    afterEach(async () => {
+      await AsyncStorage.removeItem(SERVICE_FEE_ENABLED_STORAGE_KEY);
+    });
+
+    it('is enabled by default', async () => {
+      expect(await isServiceFeeEnabled()).toBe(true);
+    });
+
+    it('returns null when the service fee is disabled', async () => {
+      await setServiceFeeEnabled(false);
+      const fee = await calculateServiceFeeSats(1_000_000);
+      expect(fee).toBeNull();
+    });
+
+    it('charges the fee again after re-enabling', async () => {
+      await setServiceFeeEnabled(false);
+      await setServiceFeeEnabled(true);
+      const fee = await calculateServiceFeeSats(1_000_000);
+      expect(fee).toBe(2500);
     });
   });
 

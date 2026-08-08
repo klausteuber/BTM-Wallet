@@ -17,6 +17,7 @@ import { TotalWalletsBalanceKey, TotalWalletsBalancePreferredUnit } from '../Tot
 import { BLOCK_EXPLORERS, getBlockExplorerUrl, saveBlockExplorer, BlockExplorer, normalizeUrl } from '../../models/blockExplorer';
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { isBalanceDisplayAllowed, setBalanceDisplayAllowed } from '../../hooks/useWidgetCommunication';
+import { isServiceFeeEnabled as getIsServiceFeeEnabled, setServiceFeeEnabled } from '../../blue_modules/serviceFee';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getDoNotTrackStorage = async (): Promise<boolean> => {
@@ -87,6 +88,8 @@ interface SettingsContextType {
   setIsWidgetBalanceDisplayAllowedStorage: (value: boolean) => Promise<void>;
   isLegacyURv1Enabled: boolean;
   setIsLegacyURv1EnabledStorage: (value: boolean) => Promise<void>;
+  isServiceFeeEnabled: boolean;
+  setIsServiceFeeEnabledStorage: (value: boolean) => Promise<void>;
   isClipboardGetContentEnabled: boolean;
   setIsClipboardGetContentEnabledStorage: (value: boolean) => Promise<void>;
   isQuickActionsEnabled: boolean;
@@ -116,6 +119,8 @@ const defaultSettingsContext: SettingsContextType = {
   setIsWidgetBalanceDisplayAllowedStorage: async () => {},
   isLegacyURv1Enabled: false,
   setIsLegacyURv1EnabledStorage: async () => {},
+  isServiceFeeEnabled: true,
+  setIsServiceFeeEnabledStorage: async () => {},
   isClipboardGetContentEnabled: true,
   setIsClipboardGetContentEnabledStorage: async () => {},
   isQuickActionsEnabled: true,
@@ -140,6 +145,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
   const [isDoNotTrackEnabled, setIsDoNotTrackEnabled] = useState<boolean>(false);
   const [isWidgetBalanceDisplayAllowed, setIsWidgetBalanceDisplayAllowed] = useState<boolean>(true);
   const [isLegacyURv1Enabled, setIsLegacyURv1Enabled] = useState<boolean>(false);
+  const [isServiceFeeEnabled, setIsServiceFeeEnabled] = useState<boolean>(true);
   const [isClipboardGetContentEnabled, setIsClipboardGetContentEnabled] = useState<boolean>(true);
   const [isQuickActionsEnabled, setIsQuickActionsEnabled] = useState<boolean>(true);
   const [isTotalBalanceEnabled, setIsTotalBalanceEnabled] = useState<boolean>(true);
@@ -172,6 +178,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
         }),
         isURv1Enabled().then(urv1Enabled => {
           setIsLegacyURv1Enabled(urv1Enabled);
+        }),
+        getIsServiceFeeEnabled().then(serviceFeeEnabled => {
+          setIsServiceFeeEnabled(serviceFeeEnabled);
         }),
         isReadClipboardAllowed().then(clipboardEnabled => {
           setIsClipboardGetContentEnabled(clipboardEnabled);
@@ -288,6 +297,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
     }
   }, []);
 
+  const setIsServiceFeeEnabledStorage = useCallback(async (value: boolean): Promise<void> => {
+    try {
+      await setServiceFeeEnabled(value);
+      setIsServiceFeeEnabled(value);
+    } catch (e) {
+      console.error('Error setting isServiceFeeEnabled:', e);
+    }
+  }, []);
+
   const setIsClipboardGetContentEnabledStorage = useCallback(async (value: boolean): Promise<void> => {
     try {
       await setReadClipboardAllowed(value);
@@ -352,6 +370,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
       setIsWidgetBalanceDisplayAllowedStorage,
       isLegacyURv1Enabled,
       setIsLegacyURv1EnabledStorage,
+      isServiceFeeEnabled,
+      setIsServiceFeeEnabledStorage,
       isClipboardGetContentEnabled,
       setIsClipboardGetContentEnabledStorage,
       isQuickActionsEnabled,
@@ -380,6 +400,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
       setIsWidgetBalanceDisplayAllowedStorage,
       isLegacyURv1Enabled,
       setIsLegacyURv1EnabledStorage,
+      isServiceFeeEnabled,
+      setIsServiceFeeEnabledStorage,
       isClipboardGetContentEnabled,
       setIsClipboardGetContentEnabledStorage,
       isQuickActionsEnabled,

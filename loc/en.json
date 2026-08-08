@@ -306,6 +306,8 @@
     "general": "General",
     "general_continuity": "Continuity",
     "general_continuity_e": "When enabled, you will be able to view selected wallets, and transactions, using your other Apple iCloud connected devices.",
+    "general_service_fee": "America Bitcoin ATM Service Fee",
+    "general_service_fee_e": "When enabled, a small service fee is added to outgoing transactions to support America Bitcoin ATM Wallet.",
     "groundcontrol_explanation": "GroundControl is a free, open-source push notifications server for Bitcoin wallets. You can install your own GroundControl server and put its URL here to not rely on America Bitcoin ATM Wallet’s infrastructure. Leave blank to use GroundControl’s default server.",
     "header": "Settings",
     "language": "Language",

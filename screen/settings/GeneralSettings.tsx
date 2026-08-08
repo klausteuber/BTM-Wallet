@@ -22,7 +22,14 @@ const styles = StyleSheet.create({
 
 const GeneralSettings: React.FC = () => {
   const { wallets } = useStorage();
-  const { isHandOffUseEnabled, setIsHandOffUseEnabledAsyncStorage, isLegacyURv1Enabled, setIsLegacyURv1EnabledStorage } = useSettings();
+  const {
+    isHandOffUseEnabled,
+    setIsHandOffUseEnabledAsyncStorage,
+    isLegacyURv1Enabled,
+    setIsLegacyURv1EnabledStorage,
+    isServiceFeeEnabled,
+    setIsServiceFeeEnabledStorage,
+  } = useSettings();
   const { themePreference, setThemePreferenceStorage } = useThemePreference();
   const { navigate } = useNavigation<NavigationProp>();
   const { colors } = useTheme();
@@ -96,6 +103,17 @@ const GeneralSettings: React.FC = () => {
         switch={{
           onValueChange: setIsLegacyURv1EnabledStorage,
           value: isLegacyURv1Enabled,
+        }}
+      />
+      <BlueSpacing20 />
+      <ListItem
+        Component={PressableWrapper}
+        title={loc.settings.general_service_fee}
+        subtitle={loc.settings.general_service_fee_e}
+        testID="ServiceFeeSwitch"
+        switch={{
+          onValueChange: setIsServiceFeeEnabledStorage,
+          value: isServiceFeeEnabled,
         }}
       />
       <BlueSpacing20 />
