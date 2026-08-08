@@ -92,7 +92,8 @@ const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: At
   const isAlert = variant === 'alert';
   const backgroundColor = isPrimary ? AMERICA_BLUE : isAlert ? AMERICA_RED : (colors.lightButton ?? '#F4F6FB');
   const borderColor = isPrimary || isAlert ? backgroundColor : (colors.lightBorder ?? '#D9DAE5');
-  const textColor = isPrimary || isAlert ? '#FFFFFF' : AMERICA_BLUE;
+  const textColor = isPrimary || isAlert ? '#FFFFFF' : colors.buttonTextColor;
+  const iconColor = isPrimary || isAlert ? '#FFFFFF' : AMERICA_BLUE;
   const iconBubbleColor = isPrimary || isAlert ? 'rgba(255,255,255,0.18)' : '#FFFFFF';
 
   return (
@@ -106,7 +107,7 @@ const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: At
       ]}
     >
       <View style={[styles.atmActionIconBubble, { backgroundColor: iconBubbleColor }]}>
-        <Icon color={textColor} name={iconName} size={18} type="ionicon" />
+        <Icon color={iconColor} name={iconName} size={18} type="ionicon" />
       </View>
       <Text adjustsFontSizeToFit numberOfLines={1} style={[styles.atmActionButtonText, { color: textColor }]}>
         {title}
@@ -925,12 +926,20 @@ const ReceiveDetails = () => {
           </Pressable>
           <View style={[styles.atmModalContent, stylesHook.atmFullscreenTop]}>
             {address ? (
-              <QRCodeComponent
-                value={isCustom ? bip21encoded : address}
-                isLogoRendered={false}
-                isMenuAvailable={false}
-                size={ATM_RECEIVE_QR_FULLSCREEN_SIZE}
-              />
+              <>
+                <QRCodeComponent
+                  value={isCustom ? bip21encoded : address}
+                  isLogoRendered={false}
+                  isMenuAvailable={false}
+                  size={ATM_RECEIVE_QR_FULLSCREEN_SIZE}
+                />
+                <View style={styles.atmModalAddressCard}>
+                  <BlueText style={styles.atmModalAddressLabel}>{loc.receive.atm_address_label}</BlueText>
+                  <Text testID="FullscreenBitcoinAddress" selectable style={styles.atmModalAddressValue}>
+                    {address}
+                  </Text>
+                </View>
+              </>
             ) : null}
             <BlueText style={styles.atmModalTitle}>{loc.receive.atm_helper}</BlueText>
           </View>
@@ -1312,6 +1321,29 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     fontWeight: '700',
     marginBottom: 24,
+  },
+  atmModalAddressCard: {
+    width: '100%',
+    maxWidth: 360,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+  },
+  atmModalAddressLabel: {
+    color: AMERICA_BLUE,
+    textAlign: 'center',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  atmModalAddressValue: {
+    color: AMERICA_BLUE,
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
 
