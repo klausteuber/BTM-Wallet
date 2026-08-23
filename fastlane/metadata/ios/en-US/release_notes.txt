@@ -1,3 +1,2 @@
-- Updated America Bitcoin Wallet branding
-- Improved iOS build stability
-- Refreshed submission metadata and review guidance
+- Fixed outgoing send balances so the amount remains visible when using the full wallet balance
+- Improved text, fee, badge, and status contrast in light and dark modes

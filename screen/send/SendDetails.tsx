@@ -1264,6 +1264,9 @@ const SendDetails = () => {
     selectLabel: {
       color: colors.buttonTextColor,
     },
+    selectBalance: {
+      color: colors.buttonAlternativeTextColor,
+    },
     of: {
       color: colors.feeText,
     },
@@ -1350,7 +1353,14 @@ const SendDetails = () => {
             }}
             disabled={!isEditable || isLoading}
           >
-            <Text style={[styles.selectLabel, stylesHook.selectLabel]}>{wallet?.getLabel()}</Text>
+            <Text numberOfLines={1} style={[styles.selectLabel, stylesHook.selectLabel]}>
+              {wallet?.getLabel()}
+            </Text>
+            {wallet ? (
+              <Text testID="SelectedWalletBalance" style={[styles.selectBalance, stylesHook.selectBalance]}>
+                {formatBalance(balance, wallet.getPreferredBalanceUnit(), true)}
+              </Text>
+            ) : null}
           </Pressable>
         </View>
       </View>
@@ -1365,6 +1375,7 @@ const SendDetails = () => {
           <AmountInput.AmountInput
             isLoading={isLoading}
             amount={item.amount ? item.amount.toString() : undefined}
+            maxAmount={formatBalance(balance, BitcoinUnit.BTC, true)}
             onAmountUnitChange={(unit: BitcoinUnit) => {
               setAddresses(addrs => {
                 const addr = addrs[index];
@@ -1600,6 +1611,11 @@ const styles = StyleSheet.create({
   },
   selectLabel: {
     fontSize: 14,
+  },
+  selectBalance: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   of: {
     alignSelf: 'flex-end',

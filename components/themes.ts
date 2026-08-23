@@ -21,17 +21,17 @@ export const BlueDefaultTheme = {
     buttonDisabledTextColor: '#9aa0aa',
     inputBorderColor: '#D9DAE5', // American Gray
     inputBackgroundColor: '#f5f5f5',
-    alternativeTextColor: '#9aa0aa',
+    alternativeTextColor: '#5F6570', // Accessible secondary text on light backgrounds
     alternativeTextColor2: '#040766', // American Blue
     buttonBlueBackgroundColor: '#D9DAE5', // American Gray
     buttonGrayBackgroundColor: '#EEEEEE',
     incomingBackgroundColor: '#d2f8d6',
-    incomingForegroundColor: '#38E3A5', // American Mint
+    incomingForegroundColor: '#087A55', // Accessible dark mint for icons on light surfaces
     outgoingBackgroundColor: '#f8d2d2',
     outgoingForegroundColor: '#ED122E', // American Red
-    successColor: '#38E3A5', // American Mint
+    successColor: '#087A55', // Accessible dark mint for success text on light surfaces
     failedColor: '#ED122E', // American Red
-    placeholderTextColor: '#81868e',
+    placeholderTextColor: '#5F6570',
     shadowColor: '#000000',
     inverseForegroundColor: '#ffffff',
     hdborderColor: '#040766', // American Blue
@@ -47,13 +47,13 @@ export const BlueDefaultTheme = {
     modal: '#ffffff',
     formBorder: '#D9DAE5', // American Gray
     modalButton: '#D9DAE5', // American Gray
-    darkGray: '#9AA0AA',
+    darkGray: '#5F6570',
     scanLabel: '#9AA0AA',
-    feeText: '#81868e',
+    feeText: '#5F6570',
     feeLabel: '#d2f8d6',
-    feeValue: '#38E3A5', // American Mint
+    feeValue: '#040766', // American Blue on the pale-mint fee badge
     feeActive: '#d2f8d6',
-    labelText: '#81868e',
+    labelText: '#5F6570',
     cta2: '#040766', // American Blue
     outputValue: '#040766', // American Blue
     elevated: '#ffffff',
@@ -64,11 +64,11 @@ export const BlueDefaultTheme = {
     msSuccessCheck: '#ffffff',
     newBlue: '#040766', // American Blue
     redBG: '#F8D2D2',
-    redText: '#ED122E', // American Red
+    redText: '#A20C20', // Accessible dark red on the pale-red status background
     changeBackground: '#FDF2DA',
-    changeText: '#F38C47',
+    changeText: '#040766', // American Blue keeps the pale-yellow badge readable
     receiveBackground: '#D1F9D6',
-    receiveText: '#38E3A5', // American Mint
+    receiveText: '#040766', // American Blue keeps the pale-mint badge readable
     navigationBarColor: '#FFFFFF',
     androidRippleColor: '#D9DAE5', // American Gray
   },
@@ -96,6 +96,9 @@ export const BlueDarkTheme: Theme = {
     buttonAlternativeTextColor: '#ffffff',
     alternativeTextColor: '#9aa0aa',
     alternativeTextColor2: '#38E3A5', // American Mint
+    incomingForegroundColor: '#38E3A5', // American Mint is high contrast on dark surfaces
+    successColor: '#38E3A5', // American Mint is high contrast on dark surfaces
+    placeholderTextColor: '#9AA0AA',
     ballReceive: '#0a0d4a',
     ballOutgoing: '#0a0d4a',
     lightBorder: '#1a1d6b',
@@ -104,8 +107,8 @@ export const BlueDarkTheme: Theme = {
     formBorder: '#1a1d6b',
     inputBackgroundColor: '#0a0d4a',
     modalButton: '#040766', // American Blue
-    darkGray: '#3A3A3C',
-    feeText: '#81868e',
+    darkGray: '#9AA0AA',
+    feeText: '#9AA0AA',
     feeLabel: '#38E3A5', // American Mint
     feeValue: '#040766', // American Blue
     feeActive: 'rgba(56,227,165,.2)', // American Mint with opacity
@@ -122,9 +125,9 @@ export const BlueDarkTheme: Theme = {
     msSuccessCheck: '#040766', // American Blue
     newBlue: '#38E3A5', // American Mint for highlights in dark mode
     redBG: '#5A4E4E',
-    redText: '#ED122E', // American Red
+    redText: '#FFFFFF',
     changeBackground: '#5A4E4E',
-    changeText: '#F38C47',
+    changeText: '#FFFFFF',
     receiveBackground: 'rgba(56,227,165,.2)', // American Mint with opacity
     receiveText: '#38E3A5', // American Mint
     navigationBarColor: '#040766', // American Blue
