@@ -50,18 +50,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gems-
 
-      # The committed google-services.json is only valid for the package it was
-      # generated against, so the real one is injected from a secret.
+      # google-services.json is not sensitive (it ships inside the app), so the
+      # committed file is used by default. The secret is only an override, for
+      # keeping the Firebase config out of the repo if that is ever preferred.
       - name: Install google-services.json
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
-            echo "::error::GOOGLE_SERVICES_JSON secret is not set. Add the google-services.json generated for com.americabitcoinatm.wallet in the Firebase console."
-            exit 1
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "Using google-services.json from repository secret."
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          else
+            echo "Using the committed android/app/google-services.json."
           fi
-          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-          node -e "const p=require('./android/app/google-services.json').client.map(c=>c.client_info.android_client_info.package_name); if(!p.includes('com.americabitcoinatm.wallet')){console.error('google-services.json declares '+JSON.stringify(p)+', not com.americabitcoinatm.wallet');process.exit(1)}"
+          node -e "const p=require('./android/app/google-services.json').client.map(c=>c.client_info.android_client_info.package_name); if(!p.includes('com.americabitcoinatm.wallet')){console.error('google-services.json declares '+JSON.stringify(p)+', not com.americabitcoinatm.wallet. Generate it in the Firebase console for package com.americabitcoinatm.wallet.');process.exit(1)}"
 
       - name: Generate Build Number based on timestamp
         id: build_number

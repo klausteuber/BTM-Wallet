@@ -22,9 +22,12 @@ BrowserStack and direct distribution; it cannot be used for Play uploads.
    In the [Firebase console](https://console.firebase.google.com), open (or create)
    your own project, add an Android app with package name
    `com.americabitcoinatm.wallet`, download the generated `google-services.json`,
-   and replace `android/app/google-services.json` with it. Store the same file
-   contents in the `GOOGLE_SERVICES_JSON` GitHub secret — both Android workflows
-   write it out before building.
+   and replace `android/app/google-services.json` with it.
+
+   This file is not sensitive — it ships inside the app and can be extracted from
+   any APK — so committing it is fine, and that is what both workflows use. The
+   `GOOGLE_SERVICES_JSON` secret exists only as an override if you would rather
+   keep it out of the repo.
 
 2. **Bugsnag**
 
