@@ -72,6 +72,79 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def appApplicationId = "com.americabitcoinatm.wallet"
+
+/**
+ * Release signing.
+ *
+ * Values are resolved in this order:
+ *   1. Gradle properties      (-PABA_UPLOAD_STORE_FILE=..., or ~/.gradle/gradle.properties)
+ *   2. android/keystore.properties  (git-ignored, for local release builds)
+ *   3. Environment variables        (used by CI)
+ *
+ * When nothing is configured, release builds stay unsigned, so the existing
+ * apksigner-based APK flow and the Detox release build keep working unchanged.
+ * `bundleRelease` refuses to run unsigned, because Play only accepts signed bundles.
+ */
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+def signingValue = { String propertyName, String envName ->
+    def value
+    if (project.hasProperty(propertyName)) {
+        value = project.property(propertyName)
+    } else if (keystoreProperties.containsKey(propertyName)) {
+        value = keystoreProperties.getProperty(propertyName)
+    } else {
+        value = System.getenv(envName)
+    }
+    return (value == null || value.toString().trim().isEmpty()) ? null : value.toString().trim()
+}
+
+def uploadStoreFilePath = signingValue('ABA_UPLOAD_STORE_FILE', 'KEYSTORE_FILE')
+def uploadStorePassword = signingValue('ABA_UPLOAD_STORE_PASSWORD', 'KEYSTORE_PASSWORD')
+def uploadKeyAlias = signingValue('ABA_UPLOAD_KEY_ALIAS', 'KEYSTORE_KEY_ALIAS')
+def uploadKeyPassword = signingValue('ABA_UPLOAD_KEY_PASSWORD', 'KEYSTORE_KEY_PASSWORD') ?: uploadStorePassword
+def uploadStoreFile = uploadStoreFilePath == null ? null : rootProject.file(uploadStoreFilePath)
+def hasUploadKey = uploadStoreFile != null && uploadStoreFile.exists() && uploadStorePassword != null && uploadKeyAlias != null
+
+if (uploadStoreFilePath != null && !hasUploadKey) {
+    logger.warn("Upload keystore configured but incomplete (file=${uploadStoreFilePath}, exists=${uploadStoreFile?.exists()}, " +
+        "alias=${uploadKeyAlias != null}, password=${uploadStorePassword != null}). Release builds will be UNSIGNED.")
+}
+
+/**
+ * Bugsnag notifier key. Falls back to the key this fork inherited from upstream so
+ * local builds keep working; set BUGSNAG_API_KEY (or -PABA_BUGSNAG_API_KEY) to report
+ * crashes into this app's own Bugsnag project instead of upstream BlueWallet's.
+ */
+def bugsnagApiKey = signingValue('ABA_BUGSNAG_API_KEY', 'BUGSNAG_API_KEY') ?: '17ba9059f676f1cc4f45d98182388b01'
+
+/**
+ * google-services.json must declare a client for our applicationId, otherwise the
+ * google-services plugin fails later with an error that is hard to place.
+ */
+def googleServicesJson = file("google-services.json")
+if (googleServicesJson.exists()) {
+    def declaredPackages = new groovy.json.JsonSlurper()
+        .parse(googleServicesJson)
+        .client
+        .collect { it.client_info.android_client_info.package_name }
+    if (!declaredPackages.contains(appApplicationId)) {
+        throw new GradleException(
+            "android/app/google-services.json declares no client for ${appApplicationId} (it declares ${declaredPackages}).\n" +
+            "Firebase push notifications cannot build until this is fixed.\n" +
+            "Fix: in the Firebase console, open your own project, add an Android app with package name\n" +
+            "  ${appApplicationId}\n" +
+            "then download the generated google-services.json and replace android/app/google-services.json with it.\n" +
+            "In CI, supply the same file through the GOOGLE_SERVICES_JSON secret."
+        )
+    }
+}
+
 android {
     androidResources {
         noCompress += ["bundle"]
@@ -83,7 +156,8 @@ android {
 
     namespace "com.americabitcoinatm.wallet"
     defaultConfig {
-        applicationId "com.americabitcoinatm.wallet"
+        applicationId appApplicationId
+        manifestPlaceholders = [bugsnagApiKey: bugsnagApiKey]
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -103,16 +177,47 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasUploadKey) {
+            release {
+                storeFile uploadStoreFile
+                storePassword uploadStorePassword
+                keyAlias uploadKeyAlias
+                keyPassword uploadKeyPassword
+                enableV1Signing true
+                enableV2Signing true
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
+            // Signed with the Play upload key when one is configured (see signingValue above).
+            // Without it the release output stays unsigned, matching the legacy apksigner flow.
+            if (hasUploadKey) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             proguardFile "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro"
         }
     }
 
+}
+
+/**
+ * Play only accepts signed App Bundles, so fail fast instead of producing an
+ * unsigned .aab that gets rejected at upload time.
+ */
+gradle.taskGraph.whenReady { graph ->
+    if (!hasUploadKey && graph.allTasks.any { it.name == "bundleRelease" }) {
+        throw new GradleException(
+            "Refusing to build an unsigned Android App Bundle.\n" +
+            "Configure the Play upload key first, either in android/keystore.properties\n" +
+            "(see android/keystore.properties.example) or through the KEYSTORE_FILE,\n" +
+            "KEYSTORE_PASSWORD and KEYSTORE_KEY_ALIAS environment variables."
+        )
+    }
 }
 
 task copyFiatUnits(type: Copy) {

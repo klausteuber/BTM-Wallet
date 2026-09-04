@@ -152,21 +152,26 @@ platform :android do
         "BlueWallet-#{version_name}-#{build_number}.apk"
  
       # Define paths
-      unsigned_apk_path = "android/app/build/outputs/apk/release/app-release-unsigned.apk"
-      signed_apk_path = "android/app/build/outputs/apk/release/#{signed_apk_name}"
+      release_output_dir = "android/app/build/outputs/apk/release"
+      signed_apk_path = "#{release_output_dir}/#{signed_apk_name}"
  
       # Build APK
       UI.message("Building APK...")
       sh("cd android && ./gradlew assembleRelease --no-daemon")
       UI.message("APK build completed.")
  
+      # Gradle names the output app-release-unsigned.apk unless an upload key is
+      # configured (see android/keystore.properties), in which case it is app-release.apk.
+      gradle_apk_path = ["#{release_output_dir}/app-release-unsigned.apk", "#{release_output_dir}/app-release.apk"]
+        .find { |candidate| File.exist?(candidate) }
+ 
       # Rename APK
-      if File.exist?(unsigned_apk_path)
+      if gradle_apk_path
         UI.message("Renaming APK to #{signed_apk_name}...")
-        FileUtils.mv(unsigned_apk_path, signed_apk_path)
+        FileUtils.mv(gradle_apk_path, signed_apk_path)
         ENV['APK_OUTPUT_PATH'] = File.expand_path(signed_apk_path)
       else
-        UI.error("Unsigned APK not found at path: #{unsigned_apk_path}")
+        UI.error("No release APK found in #{release_output_dir}")
         next
       end
  
@@ -176,6 +181,110 @@ platform :android do
       UI.user_error!("apksigner not found in Android build-tools") if apksigner_path.nil? || apksigner_path.empty?
       sh("#{apksigner_path} sign --ks #{project_root}/bluewallet-release-key.keystore --ks-pass=pass:#{ENV['KEYSTORE_PASSWORD']} #{signed_apk_path}")
       UI.message("APK signed successfully: #{signed_apk_path}")
+    end
+  end
+
+  desc "Build a Play-Store-ready signed Android App Bundle (.aab)"
+  lane :build_release_aab do
+    Dir.chdir(project_root) do
+      build_number = ENV['BUILD_NUMBER']
+      UI.user_error!("BUILD_NUMBER environment variable is missing") if build_number.nil? || build_number.empty?
+
+      # Gradle signs the bundle itself; apksigner cannot sign an .aab.
+      keystore_path = File.expand_path(ENV['KEYSTORE_FILE'] || 'bluewallet-release-key.keystore', project_root)
+      unless File.exist?(keystore_path)
+        UI.user_error!("Keystore not found at #{keystore_path}. Run `fastlane android prepare_keystore` or set KEYSTORE_FILE.")
+      end
+
+      if ENV['KEYSTORE_PASSWORD'].nil? || ENV['KEYSTORE_PASSWORD'].empty?
+        UI.user_error!("KEYSTORE_PASSWORD environment variable is missing")
+      end
+
+      key_alias = ENV['KEYSTORE_KEY_ALIAS']
+      if key_alias.nil? || key_alias.empty?
+        UI.user_error!(
+          "KEYSTORE_KEY_ALIAS environment variable is missing. Gradle needs the key alias to sign a bundle. " \
+          "List the aliases in the keystore with: keytool -list -v -keystore #{keystore_path}"
+        )
+      end
+
+      version_name = sh("grep versionName android/app/build.gradle | awk '{print $2}' | tr -d '\"'").strip
+      UI.user_error!("Failed to extract versionName from build.gradle") if version_name.nil? || version_name.empty?
+
+      # Play rejects any upload whose versionCode is not higher than the previous one.
+      UI.message("Setting versionCode to #{build_number}...")
+      build_gradle_path = "android/app/build.gradle"
+      build_gradle_contents = File.read(build_gradle_path)
+      File.write(build_gradle_path, build_gradle_contents.gsub(/versionCode\s+\d+/, "versionCode #{build_number}"))
+
+      # Passed through the environment rather than the command line so the
+      # password never reaches the build log.
+      ENV['KEYSTORE_FILE'] = keystore_path
+      ENV['KEYSTORE_KEY_ALIAS'] = key_alias
+      ENV['KEYSTORE_KEY_PASSWORD'] = ENV['KEYSTORE_KEY_PASSWORD'] || ENV['KEYSTORE_PASSWORD']
+
+      UI.message("Building signed App Bundle...")
+      sh("cd android && ./gradlew bundleRelease --no-daemon")
+
+      unsigned_name = "android/app/build/outputs/bundle/release/app-release.aab"
+      UI.user_error!("App Bundle not found at #{unsigned_name}") unless File.exist?(unsigned_name)
+
+      aab_name = "AmericaBitcoinATM-#{version_name}-#{build_number}.aab"
+      aab_path = "android/app/build/outputs/bundle/release/#{aab_name}"
+      FileUtils.mv(unsigned_name, aab_path)
+      ENV['AAB_OUTPUT_PATH'] = File.expand_path(aab_path)
+
+      # An .aab is a jar, so jarsigner can confirm the signature actually landed.
+      # It can exit 0 while reporting an unsigned jar, so check the output text.
+      verification = sh("jarsigner -verify #{aab_path}", log: false)
+      unless verification.include?("jar verified")
+        UI.user_error!("App Bundle is not correctly signed, Play will reject it:\n#{verification}")
+      end
+      UI.success("Signature verified.")
+
+      UI.success("Signed App Bundle ready: #{aab_path}")
+    end
+  end
+
+  desc "Upload the signed App Bundle to Play (internal track, draft, by default)"
+  lane :upload_play_store do
+    Dir.chdir(project_root) do
+      json_key = File.expand_path(ENV['PLAY_STORE_JSON_KEY'] || 'play-store-service-account.json', project_root)
+      unless File.exist?(json_key)
+        UI.user_error!(
+          "Play service account key not found at #{json_key}. Create one in Play Console > Users and permissions " \
+          "(or Google Cloud), grant it release permissions, then set PLAY_STORE_JSON_KEY to its path."
+        )
+      end
+
+      aab_path = ENV['AAB_OUTPUT_PATH']
+      if aab_path.nil? || aab_path.empty? || !File.exist?(aab_path)
+        aab_path = Dir.glob("android/app/build/outputs/bundle/release/*.aab").sort.last
+        UI.user_error!("No .aab found. Run the build_release_aab lane first.") if aab_path.nil?
+      end
+
+      track = ENV['PLAY_TRACK'] || 'internal'
+      release_status = ENV['PLAY_RELEASE_STATUS'] || 'draft'
+      UI.message("Uploading #{File.basename(aab_path)} to the #{track} track as #{release_status}...")
+
+      # Store listing text and screenshots stay under manual control in the console;
+      # set PLAY_UPLOAD_METADATA=1 to push fastlane/metadata/android instead.
+      skip_metadata = ENV['PLAY_UPLOAD_METADATA'].to_s.empty?
+
+      upload_to_play_store(
+        package_name: "com.americabitcoinatm.wallet",
+        aab: aab_path,
+        json_key: json_key,
+        track: track,
+        release_status: release_status,
+        skip_upload_apk: true,
+        skip_upload_metadata: skip_metadata,
+        skip_upload_changelogs: skip_metadata,
+        skip_upload_images: skip_metadata,
+        skip_upload_screenshots: skip_metadata
+      )
+
+      UI.success("Upload complete. Review and roll out the release in Play Console.")
     end
   end
 end

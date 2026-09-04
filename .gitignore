@@ -26,6 +26,11 @@ DerivedData
 .cxx/
 *.keystore
 !debug.keystore
+*.jks
+*.aab
+android/keystore.properties
+android/app/google-services.json.local
+play-store-service-account.json
 # Android/IntelliJ
 #
 build/
