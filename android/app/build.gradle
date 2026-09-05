@@ -121,7 +121,13 @@ if (uploadStoreFilePath != null && !hasUploadKey) {
  * local builds keep working; set BUGSNAG_API_KEY (or -PABA_BUGSNAG_API_KEY) to report
  * crashes into this app's own Bugsnag project instead of upstream BlueWallet's.
  */
-def bugsnagApiKey = signingValue('ABA_BUGSNAG_API_KEY', 'BUGSNAG_API_KEY') ?: '17ba9059f676f1cc4f45d98182388b01'
+def bugsnagApiKeyOverride = signingValue('ABA_BUGSNAG_API_KEY', 'BUGSNAG_API_KEY')
+def bugsnagApiKey = bugsnagApiKeyOverride ?: '17ba9059f676f1cc4f45d98182388b01'
+if (bugsnagApiKeyOverride == null) {
+    logger.warn("WARNING: no Bugsnag key configured, falling back to the one inherited from upstream BlueWallet. " +
+        "Crash reports from this build are delivered to their project, not ours. " +
+        "Set BUGSNAG_API_KEY (or ABA_BUGSNAG_API_KEY) before shipping a production release.")
+}
 
 /**
  * google-services.json must declare a client for our applicationId, otherwise the
