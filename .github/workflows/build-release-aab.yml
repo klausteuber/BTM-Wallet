@@ -1,0 +1,96 @@
+name: BuildReleaseAab
+
+# Play only accepts App Bundles, and they must be signed by Gradle with the
+# upload key. Triggered manually so a release build is always deliberate.
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode to stamp (must be higher than the last Play upload). Defaults to a Unix timestamp.'
+        required: false
+        type: string
+
+jobs:
+  buildReleaseAab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+
+      - name: Specify node version
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Use specific Java version for sdkmanager to work
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Install node_modules
+        run: npm ci --omit=dev --yes
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.6
+          bundler-cache: true
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      # google-services.json is not sensitive (it ships inside the app), so the
+      # committed file is used by default. The secret is only an override, for
+      # keeping the Firebase config out of the repo if that is ever preferred.
+      - name: Install google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "Using google-services.json from repository secret."
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          else
+            echo "Using the committed android/app/google-services.json."
+          fi
+          node -e "const p=require('./android/app/google-services.json').client.map(c=>c.client_info.android_client_info.package_name); if(!p.includes('com.americabitcoinatm.wallet')){console.error('google-services.json declares '+JSON.stringify(p)+', not com.americabitcoinatm.wallet. Generate it in the Firebase console for package com.americabitcoinatm.wallet.');process.exit(1)}"
+
+      - name: Determine versionCode
+        run: |
+          VERSION_CODE="${{ inputs.version_code }}"
+          if [ -z "$VERSION_CODE" ]; then
+            VERSION_CODE="$(date +%s)"
+          fi
+          echo "NEW_BUILD_NUMBER=$VERSION_CODE" >> $GITHUB_ENV
+
+      - name: Prepare Keystore
+        run: bundle exec fastlane android prepare_keystore
+        env:
+          KEYSTORE_FILE_HEX: ${{ secrets.KEYSTORE_FILE_HEX }}
+
+      - name: Build signed App Bundle
+        run: bundle exec fastlane android build_release_aab
+        env:
+          BUILD_NUMBER: ${{ env.NEW_BUILD_NUMBER }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+
+      - name: Upload App Bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

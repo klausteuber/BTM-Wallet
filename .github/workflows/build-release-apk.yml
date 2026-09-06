@@ -50,6 +50,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gems-
 
+      # google-services.json is not sensitive (it ships inside the app), so the
+      # committed file is used by default. The secret is only an override, for
+      # keeping the Firebase config out of the repo if that is ever preferred.
+      - name: Install google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "Using google-services.json from repository secret."
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          else
+            echo "Using the committed android/app/google-services.json."
+          fi
+          node -e "const p=require('./android/app/google-services.json').client.map(c=>c.client_info.android_client_info.package_name); if(!p.includes('com.americabitcoinatm.wallet')){console.error('google-services.json declares '+JSON.stringify(p)+', not com.americabitcoinatm.wallet. Generate it in the Firebase console for package com.americabitcoinatm.wallet.');process.exit(1)}"
+
       - name: Generate Build Number based on timestamp
         id: build_number
         run: |
@@ -68,6 +83,7 @@ jobs:
         env:
           BUILD_NUMBER: ${{ env.NEW_BUILD_NUMBER }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
 
       - name: Determine APK Filename and Path
         id: determine_apk_path

@@ -1,37 +1,26 @@
 {
   "project_info": {
-    "project_number": "993804676679",
-    "firebase_url": "https://bluewallet-d7cd5.firebaseio.com",
-    "project_id": "bluewallet-d7cd5",
-    "storage_bucket": "bluewallet-d7cd5.appspot.com"
+    "project_number": "753933654926",
+    "project_id": "america-bitcoin-atm-wallet",
+    "storage_bucket": "america-bitcoin-atm-wallet.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:993804676679:android:3e611cf30d58bac8b5cb62",
+        "mobilesdk_app_id": "1:753933654926:android:785cb3d424473f8d3b62df",
         "android_client_info": {
-          "package_name": "io.bluewallet.bluewallet"
+          "package_name": "com.americabitcoinatm.wallet"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "993804676679-cntmqmnbkrm9c89lcr1cq6rhaq8tfi0u.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCzJxNtavou1G10ZLIjzC-b2mX6TrVF3Ew"
+          "current_key": "AIzaSyDg-WA6yLq94bZbSjqRED0rfhgUYNNFZ8c"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "993804676679-cntmqmnbkrm9c89lcr1cq6rhaq8tfi0u.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
