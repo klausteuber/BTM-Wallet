@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version_code:
-        description: 'versionCode to stamp (must be higher than the last Play upload). Defaults to a Unix timestamp.'
+        description: 'versionCode to stamp (must be higher than the last Play upload). Defaults to this workflow run number.'
         required: false
         type: string
 
@@ -70,7 +70,9 @@ jobs:
         run: |
           VERSION_CODE="${{ inputs.version_code }}"
           if [ -z "$VERSION_CODE" ]; then
-            VERSION_CODE="$(date +%s)"
+            # Monotonic and small. A Unix timestamp works but Play warns that it
+            # burns through the 2,100,000,000 version code ceiling.
+            VERSION_CODE="${{ github.run_number }}"
           fi
           echo "NEW_BUILD_NUMBER=$VERSION_CODE" >> $GITHUB_ENV
 
