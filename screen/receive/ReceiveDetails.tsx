@@ -185,6 +185,11 @@ const ReceiveDetails = () => {
     atmHint: {
       color: colors.alternativeTextColor,
     },
+    // Brand navy is unreadable on the dark theme's navy background, so keep it
+    // for light mode and fall back to white in dark mode.
+    atmBrandHeading: {
+      color: colors.foregroundColor === '#ffffff' ? '#FFFFFF' : AMERICA_BLUE,
+    },
     atmPanel: {
       borderColor: colors.lightBorder,
       backgroundColor: colors.elevated,
@@ -601,7 +606,7 @@ const ReceiveDetails = () => {
                   />
                 </View>
                 {isCustom && getDisplayAmount() && (
-                  <BlueText testID="BitcoinAmountText" style={styles.atmAmountText} numberOfLines={1}>
+                  <BlueText testID="BitcoinAmountText" style={[styles.atmAmountText, stylesHook.atmBrandHeading]} numberOfLines={1}>
                     {getDisplayAmount()}
                   </BlueText>
                 )}
@@ -610,7 +615,7 @@ const ReceiveDetails = () => {
                     {customLabel}
                   </BlueText>
                 )}
-                <BlueText style={styles.atmHelperText}>{loc.receive.atm_helper}</BlueText>
+                <BlueText style={[styles.atmHelperText, stylesHook.atmBrandHeading]}>{loc.receive.atm_helper}</BlueText>
                 <View style={styles.atmBadge}>
                   <BlueText style={[styles.atmBadgeText, stylesHook.atmBadgeText]}>{loc.wallets.atm_badge}</BlueText>
                 </View>
@@ -866,7 +871,7 @@ const ReceiveDetails = () => {
         {isAtmOnboarding && wallet && !isWalletBackedUp && (showAddress || showPendingBalance || showConfirmedBalance) && (
           <View style={styles.atmBackupSection}>
             <View style={[styles.atmBackupCard, stylesHook.atmBackupCard]}>
-              <BlueText style={styles.atmBackupTitle}>{loc.receive.atm_backup_title}</BlueText>
+              <BlueText style={[styles.atmBackupTitle, stylesHook.atmBrandHeading]}>{loc.receive.atm_backup_title}</BlueText>
               <BlueSpacing20 />
               <BlueText style={[styles.atmBackupBody, stylesHook.atmBackupBody]}>{loc.receive.atm_backup_body}</BlueText>
               <View style={styles.atmBackupActionRow}>
@@ -1138,7 +1143,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     marginTop: 14,
-    color: AMERICA_BLUE,
   },
   atmAmountLabel: {
     fontSize: 14,
@@ -1153,7 +1157,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 12,
-    color: AMERICA_BLUE,
   },
   atmAddressCard: {
     width: '100%',
@@ -1259,7 +1262,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 26,
     fontWeight: '700',
-    color: AMERICA_BLUE,
   },
   atmBackupBody: {
     fontSize: 15,

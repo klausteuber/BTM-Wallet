@@ -205,6 +205,8 @@ const buildDirectionsUrl = (location: AtmLocation): string => {
 const AtmLocations: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
+  // Brand navy is unreadable on the dark theme's navy background.
+  const brandTextColor = colors.foregroundColor === '#ffffff' ? '#FFFFFF' : AMERICA_BLUE;
   const mapRef = useRef<MapView | null>(null);
   const [locations, setLocations] = useState<AtmLocation[]>([]);
   const [query, setQuery] = useState('');
@@ -471,7 +473,7 @@ const AtmLocations: React.FC = () => {
           </View>
           {query.length > 0 && (
             <Pressable accessibilityRole="button" onPress={() => setQuery('')} style={styles.resultsClearButton}>
-              <Text style={styles.clearSearchText}>{loc.wallets.atm_map_reset_search}</Text>
+              <Text style={[styles.clearSearchText, { color: brandTextColor }]}>{loc.wallets.atm_map_reset_search}</Text>
             </Pressable>
           )}
         </View>
@@ -629,7 +631,6 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   clearSearchText: {
-    color: AMERICA_BLUE,
     fontSize: 14,
     fontWeight: '700',
   },
