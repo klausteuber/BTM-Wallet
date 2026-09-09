@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -18,7 +18,7 @@ import {
 import HeaderRightButton from '../../components/HeaderRightButton';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
-import { ATM_LOCATIONS_API_URL, ATM_LOCATIONS_TILE_URL, ATM_LOCATIONS_TITLE, ATM_LOCATIONS_URL } from './atmLocationsConfig';
+import { ATM_LOCATIONS_API_URL, ATM_LOCATIONS_TITLE, ATM_LOCATIONS_URL } from './atmLocationsConfig';
 
 const AMERICA_BLUE = '#040766';
 const AMERICA_RED = '#ED122E';
@@ -205,6 +205,8 @@ const buildDirectionsUrl = (location: AtmLocation): string => {
 const AtmLocations: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
+  // Brand navy is unreadable on the dark theme's navy background.
+  const brandTextColor = colors.foregroundColor === '#ffffff' ? '#FFFFFF' : AMERICA_BLUE;
   const mapRef = useRef<MapView | null>(null);
   const [locations, setLocations] = useState<AtmLocation[]>([]);
   const [query, setQuery] = useState('');
@@ -413,13 +415,12 @@ const AtmLocations: React.FC = () => {
           <MapView
             ref={mapRef}
             initialRegion={DEFAULT_REGION}
-            mapType={Platform.OS === 'android' ? 'none' : 'mutedStandard'}
+            mapType={Platform.OS === 'android' ? 'standard' : 'mutedStandard'}
             onMapReady={() => setIsMapReady(true)}
             rotateEnabled={false}
             toolbarEnabled={false}
             style={StyleSheet.absoluteFillObject}
           >
-            {Platform.OS === 'android' && <UrlTile maximumZ={19} tileSize={256} urlTemplate={ATM_LOCATIONS_TILE_URL} zIndex={-1} />}
             {filteredLocations.map(location => (
               <Marker
                 key={location.id}
@@ -471,7 +472,7 @@ const AtmLocations: React.FC = () => {
           </View>
           {query.length > 0 && (
             <Pressable accessibilityRole="button" onPress={() => setQuery('')} style={styles.resultsClearButton}>
-              <Text style={styles.clearSearchText}>{loc.wallets.atm_map_reset_search}</Text>
+              <Text style={[styles.clearSearchText, { color: brandTextColor }]}>{loc.wallets.atm_map_reset_search}</Text>
             </Pressable>
           )}
         </View>
@@ -629,7 +630,6 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   clearSearchText: {
-    color: AMERICA_BLUE,
     fontSize: 14,
     fontWeight: '700',
   },

@@ -231,7 +231,21 @@ task copyFiatUnits(type: Copy) {
     into 'src/main/assets'
 }
 
+/**
+ * The icon fonts are checked in under src/main/assets/fonts, and this module
+ * overrides assets.srcDirs, so those copies are what ends up in the APK rather
+ * than the ones react-native-vector-icons ships. They had drifted years out of
+ * date, which rendered every newer glyph as an empty box. Copy them from the
+ * installed package on every build so they cannot drift again.
+ */
+task copyVectorIconFonts(type: Copy) {
+    from '../../node_modules/react-native-vector-icons/Fonts'
+    into 'src/main/assets/fonts'
+    include '*.ttf'
+}
+
 preBuild.dependsOn(copyFiatUnits)
+preBuild.dependsOn(copyVectorIconFonts)
 
 dependencies {
 		androidTestImplementation('com.wix:detox:+')
