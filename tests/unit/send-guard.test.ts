@@ -5,15 +5,11 @@ import {
   checkAddresses,
   emptyStore,
   GuardWallet,
-  holdMsFor,
-  markSent,
+  markKnown,
   normalizeAddress,
   ownedByAny,
   pastRecipients,
   seedFromWallets,
-  SENIOR_HOLD_MS,
-  STANDARD_HOLD_MS,
-  startHolds,
 } from '../../blue_modules/send-guard';
 
 const PAYEE = 'bc1qnjg0jd8228aq7egyzacy8cys3knf9xvrerkf9g';
@@ -32,15 +28,8 @@ describe('send guard', () => {
     assert.strictEqual(normalizeAddress(LEGACY), LEGACY);
   });
 
-  it('holds 15 minutes, or 24 hours for customers 65+', () => {
-    assert.strictEqual(holdMsFor(false), STANDARD_HOLD_MS);
-    assert.strictEqual(STANDARD_HOLD_MS, 15 * 60 * 1000);
-    assert.strictEqual(holdMsFor(true), SENIOR_HOLD_MS);
-    assert.strictEqual(SENIOR_HOLD_MS, 24 * 60 * 60 * 1000);
-  });
-
   it('flags a never-paid address as new, and own addresses as known', () => {
-    const checks = checkAddresses(emptyStore(), [PAYEE, OTHER], T0, a => a === OTHER);
+    const checks = checkAddresses(emptyStore(), [PAYEE, OTHER], (a: string) => a === OTHER);
     assert.deepStrictEqual(
       checks.map(c => c.status),
       ['new', 'known'],
@@ -49,35 +38,18 @@ describe('send guard', () => {
   });
 
   it('has no amount exemption and dedupes repeated recipients', () => {
-    const checks = checkAddresses(emptyStore(), [PAYEE, PAYEE.toUpperCase()], T0, nobody);
+    const checks = checkAddresses(emptyStore(), [PAYEE, PAYEE.toUpperCase()], nobody);
     assert.strictEqual(checks.length, 1);
+    assert.strictEqual(checks[0].status, 'new');
   });
 
-  it('clears an address only when its hold is over', () => {
-    const store = startHolds(emptyStore(), [PAYEE], STANDARD_HOLD_MS, T0);
-    const during = checkAddresses(store, [PAYEE], T0 + STANDARD_HOLD_MS - 1, nobody);
-    assert.strictEqual(during[0].status, 'on_hold');
-    assert.strictEqual(during[0].holdUntil, T0 + STANDARD_HOLD_MS);
-    assert.strictEqual(allClear(during), false);
-    const after = checkAddresses(store, [PAYEE], T0 + STANDARD_HOLD_MS, nobody);
-    assert.strictEqual(after[0].status, 'cleared');
-    assert.strictEqual(allClear(after), true);
-  });
-
-  it('never shortens a hold, and a senior hold extends a standard one from the same start', () => {
-    let store = startHolds(emptyStore(), [PAYEE], SENIOR_HOLD_MS, T0);
-    store = startHolds(store, [PAYEE], STANDARD_HOLD_MS, T0 + 1000);
-    assert.deepStrictEqual(store.holds[PAYEE], { startedAt: T0, holdMs: SENIOR_HOLD_MS });
-    let other = startHolds(emptyStore(), [OTHER], STANDARD_HOLD_MS, T0);
-    other = startHolds(other, [OTHER], SENIOR_HOLD_MS, T0 + 60_000);
-    assert.deepStrictEqual(other.holds[OTHER], { startedAt: T0, holdMs: SENIOR_HOLD_MS });
-  });
-
-  it('remembers addresses once paid and drops their hold', () => {
-    let store = startHolds(emptyStore(), [PAYEE], STANDARD_HOLD_MS, T0);
-    store = markSent(store, [PAYEE], T0 + STANDARD_HOLD_MS + 5);
-    assert.strictEqual(store.holds[PAYEE], undefined);
-    assert.strictEqual(checkAddresses(store, [PAYEE], T0, nobody)[0].status, 'known');
+  it('a passed check (or a broadcast) clears the address at once, with no waiting period', () => {
+    const store = markKnown(emptyStore(), [PAYEE.toUpperCase()], T0);
+    const checks = checkAddresses(store, [PAYEE], nobody);
+    assert.deepStrictEqual(checks, [{ address: PAYEE, status: 'known' }]);
+    assert.strictEqual(allClear(checks), true);
+    // Marking again keeps the first time it was learned.
+    assert.strictEqual(markKnown(store, [PAYEE], T0 + 5).known[PAYEE], T0);
   });
 
   it('seeds past recipients from outgoing transactions only, once per wallet', () => {

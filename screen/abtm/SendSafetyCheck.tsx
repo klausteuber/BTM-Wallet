@@ -8,7 +8,7 @@ import { useTheme } from '../../components/themes';
 import { useStorage } from '../../hooks/context/useStorage';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { getAbtmAccountState, refreshAbtmAccount } from '../../hooks/useAbtmAccount';
-import { AddressCheck, beginHolds, evaluateSend, holdMsFor, SUPPORT_PHONE } from '../../blue_modules/send-guard';
+import { AddressCheck, evaluateSend, recordKnown, signalSafetyCheckPassed, SUPPORT_PHONE } from '../../blue_modules/send-guard';
 import { SendDetailsStackParamList } from '../../navigation/SendDetailsStackParamList';
 import loc from '../../loc';
 import { Body, Card, Field, Gap, Label, Title } from './ui';
@@ -28,20 +28,16 @@ async function isSenior(): Promise<boolean> {
   return state.profile?.age65Plus === true;
 }
 
-function holdLength(ms: number): string {
-  return ms >= 60 * 60 * 1000
-    ? (loc.formatString(loc.abtm.hold_hours, { hours: Math.round(ms / 3600000) }) as string)
-    : (loc.formatString(loc.abtm.hold_minutes, { minutes: Math.round(ms / 60000) }) as string);
-}
-
 function shortAddress(address: string): string {
   return address.length > 20 ? `${address.slice(0, 10)}…${address.slice(-8)}` : address;
 }
 
 /**
  * Shown instead of Confirm when a send goes to an address this phone has never paid:
- * three scam questions (any "yes" stops the send), then a hold before the address can
- * be used. 15 minutes; 24 hours plus a typed confirmation for customers 65 and older.
+ * three scam questions (any "yes" stops the send). Customers 65 and older also see a
+ * "call us first" prompt and type a confirmation. Passing returns to Send, which goes
+ * on to Confirm; there is no waiting period (the operator's hold-and-release at the
+ * kiosk covers that).
  */
 const SendSafetyCheck: React.FC = () => {
   const { colors } = useTheme();
@@ -52,7 +48,6 @@ const SendSafetyCheck: React.FC = () => {
   const [senior, setSenior] = useState(false);
   const [answers, setAnswers] = useState<Answer[]>([undefined, undefined, undefined]);
   const [phrase, setPhrase] = useState('');
-  const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -65,30 +60,24 @@ const SendSafetyCheck: React.FC = () => {
     load();
   }, [load]);
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const newOnes = useMemo(() => (checks || []).filter(c => c.status === 'new'), [checks]);
-  const held = useMemo(() => (checks || []).filter(c => c.status === 'on_hold' || c.status === 'cleared'), [checks]);
-  const holdUntil = held.reduce((latest, c) => Math.max(latest, c.holdUntil || 0), 0);
   const saidYes = answers.includes('yes');
   const allNo = answers.every(a => a === 'no');
   const phraseOk = phrase.trim().toLowerCase() === (loc.abtm.senior_phrase as string).toLowerCase();
 
   const cancelSend = () => navigation.getParent()?.goBack();
-  const backToSend = () => navigation.goBack();
+  // Back to Send (form intact), which runs Next again and, now that these addresses are known, opens Confirm.
+  const continueSend = () => {
+    navigation.goBack();
+    signalSafetyCheckPassed();
+  };
   const callUs = () => Linking.openURL(`tel:${SUPPORT_PHONE}`);
 
-  const startHold = async () => {
+  const passCheck = async () => {
     setBusy(true);
     try {
-      await beginHolds(
-        newOnes.map(c => c.address),
-        senior,
-      );
-      await load();
+      await recordKnown(newOnes.map(c => c.address));
+      continueSend();
     } finally {
       setBusy(false);
     }
@@ -157,7 +146,7 @@ const SendSafetyCheck: React.FC = () => {
       <>
         <Card>
           <Title>{loc.abtm.new_address_title}</Title>
-          <Body>{loc.formatString(loc.abtm.new_address_intro, { duration: holdLength(holdMsFor(senior)) })}</Body>
+          <Body>{loc.abtm.new_address_intro}</Body>
           <Gap size={10} />
           {newOnes.map(c => (
             <Body key={c.address} muted selectable>
@@ -183,9 +172,9 @@ const SendSafetyCheck: React.FC = () => {
         ) : null}
         <Card>
           <Button
-            testID="AbtmStartHold"
-            title={loc.formatString(loc.abtm.start_hold, { duration: holdLength(holdMsFor(senior)) }) as string}
-            onPress={startHold}
+            testID="AbtmPassCheck"
+            title={loc.abtm.continue_send}
+            onPress={passCheck}
             disabled={busy || !allNo || (senior && !phraseOk)}
           />
           <Gap size={10} />
@@ -193,36 +182,11 @@ const SendSafetyCheck: React.FC = () => {
         </Card>
       </>
     );
-  } else if (holdUntil > now) {
-    const until = new Date(holdUntil);
-    const sameDay = until.toDateString() === new Date(now).toDateString();
-    const when = sameDay
-      ? until.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-      : until.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
-    const left = Math.ceil((holdUntil - now) / 1000);
-    const h = Math.floor(left / 3600);
-    const m = Math.floor((left % 3600) / 60);
-    const s = left % 60;
-    const countdown = h > 0 ? `${h}h ${m}m` : `${m}:${s < 10 ? '0' : ''}${s}`;
-    content = (
-      <Card testID="AbtmOnHold">
-        <Title>{loc.abtm.on_hold_title}</Title>
-        <Body>{loc.formatString(loc.abtm.on_hold, { when })}</Body>
-        <Gap />
-        <Text style={[styles.countdown, { color: colors.foregroundColor }]}>{countdown}</Text>
-        <Gap />
-        <Body muted>{loc.abtm.on_hold_note}</Body>
-        <Gap />
-        <SecondButton title={loc.abtm.cancel_send} onPress={cancelSend} />
-      </Card>
-    );
   } else {
+    // Every address is already known (e.g. checked earlier): carry on.
     content = (
-      <Card testID="AbtmHoldDone">
-        <Title>{loc.abtm.hold_done_title}</Title>
-        <Body>{loc.abtm.hold_done}</Body>
-        <Gap />
-        <Button title={loc.abtm.back_to_send} onPress={backToSend} />
+      <Card>
+        <Button title={loc.abtm.continue_send} onPress={continueSend} />
       </Card>
     );
   }
@@ -249,5 +213,4 @@ const styles = StyleSheet.create({
   choiceGap: { width: 12 },
   choice: { flex: 1, borderWidth: 1, borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
   choiceText: { fontSize: 16, fontWeight: '600' },
-  countdown: { fontSize: 40, fontWeight: '700', textAlign: 'center', fontVariant: ['tabular-nums'] },
 });

@@ -56,7 +56,7 @@ import { CommonToolTipActions, ToolTipAction } from '../../typings/CommonToolTip
 import ActionSheet from '../ActionSheet';
 import { isCancel, pickTransaction } from '../../blue_modules/fs';
 import { Measure } from '../../class/measure';
-import { allClear, evaluateSend } from '../../blue_modules/send-guard';
+import { allClear, evaluateSend, onSafetyCheckPassed } from '../../blue_modules/send-guard';
 
 interface IPaymentDestinations {
   address: string; // btc address or payment code
@@ -561,7 +561,7 @@ const SendDetails = () => {
     }
 
     // Scam protection: the first send to an address this phone never paid goes through a
-    // short scam check and a hold (15 minutes; 24 hours for customers 65+).
+    // short scam check (plus a typed confirmation for customers 65+). No waiting period.
     const destinations = addresses.map(a => a.address).filter(Boolean);
     if (!allClear(await evaluateSend(destinations, wallets as any))) {
       setIsLoading(false);
@@ -578,6 +578,11 @@ const SendDetails = () => {
       triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
     }
   };
+  // Coming back from a passed safety check: run Next again, which now goes on to Confirm.
+  const createTransactionRef = useRef(createTransaction);
+  createTransactionRef.current = createTransaction;
+  useEffect(() => onSafetyCheckPassed(() => createTransactionRef.current()), []);
+
   const navigateToQRCodeScanner = useCallback(() => {
     navigation.navigate('ScanQRCode', {
       showFileImportButton: true,

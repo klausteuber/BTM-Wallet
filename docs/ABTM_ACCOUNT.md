@@ -8,8 +8,10 @@ The app talks to the customer account service at
   requires ID verification. The kiosk API answers `no_wallet` for a customer
   whose wallet isn't backed by an ID, so the kiosk falls back to a QR scan.
 - **Send protections:** the first send to an address this phone has never paid
-  goes through a scam check and a hold: 15 minutes, or 24 hours for customers
-  65 and older.
+  goes through a short scam check, with an extra confirmation for customers 65
+  and older. **No waiting period in the wallet** (changed the same day): the
+  operator's hold-and-release at the kiosk covers that before any bitcoin is
+  released.
 - This repository stays local for now (no remote push).
 
 ## Where things are
@@ -74,11 +76,11 @@ instead of Confirm:
 2. Customers 65+ (`age65Plus` from `GET /account`, a yes/no from the verified
    ID's date of birth) also see a "call us first" prompt and must type
    MY OWN DECISION.
-3. The address is held for 15 minutes, or 24 hours for 65+. Holds survive leaving
-   the app. After the hold, Next goes straight to Confirm.
+3. Continue goes back to Send with the form intact and runs Next again, which
+   now opens Confirm. There is no waiting period.
 
-After a broadcast, the recipients are remembered. On first use, each wallet's
-past outgoing payees are added, so existing payees aren't held. There is no
+A passed check, or a broadcast, marks the addresses as known, so they aren't
+checked again. On first use, each wallet's past outgoing payees are added too. There is no
 amount exemption, since scammers ask for a small test payment first. The wallet
 is non-custodial, so this is friction against a scammer's script, not a hard
 control. Restoring the seed in another wallet bypasses it.

@@ -1,36 +1,32 @@
 /**
- * Send protections against scams (decided 2026-10-06).
+ * Send protections against scams.
  *
  * The first time a wallet sends to an address it has never sent to, the customer
- * answers a short scam check and the address is held before it can be used:
- * 15 minutes, or 24 hours for customers 65 and older (from their verified ID).
- * Addresses of the customer's own wallets are exempt; there is no amount exemption
- * (scammers ask for a small test payment first).
+ * answers a short scam check; any "yes" stops the send. Customers 65 and older
+ * (from their verified ID) also get a "call us first" prompt and type a short
+ * confirmation. There is no waiting period in the app (decided 2026-10-06): the
+ * operator's hold-and-release at the kiosk covers that before any bitcoin is sent.
+ * Addresses of the customer's own wallets are exempt; there is no amount
+ * exemption (scammers ask for a small test payment first).
  *
  * The wallet is non-custodial, so this is friction against a scammer's script,
  * not a hard control. State lives on the phone only (AsyncStorage).
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const STANDARD_HOLD_MS = 15 * 60 * 1000;
-export const SENIOR_HOLD_MS = 24 * 60 * 60 * 1000;
 export const SUPPORT_PHONE = '888-437-7582';
 const STORAGE_KEY = 'ABTM_SEND_GUARD_V1';
 
-export type Hold = { startedAt: number; holdMs: number };
-
 export type GuardStore = {
-  /** Addresses this phone has already sent to (value: when it was learned). */
+  /** Addresses this phone has paid, or whose scam check the customer passed (value: when). */
   known: Record<string, number>;
-  /** Addresses that passed the scam check, waiting out their hold. */
-  holds: Record<string, Hold>;
   /** Wallets whose past sends were already added to `known`. */
   seededWallets: Record<string, boolean>;
 };
 
-export type AddressStatus = 'known' | 'new' | 'on_hold' | 'cleared';
+export type AddressStatus = 'known' | 'new';
 
-export type AddressCheck = { address: string; status: AddressStatus; holdUntil?: number };
+export type AddressCheck = { address: string; status: AddressStatus };
 
 /** Minimal view of a wallet; every BlueWallet wallet class has these. */
 export type GuardWallet = {
@@ -40,7 +36,7 @@ export type GuardWallet = {
 };
 
 export function emptyStore(): GuardStore {
-  return { known: {}, holds: {}, seededWallets: {} };
+  return { known: {}, seededWallets: {} };
 }
 
 /** bech32 addresses are case-insensitive; base58 ones are not. */
@@ -49,64 +45,32 @@ export function normalizeAddress(address: string): string {
   return /^(bc1|tb1|bcrt1)/i.test(trimmed) ? trimmed.toLowerCase() : trimmed;
 }
 
-export function holdMsFor(senior: boolean): number {
-  return senior ? SENIOR_HOLD_MS : STANDARD_HOLD_MS;
-}
-
-export function checkAddresses(store: GuardStore, addresses: string[], now: number, isOwn: (address: string) => boolean): AddressCheck[] {
+export function checkAddresses(store: GuardStore, addresses: string[], isOwn: (address: string) => boolean): AddressCheck[] {
   const seen = new Set<string>();
   const result: AddressCheck[] = [];
   for (const raw of addresses) {
     const address = normalizeAddress(raw);
     if (!address || seen.has(address)) continue;
     seen.add(address);
-    if (store.known[address] || isOwn(raw) || isOwn(address)) {
-      result.push({ address, status: 'known' });
-      continue;
-    }
-    const hold = store.holds[address];
-    if (hold) {
-      const holdUntil = hold.startedAt + hold.holdMs;
-      result.push({ address, status: now >= holdUntil ? 'cleared' : 'on_hold', holdUntil });
-      continue;
-    }
-    result.push({ address, status: 'new' });
+    const known = !!store.known[address] || isOwn(raw) || isOwn(address);
+    result.push({ address, status: known ? 'known' : 'new' });
   }
   return result;
 }
 
-/** True when every address may be sent to now. */
+/** True when every address may be sent to without a scam check. */
 export function allClear(checks: AddressCheck[]): boolean {
-  return checks.every(c => c.status === 'known' || c.status === 'cleared');
+  return checks.every(c => c.status === 'known');
 }
 
-/**
- * Start holds for addresses that passed the scam check. An address already on
- * hold keeps its start time; a longer hold (the customer turned out to be 65+)
- * extends it but a shorter one never shortens it.
- */
-export function startHolds(store: GuardStore, addresses: string[], holdMs: number, now: number): GuardStore {
-  const holds = { ...store.holds };
-  for (const raw of addresses) {
-    const address = normalizeAddress(raw);
-    if (!address || store.known[address]) continue;
-    const existing = holds[address];
-    holds[address] = existing ? { startedAt: existing.startedAt, holdMs: Math.max(existing.holdMs, holdMs) } : { startedAt: now, holdMs };
-  }
-  return { ...store, holds };
-}
-
-/** After a successful broadcast: these addresses are known from now on. */
-export function markSent(store: GuardStore, addresses: string[], now: number): GuardStore {
+/** Paid, or scam check passed: these addresses are known from now on. */
+export function markKnown(store: GuardStore, addresses: string[], now: number): GuardStore {
   const known = { ...store.known };
-  const holds = { ...store.holds };
   for (const raw of addresses) {
     const address = normalizeAddress(raw);
-    if (!address) continue;
-    known[address] = known[address] || now;
-    delete holds[address];
+    if (address) known[address] = known[address] || now;
   }
-  return { ...store, known, holds };
+  return { ...store, known };
 }
 
 /** Addresses a wallet paid in the past (outputs of its outgoing transactions that it doesn't own). */
@@ -133,14 +97,13 @@ export function pastRecipients(wallet: GuardWallet): string[] {
   return out;
 }
 
-/** Add each wallet's past recipients to `known`, once per wallet, so existing payees aren't held. */
+/** Add each wallet's past recipients to `known`, once per wallet, so existing payees aren't checked. */
 export function seedFromWallets(store: GuardStore, wallets: GuardWallet[], now: number): GuardStore {
   let next = store;
   for (const wallet of wallets) {
     const id = wallet.getID();
     if (next.seededWallets[id]) continue;
-    const recipients = pastRecipients(wallet);
-    next = markSent(next, recipients, now);
+    next = markKnown(next, pastRecipients(wallet), now);
     next = { ...next, seededWallets: { ...next.seededWallets, [id]: true } };
   }
   return next;
@@ -157,6 +120,22 @@ export function ownedByAny(wallets: GuardWallet[]) {
     });
 }
 
+// ------------------------------------------------------------------ "check passed" signal
+
+const passedListeners = new Set<() => void>();
+
+/** Send subscribes; the safety check calls `signalSafetyCheckPassed` after goBack(), so the form is kept. */
+export function onSafetyCheckPassed(listener: () => void): () => void {
+  passedListeners.add(listener);
+  return () => {
+    passedListeners.delete(listener);
+  };
+}
+
+export function signalSafetyCheckPassed(): void {
+  for (const listener of passedListeners) listener();
+}
+
 // ------------------------------------------------------------------ persistence
 
 export async function loadStore(): Promise<GuardStore> {
@@ -164,7 +143,7 @@ export async function loadStore(): Promise<GuardStore> {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return emptyStore();
     const parsed = JSON.parse(raw);
-    return { ...emptyStore(), ...parsed };
+    return { known: parsed.known || {}, seededWallets: parsed.seededWallets || {} };
   } catch (_) {
     return emptyStore();
   }
@@ -179,15 +158,10 @@ export async function evaluateSend(addresses: string[], wallets: GuardWallet[], 
   const loaded = await loadStore();
   const store = seedFromWallets(loaded, wallets, now);
   if (store !== loaded) await saveStore(store);
-  return checkAddresses(store, addresses, now, ownedByAny(wallets));
+  return checkAddresses(store, addresses, ownedByAny(wallets));
 }
 
-export async function beginHolds(addresses: string[], senior: boolean, now = Date.now()): Promise<AddressCheck[]> {
-  const store = startHolds(await loadStore(), addresses, holdMsFor(senior), now);
-  await saveStore(store);
-  return checkAddresses(store, addresses, now, () => false);
-}
-
-export async function recordSent(addresses: string[], now = Date.now()): Promise<void> {
-  await saveStore(markSent(await loadStore(), addresses, now));
+/** The customer passed the scam check for these addresses, or the send was broadcast. */
+export async function recordKnown(addresses: string[], now = Date.now()): Promise<void> {
+  await saveStore(markKnown(await loadStore(), addresses, now));
 }
