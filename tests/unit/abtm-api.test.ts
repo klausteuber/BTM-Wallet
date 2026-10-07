@@ -155,6 +155,19 @@ describe('America Bitcoin API client', () => {
     assert.strictEqual(calls.length, 0);
   });
 
+  it('creates the account with the promo-text opt-in only when it was ticked', async () => {
+    const session = { accessToken: 'a', refreshToken: 'r', sessionId: 's', deviceId: 'uniqueId', customer: { id: 'c1' } };
+    replies.push({ status: 201, body: session }, { status: 201, body: session });
+    await pairedWalletApi.signupComplete('verified-1', '2026-01-01', '7025550142', '2026-10-06');
+    await pairedWalletApi.signupComplete('verified-2', '2026-01-01', '7025550142');
+    const ticked = JSON.parse(calls[0].init.body);
+    const unticked = JSON.parse(calls[1].init.body);
+    assert.strictEqual(ticked.smsMarketing, true);
+    assert.strictEqual(ticked.smsMarketingVersion, '2026-10-06');
+    assert.strictEqual(ticked.acceptTerms, true);
+    assert.ok(!('smsMarketing' in unticked) && !('smsMarketingVersion' in unticked));
+  });
+
   it('sends the biometric consent version with ID verification starts', async () => {
     signIn();
     replies.push({ status: 200, body: { attemptId: 'a1', accessToken: 'tok' } });

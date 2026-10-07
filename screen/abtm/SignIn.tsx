@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, TextInput } from 'react-native';
 import Button from '../../components/Button';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
-import { pairedWalletApi } from '../../blue_modules/paired-wallet-api';
+import { pairedWalletApi, SmsMarketingOffer } from '../../blue_modules/paired-wallet-api';
 import { refreshAbtmAccount } from '../../hooks/useAbtmAccount';
 import { SUPPORT_PHONE } from '../../blue_modules/send-guard';
 import loc from '../../loc';
@@ -44,6 +44,9 @@ const AbtmSignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [agreed, setAgreed] = useState(false);
+  // Promo texts: optional, never pre-ticked, and never a condition of the account.
+  const [smsAgreed, setSmsAgreed] = useState(false);
+  const [smsOffer, setSmsOffer] = useState<SmsMarketingOffer | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -134,12 +137,19 @@ const AbtmSignIn: React.FC = () => {
       const result = await pairedWalletApi.signupVerifyEmail(signup.current.signupToken!, signup.current.emailToken!, code);
       signup.current = { ...signup.current, verifiedToken: result.verifiedToken };
       setTerms(result.terms);
+      setSmsOffer(result.smsMarketing && result.smsMarketing.version && result.smsMarketing.text ? result.smsMarketing : null);
+      setSmsAgreed(false);
       setStep('terms');
     });
 
   const createAccount = () =>
     run(async () => {
-      await pairedWalletApi.signupComplete(signup.current.verifiedToken!, terms!.version, phoneDigits(phone));
+      await pairedWalletApi.signupComplete(
+        signup.current.verifiedToken!,
+        terms!.version,
+        phoneDigits(phone),
+        smsOffer && smsAgreed ? smsOffer.version : null,
+      );
       await finish();
     });
 
@@ -317,6 +327,15 @@ const AbtmSignIn: React.FC = () => {
           </LinkRow>
           <Gap size={14} />
           <AgreeRow testID="AbtmAgree" value={agreed} onChange={setAgreed} label={loc.abtm.terms_agree} />
+          {smsOffer ? (
+            <>
+              <Gap size={18} />
+              <Label>{loc.abtm.sms_optin_label}</Label>
+              <Gap size={6} />
+              {/* The server's exact wording: its version is what gets recorded as agreed to. */}
+              <AgreeRow testID="AbtmSmsOptIn" value={smsAgreed} onChange={setSmsAgreed} label={smsOffer.text} />
+            </>
+          ) : null}
           <Gap size={22} />
           <Button
             testID="AbtmCreateAccount"
