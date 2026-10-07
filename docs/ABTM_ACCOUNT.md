@@ -53,6 +53,14 @@ The screen shows the server's biometric-consent wording and sends its version;
 the server refuses to start without it and records the consent (BIPA). After
 SumSub closes, the app polls the status endpoint.
 
+**A new phone on a verified account.** A phone code alone never carries a
+verified identity to a new phone, since numbers get reassigned (server rule F01,
+`account_service/device_trust.py`). Until the phone passes a selfie matched
+against the linked verification (`/kyc/options` state `device`), the Account
+screen shows "Confirm on this phone". The wallet, purchases and ATM approvals
+stay hidden. The phone that starts a selfie or ID check is the one that becomes
+verified.
+
 **Wallet.** "Create my wallet" makes a BIP84 wallet on the phone, saves it, then
 registers it: a signed challenge from the server, signed with receive address
 0's key (Bitcoin Signed Message), sent with the xpub in a device-signed request.
