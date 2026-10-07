@@ -136,8 +136,18 @@ const AbtmAccount: React.FC = () => {
   }
 
   const verification = profile?.verification;
+  const needsDevice = !!verification?.identityLinked && !verification.verified;
   const walletCard = (() => {
     if (!profile) return null;
+    if (needsDevice) {
+      return (
+        <>
+          <Body>{loc.abtm.wallet_device_needed}</Body>
+          <Gap size={12} />
+          <Button title={loc.abtm.confirm_on_phone} onPress={() => navigate('AbtmVerifyId')} testID="AbtmWalletConfirmDevice" />
+        </>
+      );
+    }
     if (registered && onPhone) {
       const address = nextReceiveAddress(onPhone);
       return (
@@ -231,6 +241,14 @@ const AbtmAccount: React.FC = () => {
                   ? loc.formatString(loc.abtm.id_verified_on, { date: formatDate(verification.verifiedAt) })
                   : loc.formatString(loc.abtm.id_linked_from, { source: verification.source || '' })}
               </Body>
+            </>
+          ) : needsDevice ? (
+            <>
+              <Pill tone="warn">{loc.abtm.id_confirm_needed}</Pill>
+              <Gap size={10} />
+              <Body muted>{loc.abtm.device_intro}</Body>
+              <Gap size={12} />
+              <Button title={loc.abtm.confirm_on_phone} onPress={() => navigate('AbtmVerifyId')} testID="AbtmConfirmDevice" />
             </>
           ) : (
             <>

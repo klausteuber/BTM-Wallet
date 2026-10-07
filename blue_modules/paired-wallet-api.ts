@@ -103,7 +103,19 @@ export type AccountProfile = {
   maskedPhone: string;
   maskedEmail: string;
   createdAt: string | null;
-  verification: { verified: boolean; method: string | null; verifiedAt: string | null; source: string | null };
+  /**
+   * `verified`: the account is ID-verified AND this phone proved it holds that identity
+   * (a phone code alone never does). `identityLinked` without `verified` means this phone
+   * needs a quick selfie first (KYC state 'device').
+   */
+  verification: {
+    verified: boolean;
+    identityLinked: boolean;
+    deviceVerified: boolean;
+    method: string | null;
+    verifiedAt: string | null;
+    source: string | null;
+  };
   wallet: { registered: boolean; firstAddress: string | null };
   age65Plus: boolean | null;
   supportPhone: string;
@@ -112,7 +124,7 @@ export type AccountProfile = {
 
 export type ActivityEvent = { event: string; label: string; at: string; device: string };
 
-export type KycState = 'linked' | 'found' | 'kyc_offer' | 'kyc_retry' | 'kyc_resume' | 'reviewing' | 'rejected' | 'unavailable';
+export type KycState = 'linked' | 'device' | 'found' | 'kyc_offer' | 'kyc_retry' | 'kyc_resume' | 'reviewing' | 'rejected' | 'unavailable';
 
 export type KycOptions = {
   state: KycState;

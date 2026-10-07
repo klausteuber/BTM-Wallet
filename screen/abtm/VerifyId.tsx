@@ -163,6 +163,17 @@ const AbtmVerifyId: React.FC = () => {
           </Card>
         );
         break;
+      case 'device':
+        body = (
+          <Card>
+            <Title>{loc.abtm.device_title}</Title>
+            <Body>{loc.abtm.device_intro}</Body>
+            {consent}
+            <Gap />
+            <Button title={loc.abtm.take_selfie} onPress={() => start('link')} disabled={busy || !agreed} testID="AbtmDeviceSelfie" />
+          </Card>
+        );
+        break;
       case 'found':
         body = (
           <Card>
