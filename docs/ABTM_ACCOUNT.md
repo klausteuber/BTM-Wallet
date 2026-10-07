@@ -85,7 +85,7 @@ already received to. Registering an old wallet shows us its past transactions;
 the card says so.
 
 **Kiosk approvals.** When a kiosk asks to send to the customer's wallet, the
-customer has 2 minutes. While the app is open, the watcher polls
+customer has 4 minutes. While the app is open, the watcher polls
 `/kiosk-authorizations` every 3 seconds and opens the approval screen, which
 polls every 2 seconds and shows a countdown. Approve and Decline are signed with
 the device key behind Face ID. The full address appears only after approval.

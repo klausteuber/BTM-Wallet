@@ -28,7 +28,7 @@ function clock(seconds: number): string {
 /**
  * "Approve purchase at <store>": the request a Bitcoin ATM sends after the customer
  * signs in there with their phone number (Chainlogic spec, "Verified Wallet at the
- * Kiosk"). 2 minutes to approve; only after Approve, signed by this phone's key,
+ * Kiosk"). 4 minutes to approve; only after Approve, signed by this phone's key,
  * does the kiosk learn the full address. Polled while this screen is open.
  */
 const AbtmKioskApproval: React.FC = () => {
