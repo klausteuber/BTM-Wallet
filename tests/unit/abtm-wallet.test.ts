@@ -4,6 +4,7 @@ import assert from 'assert';
 import { ABTMPairedWallet, HDLegacyP2PKHWallet, HDSegwitBech32Wallet, HDTaprootWallet, WatchOnlyWallet } from '../../class';
 import {
   buildPairingRegistration,
+  isRegisteredWallet,
   registeredWalletOnPhone,
   registrableWallets,
   registrationAddress,
@@ -84,5 +85,15 @@ describe('ABTM wallet registration helpers', () => {
     assert.strictEqual(registeredWalletOnPhone([legacy], ADDRESS_0), legacy);
     assert.strictEqual(registeredWalletOnPhone([legacy], 'bc1qother'), undefined);
     assert.strictEqual(registeredWalletOnPhone([legacy], null), undefined);
+  });
+
+  it('marks only the registered wallet (the mint check on its card)', () => {
+    assert.strictEqual(isRegisteredWallet(standardWallet(), ADDRESS_0), true);
+    assert.strictEqual(isRegisteredWallet(abtmWallet(), ADDRESS_0), true);
+    assert.strictEqual(isRegisteredWallet(standardWallet(), 'bc1qother'), false);
+    assert.strictEqual(isRegisteredWallet(standardWallet(), null), false);
+    const taproot = new HDTaprootWallet();
+    taproot.setSecret(MNEMONIC);
+    assert.strictEqual(isRegisteredWallet(taproot, ADDRESS_0), false);
   });
 });

@@ -26,6 +26,11 @@ export function registeredWalletOnPhone(wallets: AnyWallet[], firstAddress: stri
   return registrableWallets(wallets).find(w => registrationAddress(w) === firstAddress);
 }
 
+/** Whether this wallet is the one registered to the account (`firstAddress` from the profile). */
+export function isRegisteredWallet(wallet: AnyWallet, firstAddress: string | null | undefined): boolean {
+  return !!firstAddress && registeredWalletOnPhone([wallet], firstAddress) !== undefined;
+}
+
 /** A fresh BIP84 wallet; the caller saves it and sends the customer to back up the recovery phrase. */
 export async function newAbtmWallet(): Promise<ABTMPairedWallet> {
   const wallet = new ABTMPairedWallet();

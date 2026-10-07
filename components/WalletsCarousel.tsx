@@ -30,6 +30,9 @@ import { Transaction, TWallet } from '../class/wallets/types';
 import HighlightedText from './HighlightedText';
 import { BlueSpacing10 } from './BlueSpacing';
 import { useLocale } from '@react-navigation/native';
+import { Icon } from '@rneui/themed';
+import { useAbtmAccount } from '../hooks/useAbtmAccount';
+import { isRegisteredWallet } from '../blue_modules/abtm-wallet';
 
 const AMERICA_BLUE = '#040766';
 const AMERICA_MINT = '#38E3A5';
@@ -297,10 +300,24 @@ const iStyles = StyleSheet.create({
   br: {
     backgroundColor: 'transparent',
   },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   label: {
     backgroundColor: 'transparent',
     fontSize: 17,
     fontWeight: '600',
+    flexShrink: 1,
+  },
+  registeredBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginStart: 8,
+    backgroundColor: AMERICA_MINT,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   balance: {
     backgroundColor: 'transparent',
@@ -359,6 +376,10 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
     const itemWidth = width * 0.82 > 375 ? 375 : width * 0.82;
     const { sizeClass } = useSizeClass();
     const { direction } = useLocale();
+    // The wallet registered to the America Bitcoin account gets a mint check, so the
+    // customer can see which wallet our ATMs pay without opening the account page.
+    const { profile } = useAbtmAccount();
+    const registered = !!profile?.wallet.registered && isRegisteredWallet(item, profile.wallet.firstAddress);
 
     const springConfig = useMemo(() => ({ useNativeDriver: true, tension: 100 }), []);
     const animateScale = useCallback(
@@ -491,17 +512,29 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
               <Text style={iStyles.br} />
               {!isPlaceHolder && (
                 <>
-                  <Text numberOfLines={1} style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}>
-                    {renderHighlightedText && searchQuery ? (
-                      <HighlightedText
-                        text={item.getLabel()}
-                        query={searchQuery}
-                        style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}
-                      />
-                    ) : (
-                      item.getLabel()
-                    )}
-                  </Text>
+                  <View style={iStyles.labelRow}>
+                    <Text numberOfLines={1} style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}>
+                      {renderHighlightedText && searchQuery ? (
+                        <HighlightedText
+                          text={item.getLabel()}
+                          query={searchQuery}
+                          style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}
+                        />
+                      ) : (
+                        item.getLabel()
+                      )}
+                    </Text>
+                    {registered ? (
+                      <View
+                        style={iStyles.registeredBadge}
+                        accessible
+                        accessibilityLabel={loc.abtm.wallet_registered}
+                        testID="AbtmRegisteredWalletBadge"
+                      >
+                        <Icon name="checkmark" type="ionicon" size={17} color={AMERICA_BLUE} />
+                      </View>
+                    ) : null}
+                  </View>
                   <View style={iStyles.balanceContainer}>
                     {item.hideBalance ? (
                       <>
