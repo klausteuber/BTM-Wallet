@@ -115,7 +115,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>2610062132</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
 	<false/>
 	<key>FIREBASE_MESSAGING_AUTO_INIT_ENABLED</key>
@@ -182,10 +182,10 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>We use the camera to scan QR codes and, when you verify your identity, to photograph your ID and take a selfie.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Identity verification may record a short video with sound to confirm it's really you.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>In order to use FaceID for authentication when performing sensitive actions, we need your permission.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Identity verification may record a short video with sound to confirm it's really you.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your authorization is required to save this image.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
