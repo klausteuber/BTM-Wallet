@@ -96,7 +96,8 @@ const AbtmKioskApproval: React.FC = () => {
     }
   };
 
-  const store = item?.location || loc.abtm.kiosk_unknown_store;
+  // The store's name ("Cottonwood Mall"), never our internal location code.
+  const store = item?.locationName || loc.abtm.kiosk_unknown_store;
   let content: React.ReactNode;
   if (!loaded) {
     content = <ActivityIndicator style={styles.spinner} />;
@@ -118,7 +119,14 @@ const AbtmKioskApproval: React.FC = () => {
         <Gap size={12} />
         <Body muted>{loc.abtm.kiosk_only_if_there}</Body>
         <Gap />
-        <Button testID="AbtmApprove" title={loc.abtm.kiosk_approve} onPress={() => act(true)} disabled={busy || left === 0} />
+        <Button
+          testID="AbtmApprove"
+          title={loc.abtm.kiosk_approve}
+          onPress={() => act(true)}
+          disabled={busy || left === 0}
+          backgroundColor={brand.green}
+          buttonTextColor="#ffffff"
+        />
         <Gap size={10} />
         <SecondButton testID="AbtmDecline" title={loc.abtm.kiosk_decline} onPress={() => act(false)} disabled={busy} />
       </Card>
@@ -146,7 +154,7 @@ const AbtmKioskApproval: React.FC = () => {
             : loc.abtm.kiosk_cancelled;
     content = (
       <Card>
-        <Title>{store}</Title>
+        <Title>{item?.locationName || loc.abtm.kiosk_purchase_title}</Title>
         <Body>{message}</Body>
         <Gap />
         <SecondButton title={loc._.ok} onPress={() => navigation.goBack()} />

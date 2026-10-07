@@ -91,6 +91,8 @@ export type KioskAuthorization = {
   id: string;
   status: 'pending_approval' | 'approved' | 'declined' | 'expired' | 'cancelled' | 'completed';
   location: string | null;
+  /** The store, for the customer ("Cottonwood Mall"); null when unknown. Never show `location` (an internal code). */
+  locationName: string | null;
   btmId: string | null;
   maskedAddress: string | null;
   address: string | null;
@@ -535,6 +537,13 @@ class PairedWalletApi {
       { method: 'POST', body: { reason } },
       { auth: true, signed: true, promptMessage: 'Confirm to remove your wallet from your account' },
     );
+  }
+
+  // ---------------------------------------------------------------- push notifications
+
+  /** This phone's APNs token, so kiosk approval requests reach it when the app is closed. */
+  async savePushToken(token: string, environment: 'production' | 'sandbox'): Promise<{ pushConfigured: boolean }> {
+    return this.rawRequest('/devices/push-token', { method: 'POST', body: { token, environment } }, { auth: true });
   }
 
   // ---------------------------------------------------------------- kiosk approvals

@@ -11,6 +11,9 @@ export const brand = {
   redDark: '#c40e25',
   mint: '#38E3A5',
   mintDark: '#1fb47e',
+  // Go-ahead actions (approve a purchase, a waiting request): calm, not alarming like red.
+  green: '#0F8A5F',
+  greenDark: '#0B6B49',
   gray: '#D9DAE5',
   ink: '#1d1f3a',
   muted: '#555874',

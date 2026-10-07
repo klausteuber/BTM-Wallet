@@ -292,7 +292,7 @@ export const CheckItem: React.FC<{ done: boolean; title: string; detail?: string
 
 /** A white card of tappable rows with chevrons. */
 export const MenuCard: React.FC<{
-  rows: { title: string; detail?: string; onPress: () => void; testID?: string }[];
+  rows: { title: string; detail?: string; alert?: boolean; onPress: () => void; testID?: string }[];
   style?: StyleProp<ViewStyle>;
 }> = ({ rows, style }) => (
   <View style={[styles.card, styles.menuCard, cardShadow, style]}>
@@ -306,7 +306,7 @@ export const MenuCard: React.FC<{
       >
         <View style={styles.flex}>
           <Text style={styles.menuTitle}>{row.title}</Text>
-          {row.detail ? <Text style={styles.menuDetail}>{row.detail}</Text> : null}
+          {row.detail ? <Text style={[styles.menuDetail, row.alert && styles.menuDetailAlert]}>{row.detail}</Text> : null}
         </View>
         <Text style={styles.chevron}>›</Text>
       </TouchableOpacity>
@@ -488,5 +488,6 @@ const styles = StyleSheet.create({
   menuRowBorder: { borderTopWidth: 1, borderTopColor: '#ecedf4' },
   menuTitle: { fontSize: 16, fontWeight: '700', color: brand.ink },
   menuDetail: { fontSize: 13.5, color: brand.muted, marginTop: 2 },
+  menuDetailAlert: { color: brand.green, fontWeight: '700' },
   chevron: { fontSize: 26, color: brand.line, marginLeft: 12, marginTop: -2 },
 });

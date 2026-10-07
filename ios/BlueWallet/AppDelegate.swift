@@ -341,7 +341,24 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
         RNQuickActionManager.onQuickActionPress(shortcutItem, completionHandler: completionHandler)
     }
 
+    // APNs device token -> JS (PushNotificationIOS "register" event). Needed for the
+    // America Bitcoin kiosk approval pushes and BlueWallet's own notifications.
+    // RCTAppDelegate declares these but doesn't implement them: never call super.
+    override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
+    }
+
+    override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
+    }
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // A kiosk approval request while the app is open: the app already brings up the
+        // approval screen itself, so don't also show a banner over it.
+        if (notification.request.content.userInfo["type"] as? String) == "kiosk_authorization" {
+            completionHandler([])
+            return
+        }
         completionHandler([.sound, .list, .banner, .badge])
     }
 

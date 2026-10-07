@@ -21,6 +21,7 @@ import {
 import loc, { formatBalance } from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
 import { SUPPORT_PHONE } from '../../blue_modules/send-guard';
+import { usePendingAuthorization } from '../../blue_modules/abtm-push';
 import { Body, Card, Code, ErrorText, Facts, formatDate, Gap, HeroBand, Hint, Label, MenuCard, Overlap, Page, Pill, Title } from './ui';
 
 const DEV_SERVER = 'http://localhost:5121';
@@ -30,6 +31,7 @@ const AbtmAccount: React.FC = () => {
   const { navigate } = useExtendedNavigation();
   const { wallets, addWallet, saveToDisk } = useStorage();
   const account = useAbtmAccount();
+  const waiting = usePendingAuthorization();
   const { profile } = account;
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -296,8 +298,9 @@ const AbtmAccount: React.FC = () => {
           rows={[
             {
               title: loc.abtm.kiosk_approvals,
-              detail: loc.abtm.kiosk_approvals_detail,
-              onPress: () => navigate('AbtmKioskApproval', {}),
+              detail: waiting ? loc.abtm.kiosk_approvals_waiting : loc.abtm.kiosk_approvals_detail,
+              alert: !!waiting,
+              onPress: () => navigate('AbtmKioskApproval', waiting ? { authorizationId: waiting.id } : {}),
               testID: 'AbtmApprovalsRow',
             },
             {

@@ -109,34 +109,45 @@ amount exemption, since scammers ask for a small test payment first. The wallet
 is non-custodial, so this is friction against a scammer's script, not a hard
 control. Restoring the seed in another wallet bypasses it.
 
-## Push notifications (later phase): APNs setup needed
+## Kiosk approval notifications and the home banner
 
-Today approvals only appear while the app is open. Push needs:
+When a kiosk starts a wallet session, the account service sends one
+time-sensitive push ("Approve your Bitcoin ATM purchase"); tapping it opens
+`AbtmKioskApproval`. Approving still happens in the app behind Face ID, never
+from the notification. Server side: `account_service/push.py`.
 
-1. **Apple Developer account (team HA66WMZT25):** create an APNs Auth Key
-   (Certificates, IDs & Profiles → Keys → +, enable Apple Push Notifications
-   service). Download the `.p8` once; note its Key ID. Make sure the App ID
-   `com.americabitcoinatm.wallet` has Push Notifications enabled. Automatic
-   signing adds `aps-environment` (already `development` in
-   `BlueWallet.entitlements`; release builds get `production`).
-2. **Time Sensitive Notifications** capability, so an approval request can break
-   through Focus (`interruption-level: time-sensitive`).
-3. **Account service secrets** (Railway, `account` service): `APNS_KEY_ID`,
-   `APNS_TEAM_ID=HA66WMZT25`, `APNS_AUTH_KEY` (the `.p8` contents),
-   `APNS_TOPIC=com.americabitcoinatm.wallet`, `APNS_USE_SANDBOX` (true for
-   TestFlight/debug tokens from development builds; TestFlight builds use the
-   production gateway).
-4. **Server:** a device-signed `POST /api/mobile/v1/devices/push-token` that
-   stores the APNs token on `app_devices`; when `/api/kiosk/v1/wallet-sessions`
-   creates a session, send one push over HTTP/2 to `api.push.apple.com`. Set
-   `apns-expiration` to the session's expiry (2 minutes) and `apns-collapse-id`
-   to the session id. The payload carries the store name only: no address, no
-   amounts.
-5. **App:** request permission after sign-in, register for remote notifications
-   (`@react-native-community/push-notification-ios` is already installed; the
-   existing GroundControl notifications are separate), send the token, and
-   open `AbtmKioskApproval` with the session id on tap. Approve still happens
-   in the app behind Face ID, never from the notification itself.
+- **Text:** generic, with no store, address or amount, so a leaked token reveals
+  nothing. The approval screen shows the store's name ("Cottonwood Mall"), looked
+  up from the kiosk's LID through btmdash (`POST /api/internal/account-link/location`,
+  public name/city only) and returned as `locationName`. Never show `location`
+  (the LID) to the customer.
+- **App:** `blue_modules/abtm-push.ts` registers the APNs token
+  (`POST /devices/push-token`; `sandbox` for debug builds, `production` for
+  TestFlight/App Store) and opens the approval on tap, including from a cold
+  launch (it waits for the wallet screens to mount). `AbtmKioskWatcher` asks once
+  for permission with a short explanation, re-sends the token on launch, and
+  keeps polling every 3 s while the app is open.
+- **AppDelegate:** forwards the APNs token to `RNCPushNotificationIOS` (it never
+  did before, so BlueWallet's own notifications never got a token either).
+  `RCTAppDelegate` declares those methods without implementing them: don't call
+  `super`. A kiosk push arriving while the app is open shows no banner (the app
+  opens the approval itself).
+- **Home banner** (`components/AbtmApprovalBanner.tsx`): green "An ATM is waiting
+  for your OK" with a countdown while a request waits; otherwise, once, a
+  dismissable offer to turn on notifications (or open Settings if blocked).
+  Green, not red, on purpose: a waiting purchase is good news.
+- **Entitlements:** `aps-environment` plus
+  `com.apple.developer.usernotifications.time-sensitive`. Automatic signing with
+  `-allowProvisioningUpdates` enables the Time Sensitive capability on the App ID.
+- **Android:** no push for approvals yet (no FCM on the server); polling only.
+
+**One-time setup to turn pushes on:** create an APNs Auth Key in the Apple
+Developer account (team HA66WMZT25: Certificates, IDs & Profiles → Keys → +,
+enable Apple Push Notifications service), download the `.p8` (only possible
+once) and note the Key ID. Then set on Railway's `account` service:
+`APNS_KEY_ID`, `APNS_TEAM_ID=HA66WMZT25`, `APNS_AUTH_KEY` (the `.p8` contents)
+and `APNS_TOPIC=com.americabitcoinatm.wallet`. Without them nothing breaks: the
+app still finds requests by polling while open.
 
 ## Building
 

@@ -13,6 +13,7 @@ import { FButton, FContainer } from '../../components/FloatButtons';
 import { useTheme } from '../../components/themes';
 import { TransactionListItem } from '../../components/TransactionListItem';
 import WalletsCarousel from '../../components/WalletsCarousel';
+import AbtmApprovalBanner from '../../components/AbtmApprovalBanner';
 import { useSizeClass, SizeClass } from '../../blue_modules/sizeClass';
 import loc from '../../loc';
 import { Chain } from '../../models/bitcoinUnits';
@@ -326,6 +327,7 @@ const WalletsList: React.FC = () => {
   const renderWalletsCarousel = useCallback(() => {
     return (
       <>
+        <AbtmApprovalBanner />
         <WalletsCarousel
           data={wallets}
           extraData={[wallets]}
