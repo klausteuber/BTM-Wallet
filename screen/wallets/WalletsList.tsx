@@ -117,7 +117,7 @@ const WalletsList: React.FC = () => {
 
   const stylesHook = StyleSheet.create({
     walletsListWrapper: {
-      backgroundColor: colors.brandingColor,
+      backgroundColor: colors.background,
     },
     listHeaderBack: {
       backgroundColor: colors.background,

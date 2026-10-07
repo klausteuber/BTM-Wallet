@@ -197,6 +197,11 @@
 	</array>
 	<key>UIAppFonts</key>
 	<array>
+		<string>RethinkSans-Regular.ttf</string>
+		<string>RethinkSans-Medium.ttf</string>
+		<string>RethinkSans-SemiBold.ttf</string>
+		<string>RethinkSans-Bold.ttf</string>
+		<string>RethinkSans-ExtraBold.ttf</string>
 		<string>Entypo.ttf</string>
 		<string>FontAwesome.ttf</string>
 		<string>FontAwesome5_Brands.ttf</string>

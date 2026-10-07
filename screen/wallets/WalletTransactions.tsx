@@ -8,7 +8,6 @@ import {
   FlatList,
   LayoutAnimation,
   PixelRatio,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -22,6 +21,7 @@ import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/h
 import { LightningArkWallet, LightningCustodianWallet, MultisigHDWallet, WatchOnlyWallet } from '../../class';
 import presentAlert, { AlertType } from '../../components/Alert';
 import { FButton, FContainer } from '../../components/FloatButtons';
+import { brand, cardShadow } from '../../components/brand';
 import { useTheme } from '../../components/themes';
 import { TransactionListItem } from '../../components/TransactionListItem';
 import TransactionsNavigationHeader, { actionKeys } from '../../components/TransactionsNavigationHeader';
@@ -578,12 +578,18 @@ const WalletTransactions: React.FC<WalletTransactionsProps> = ({ route }: { rout
         scrollEventThrottle={16}
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={
-          <ScrollView style={[styles.emptyTxsContainer, stylesHook.backgroundContainer]} contentContainerStyle={styles.scrollViewContent}>
-            <Text numberOfLines={0} style={styles.emptyTxs} testID="TransactionsListEmpty">
-              {(isLightning() && loc.wallets.list_empty_txs1_lightning) || loc.wallets.list_empty_txs1}
-            </Text>
-            {isLightning() && <Text style={styles.emptyTxsLightning}>{loc.wallets.list_empty_txs2_lightning}</Text>}
-          </ScrollView>
+          <View style={styles.emptyWrap}>
+            <View style={[styles.emptyCard, cardShadow]}>
+              <View style={styles.emptyIcon}>
+                <Icon name="receipt-outline" type="ionicon" color={brand.blue} size={22} />
+              </View>
+              <Text style={styles.emptyTitle}>{loc.wallets.list_empty_txs_title}</Text>
+              <Text numberOfLines={0} style={styles.emptyTxs} testID="TransactionsListEmpty">
+                {(isLightning() && loc.wallets.list_empty_txs1_lightning) || loc.wallets.list_empty_txs1}
+              </Text>
+              {isLightning() && <Text style={styles.emptyTxsLightning}>{loc.wallets.list_empty_txs2_lightning}</Text>}
+            </View>
+          </View>
         }
         refreshControl={
           !isDesktop && !isElectrumDisabled ? (
@@ -652,7 +658,6 @@ export default WalletTransactions;
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollViewContent: { flex: 1, justifyContent: 'center', paddingHorizontal: 16, paddingBottom: 500 },
   activityIndicator: { marginVertical: 20 },
   listHeaderTextRow: { flex: 1, margin: 16, flexDirection: 'row', justifyContent: 'space-between' },
   listHeaderText: { marginTop: 8, marginBottom: 8, fontWeight: 'bold', fontSize: 24 },
@@ -662,9 +667,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  emptyTxsContainer: { height: '10%', minHeight: '10%', flex: 1 },
-  emptyTxs: { fontSize: 18, color: '#9aa0aa', textAlign: 'center', marginVertical: 16 },
-  emptyTxsLightning: { fontSize: 18, color: '#9aa0aa', textAlign: 'center', fontWeight: '600' },
+  emptyWrap: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 120 },
+  emptyCard: {
+    backgroundColor: brand.surface,
+    borderRadius: brand.radius,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: brand.tint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: brand.ink, textAlign: 'center' },
+  emptyTxs: { fontSize: 15, lineHeight: 22, color: brand.muted, textAlign: 'center', marginTop: 6 },
+  emptyTxsLightning: { fontSize: 15, lineHeight: 22, color: brand.muted, textAlign: 'center', fontWeight: '600', marginTop: 6 },
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',

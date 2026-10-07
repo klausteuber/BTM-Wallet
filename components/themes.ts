@@ -9,55 +9,56 @@ export const BlueDefaultTheme = {
   colors: {
     ...DefaultTheme.colors,
     borderWidth: 0.5,
+    card: '#f4f5fa', // navigation header and tab backgrounds
     brandingColor: '#ffffff',
-    customHeader: '#ffffff',
-    foregroundColor: '#040766', // American Blue
+    customHeader: '#f4f5fa', // page grey, as on account.americabitcoinatm.com
+    foregroundColor: '#1d1f3a', // ink (body text); headings use American Blue
     borderTopColor: 'rgba(4, 7, 102, 0.1)',
     buttonBackgroundColor: '#D9DAE5', // American Gray
     buttonTextColor: '#040766', // American Blue
-    secondButtonTextColor: '#50555C',
+    secondButtonTextColor: '#040766', // outline buttons are blue on white
     buttonAlternativeTextColor: '#040766', // American Blue
-    buttonDisabledBackgroundColor: '#eef0f4',
-    buttonDisabledTextColor: '#9aa0aa',
-    inputBorderColor: '#D9DAE5', // American Gray
-    inputBackgroundColor: '#f5f5f5',
-    alternativeTextColor: '#5F6570', // Accessible secondary text on light backgrounds
+    buttonDisabledBackgroundColor: '#e6e7f4',
+    buttonDisabledTextColor: '#8a8da6',
+    inputBorderColor: '#b9bbd0',
+    inputBackgroundColor: '#ffffff',
+    alternativeTextColor: '#555874', // muted, as on the website
     alternativeTextColor2: '#040766', // American Blue
     buttonBlueBackgroundColor: '#D9DAE5', // American Gray
-    buttonGrayBackgroundColor: '#EEEEEE',
+    buttonGrayBackgroundColor: '#ffffff',
     incomingBackgroundColor: '#d2f8d6',
     incomingForegroundColor: '#087A55', // Accessible dark mint for icons on light surfaces
     outgoingBackgroundColor: '#f8d2d2',
     outgoingForegroundColor: '#ED122E', // American Red
     successColor: '#087A55', // Accessible dark mint for success text on light surfaces
     failedColor: '#ED122E', // American Red
-    placeholderTextColor: '#5F6570',
+    placeholderTextColor: '#8a8da6',
     shadowColor: '#000000',
     inverseForegroundColor: '#ffffff',
     hdborderColor: '#040766', // American Blue
     hdbackgroundColor: '#E8E8F0',
     lnborderColor: '#FFB600',
     lnbackgroundColor: '#FFFAEF',
-    background: '#FFFFFF',
+    background: '#f4f5fa', // page grey; cards sit on it in white
     lightButton: '#eef0f4',
     ballReceive: '#d2f8d6',
     ballOutgoing: '#f8d2d2',
     lightBorder: '#D9DAE5', // American Gray
     ballOutgoingExpired: '#EEF0F4',
     modal: '#ffffff',
-    formBorder: '#D9DAE5', // American Gray
+    formBorder: '#b9bbd0',
     modalButton: '#D9DAE5', // American Gray
-    darkGray: '#5F6570',
+    darkGray: '#555874',
     scanLabel: '#9AA0AA',
     feeText: '#5F6570',
     feeLabel: '#d2f8d6',
     feeValue: '#040766', // American Blue on the pale-mint fee badge
     feeActive: '#d2f8d6',
-    labelText: '#5F6570',
+    labelText: '#555874',
     cta2: '#040766', // American Blue
     outputValue: '#040766', // American Blue
     elevated: '#ffffff',
-    mainColor: '#D9DAE5', // American Gray
+    mainColor: '#ED122E', // American Red: primary buttons, as on the website
     success: '#D9DAE5', // American Gray
     successCheck: '#040766', // American Blue
     msSuccessBG: '#38E3A5', // American Mint
@@ -69,7 +70,7 @@ export const BlueDefaultTheme = {
     changeText: '#040766', // American Blue keeps the pale-yellow badge readable
     receiveBackground: '#D1F9D6',
     receiveText: '#040766', // American Blue keeps the pale-mint badge readable
-    navigationBarColor: '#FFFFFF',
+    navigationBarColor: '#f4f5fa',
     androidRippleColor: '#D9DAE5', // American Gray
   },
 };

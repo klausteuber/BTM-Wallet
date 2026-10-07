@@ -1,14 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../../components/themes';
+import { brand } from '../../components/brand';
 import { ActivityEvent, pairedWalletApi } from '../../blue_modules/paired-wallet-api';
 import loc from '../../loc';
-import { Body, ErrorText, formatDateTime } from './ui';
+import { Body, Card, ErrorText, formatDateTime, Page } from './ui';
 
 /** Recent sign-ins and account events (the website's "Recent activity", from the same audit log). */
 const AbtmActivity: React.FC = () => {
-  const { colors } = useTheme();
   const [events, setEvents] = useState<ActivityEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,45 +29,43 @@ const AbtmActivity: React.FC = () => {
 
   if (!events && !error) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.elevated }]}>
-        <ActivityIndicator />
+      <View style={styles.center}>
+        <ActivityIndicator color={brand.blue} />
       </View>
     );
   }
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+
   return (
-    <FlatList
-      style={{ backgroundColor: colors.elevated }}
-      data={events || []}
-      keyExtractor={(item, index) => `${item.at}-${index}`}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={async () => {
-            setRefreshing(true);
-            await load();
-            setRefreshing(false);
-          }}
-        />
-      }
-      ListHeaderComponent={
-        <View style={styles.header}>{error ? <ErrorText>{error}</ErrorText> : <Body muted>{loc.abtm.activity_intro}</Body>}</View>
-      }
-      ListEmptyComponent={error ? null : <Body muted>{loc.abtm.activity_empty}</Body>}
-      renderItem={({ item }) => (
-        <View style={[styles.row, { borderBottomColor: colors.formBorder }]}>
-          <Body>{item.label}</Body>
-          <Body muted>{`${formatDateTime(item.at)} · ${item.device}`}</Body>
-        </View>
-      )}
-    />
+    <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <View style={styles.intro}>{error ? <ErrorText>{error}</ErrorText> : <Body muted>{loc.abtm.activity_intro}</Body>}</View>
+      {!error ? (
+        <Card>
+          {(events || []).length === 0 ? <Body muted>{loc.abtm.activity_empty}</Body> : null}
+          {(events || []).map((item, index) => (
+            <View key={`${item.at}-${index}`} style={[styles.row, index > 0 && styles.rowBorder]}>
+              <Text style={styles.label}>{item.label}</Text>
+              <Text style={styles.meta}>{`${formatDateTime(item.at)} · ${item.device}`}</Text>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+    </Page>
   );
 };
 
 export default AbtmActivity;
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { padding: 16 },
-  row: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: brand.page },
+  intro: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 14 },
+  row: { paddingVertical: 11 },
+  rowBorder: { borderTopWidth: 1, borderTopColor: '#ecedf4' },
+  label: { fontSize: 15, fontWeight: '700', color: brand.ink },
+  meta: { fontSize: 13.5, color: brand.muted, marginTop: 2 },
 });

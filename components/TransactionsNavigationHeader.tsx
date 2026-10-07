@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import BrandSlash from './BrandSlash';
 import { LightningArkWallet, LightningCustodianWallet, MultisigHDWallet } from '../class';
 import WalletGradient from '../class/wallet-gradient';
 import { TWallet } from '../class/wallets/types';
@@ -156,7 +157,8 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
       case MultisigHDWallet.type:
         return direction === 'rtl' ? require('../img/vault-shape-rtl.png') : require('../img/vault-shape.png');
       default:
-        return direction === 'rtl' ? require('../img/btc-shape-rtl.png') : require('../img/btc-shape.png');
+        // Plain bitcoin wallets carry the website's red slash instead of a watermark.
+        return undefined;
     }
   }, [direction, wallet.type]);
 
@@ -167,7 +169,7 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
 
   return (
     <LinearGradient colors={WalletGradient.gradientsFor(wallet.type)} style={styles.lineaderGradient}>
-      <ImageBackground source={imageSource} style={styles.chainIcon} />
+      {imageSource ? <ImageBackground source={imageSource} style={styles.chainIcon} /> : <BrandSlash width={190} bottom={26} />}
 
       <Text testID="WalletLabel" numberOfLines={1} style={[styles.walletLabel, { writingDirection: direction }]}>
         {wallet.getLabel()}
@@ -228,9 +230,12 @@ const TransactionsNavigationHeader: React.FC<TransactionsNavigationHeaderProps> 
 
 const styles = StyleSheet.create({
   lineaderGradient: {
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30,
     minHeight: 140,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   chainIcon: {
     width: 99,
@@ -241,9 +246,10 @@ const styles = StyleSheet.create({
   },
   walletLabel: {
     backgroundColor: 'transparent',
-    fontSize: 19,
-    color: '#fff',
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.78)',
+    marginBottom: 6,
   },
   walletBalance: {
     flexShrink: 1,
@@ -272,21 +278,24 @@ const styles = StyleSheet.create({
   },
   walletBalanceText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 36,
+    fontWeight: '800',
+    fontSize: 38,
     flexShrink: 1, // Allow the text to shrink if there's not enough space
   },
   walletPreferredUnitView: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderRadius: 8,
-    minHeight: 35,
-    minWidth: 65,
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.55)',
+    borderRadius: 999,
+    minHeight: 32,
+    minWidth: 60,
+    paddingHorizontal: 12,
   },
   walletPreferredUnitText: {
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

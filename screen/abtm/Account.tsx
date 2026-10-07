@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Button from '../../components/Button';
 import { SecondButton } from '../../components/SecondButton';
-import ListItem from '../../components/ListItem';
 import presentAlert from '../../components/Alert';
-import { useTheme } from '../../components/themes';
+import { brand } from '../../components/brand';
 import { useStorage } from '../../hooks/context/useStorage';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { useAbtmAccount } from '../../hooks/useAbtmAccount';
@@ -21,13 +20,13 @@ import {
 } from '../../blue_modules/abtm-wallet';
 import loc, { formatBalance } from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
-import { Body, Card, ErrorText, formatDate, Gap, Label, Pill, Title } from './ui';
+import { SUPPORT_PHONE } from '../../blue_modules/send-guard';
+import { Body, Card, Code, ErrorText, Facts, formatDate, Gap, HeroBand, Hint, Label, MenuCard, Overlap, Page, Pill, Title } from './ui';
 
 const DEV_SERVER = 'http://localhost:5121';
 
 /** The America Bitcoin account: profile, ID verification, the registered wallet, approvals, activity. */
 const AbtmAccount: React.FC = () => {
-  const { colors } = useTheme();
   const { navigate } = useExtendedNavigation();
   const { wallets, addWallet, saveToDisk } = useStorage();
   const account = useAbtmAccount();
@@ -131,30 +130,33 @@ const AbtmAccount: React.FC = () => {
 
   if (account.status === 'loading') {
     return (
-      <View style={[styles.center, { backgroundColor: colors.elevated }]}>
-        <ActivityIndicator />
+      <View style={styles.center}>
+        <ActivityIndicator color={brand.blue} />
       </View>
     );
   }
 
   if (account.status === 'signed_out') {
     return (
-      <ScrollView style={{ backgroundColor: colors.elevated }} contentContainerStyle={styles.scroll}>
-        <Card>
-          <Title>{loc.abtm.account_title}</Title>
-          <Body muted>{loc.abtm.signed_out_intro}</Body>
-          <Gap />
-          <Button testID="AbtmSignInButton" title={loc.abtm.sign_in_or_create} onPress={() => navigate('AbtmSignIn')} />
-        </Card>
-        {__DEV__ ? (
+      <Page>
+        <HeroBand title={loc.abtm.signed_out_hero} subtitle={loc.abtm.signed_out_tagline} />
+        <Overlap>
           <Card>
-            <Label>Server (debug builds only)</Label>
-            <Body selectable>{server}</Body>
-            <Gap size={10} />
-            <SecondButton title="Switch server" onPress={toggleServer} testID="AbtmDevServer" />
+            <Title>{loc.abtm.signed_out_heading}</Title>
+            <Body muted>{loc.abtm.signed_out_intro}</Body>
+            <Gap size={18} />
+            <Button testID="AbtmSignInButton" title={loc.abtm.sign_in_or_create} onPress={() => navigate('AbtmSignIn')} />
           </Card>
-        ) : null}
-      </ScrollView>
+          {__DEV__ ? (
+            <Card>
+              <Label>Server (debug builds only)</Label>
+              <Body selectable>{server}</Body>
+              <Gap size={12} />
+              <SecondButton title="Switch server" onPress={toggleServer} testID="AbtmDevServer" />
+            </Card>
+          ) : null}
+        </Overlap>
+      </Page>
     );
   }
 
@@ -165,8 +167,8 @@ const AbtmAccount: React.FC = () => {
     if (needsDevice) {
       return (
         <>
-          <Body>{loc.abtm.wallet_device_needed}</Body>
-          <Gap size={12} />
+          <Body muted>{loc.abtm.wallet_device_needed}</Body>
+          <Gap size={16} />
           <Button title={loc.abtm.confirm_on_phone} onPress={() => navigate('AbtmVerifyId')} testID="AbtmWalletConfirmDevice" />
         </>
       );
@@ -176,12 +178,10 @@ const AbtmAccount: React.FC = () => {
       return (
         <>
           <Pill tone="good">{loc.abtm.wallet_registered}</Pill>
-          <Gap size={10} />
+          <Gap size={14} />
           <Label>{loc.abtm.receive_address}</Label>
-          <Body selectable testID="AbtmReceiveAddress">
-            {address}
-          </Body>
-          <Gap size={12} />
+          <Code testID="AbtmReceiveAddress">{address}</Code>
+          <Gap size={14} />
           <SecondButton
             title={loc.abtm.show_qr}
             onPress={() => navigate('ReceiveDetails', { walletID: onPhone.getID(), address })}
@@ -193,8 +193,8 @@ const AbtmAccount: React.FC = () => {
     if (registered) {
       return (
         <>
-          <Body>{loc.formatString(loc.abtm.wallet_elsewhere, { address: `${registered.slice(0, 8)}…${registered.slice(-6)}` })}</Body>
-          <Gap size={12} />
+          <Body muted>{loc.formatString(loc.abtm.wallet_elsewhere, { address: `${registered.slice(0, 8)}…${registered.slice(-6)}` })}</Body>
+          <Gap size={16} />
           <SecondButton title={loc.abtm.wallet_create_new} onPress={confirmReplace} disabled={busy} />
         </>
       );
@@ -213,15 +213,10 @@ const AbtmAccount: React.FC = () => {
       return (
         <>
           <Body>{intro}</Body>
-          {unregistered.some(w => !isAbtmWallet(w)) ? (
-            <>
-              <Gap size={8} />
-              <Body muted>{loc.abtm.wallet_register_legacy_note}</Body>
-            </>
-          ) : null}
+          {unregistered.some(w => !isAbtmWallet(w)) ? <Hint>{loc.abtm.wallet_register_legacy_note}</Hint> : null}
           {unregistered.map((w, i) => (
             <React.Fragment key={w.getID()}>
-              <Gap size={12} />
+              <Gap size={14} />
               <Button
                 title={single ? loc.abtm.wallet_register : (loc.formatString(loc.abtm.wallet_register_named, describe(w)) as string)}
                 onPress={() => register(w, false)}
@@ -237,100 +232,106 @@ const AbtmAccount: React.FC = () => {
     }
     return (
       <>
-        <Body>{loc.abtm.wallet_create_intro}</Body>
-        <Gap size={12} />
+        <Body muted>{loc.abtm.wallet_create_intro}</Body>
+        <Gap size={16} />
         <Button title={loc.abtm.wallet_create} onPress={createWallet} disabled={busy} testID="AbtmCreateWallet" />
       </>
     );
   })();
 
+  const greeting = profile?.firstName ? (loc.formatString(loc.abtm.hello_name, { name: profile.firstName }) as string) : loc.abtm.hello;
+
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.elevated }}
-      contentContainerStyle={styles.scroll}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
-      {account.error && !profile ? (
-        <Card>
-          <ErrorText>{account.error}</ErrorText>
-        </Card>
-      ) : null}
-      {profile ? (
-        <Card testID="AbtmProfile">
-          <Title>{profile.firstName ? loc.formatString(loc.abtm.hello_name, { name: profile.firstName }) : loc.abtm.account_title}</Title>
-          <Label>{loc.abtm.phone_label}</Label>
-          <Body>{profile.maskedPhone}</Body>
-          <Gap size={10} />
-          <Label>{loc.abtm.email_label}</Label>
-          <Body>{profile.maskedEmail}</Body>
-          {profile.createdAt ? (
-            <>
-              <Gap size={10} />
-              <Body muted>{loc.formatString(loc.abtm.member_since, { date: formatDate(profile.createdAt) })}</Body>
-            </>
-          ) : null}
-        </Card>
-      ) : (
-        <ActivityIndicator style={styles.spinner} />
-      )}
+    <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ffffff" />}>
+      <HeroBand title={greeting} subtitle={loc.abtm.welcome} />
+      <Overlap>
+        {account.error && !profile ? (
+          <Card>
+            <ErrorText>{account.error}</ErrorText>
+          </Card>
+        ) : null}
+        {!profile ? <ActivityIndicator style={styles.spinner} color={brand.blue} /> : null}
 
-      {profile ? (
-        <Card testID="AbtmIdCard">
-          <Title>{loc.abtm.id_title}</Title>
-          {verification?.verified ? (
-            <>
-              <Pill tone="good">{loc.abtm.id_verified}</Pill>
-              <Gap size={10} />
-              <Body muted>
-                {verification.method === 'kyc'
-                  ? loc.formatString(loc.abtm.id_verified_on, { date: formatDate(verification.verifiedAt) })
-                  : loc.formatString(loc.abtm.id_linked_from, { source: verification.source || '' })}
-              </Body>
-            </>
-          ) : needsDevice ? (
-            <>
-              <Pill tone="warn">{loc.abtm.id_confirm_needed}</Pill>
-              <Gap size={10} />
-              <Body muted>{loc.abtm.device_intro}</Body>
-              <Gap size={12} />
-              <Button title={loc.abtm.confirm_on_phone} onPress={() => navigate('AbtmVerifyId')} testID="AbtmConfirmDevice" />
-            </>
-          ) : (
-            <>
-              <Pill tone="neutral">{loc.abtm.id_not_verified}</Pill>
-              <Gap size={10} />
-              <Body muted>{loc.abtm.id_why}</Body>
-              <Gap size={12} />
-              <Button title={loc.abtm.verify_id} onPress={() => navigate('AbtmVerifyId')} testID="AbtmVerifyIdButton" />
-            </>
-          )}
-        </Card>
-      ) : null}
+        {profile ? (
+          <Card testID="AbtmIdCard">
+            <Title>{loc.abtm.id_title}</Title>
+            {verification?.verified ? (
+              <>
+                <Pill tone="good">{loc.abtm.id_verified}</Pill>
+                <Hint>
+                  {verification.method === 'kyc'
+                    ? loc.formatString(loc.abtm.id_verified_on, { date: formatDate(verification.verifiedAt) })
+                    : loc.formatString(loc.abtm.id_linked_from, { source: verification.source || '' })}
+                </Hint>
+              </>
+            ) : needsDevice ? (
+              <>
+                <Pill tone="warn">{loc.abtm.id_confirm_needed}</Pill>
+                <Gap size={12} />
+                <Body muted>{loc.abtm.device_intro}</Body>
+                <Gap size={16} />
+                <Button title={loc.abtm.confirm_on_phone} onPress={() => navigate('AbtmVerifyId')} testID="AbtmConfirmDevice" />
+              </>
+            ) : (
+              <>
+                <Pill tone="neutral">{loc.abtm.id_not_verified}</Pill>
+                <Gap size={12} />
+                <Body muted>{loc.abtm.id_why}</Body>
+                <Gap size={16} />
+                <Button title={loc.abtm.verify_id} onPress={() => navigate('AbtmVerifyId')} testID="AbtmVerifyIdButton" />
+              </>
+            )}
+          </Card>
+        ) : null}
 
-      {profile ? (
-        <Card testID="AbtmWalletCard">
-          <Title>{loc.abtm.wallet_title}</Title>
-          {walletCard}
-          {busy ? <ActivityIndicator style={styles.spinner} /> : null}
-        </Card>
-      ) : null}
+        {profile ? (
+          <Card testID="AbtmWalletCard">
+            <Title>{loc.abtm.wallet_title}</Title>
+            {walletCard}
+            {busy ? <ActivityIndicator style={styles.spinner} color={brand.blue} /> : null}
+          </Card>
+        ) : null}
 
-      <Gap />
-      <ListItem title={loc.abtm.kiosk_approvals} onPress={() => navigate('AbtmKioskApproval', {})} chevron testID="AbtmApprovalsRow" />
-      <ListItem title={loc.abtm.activity_title} onPress={() => navigate('AbtmActivity')} chevron testID="AbtmActivityRow" />
-      <Gap />
-      <View style={styles.signOut}>
-        <SecondButton title={loc.abtm.sign_out} onPress={signOut} testID="AbtmSignOut" />
-      </View>
-    </ScrollView>
+        <MenuCard
+          rows={[
+            {
+              title: loc.abtm.kiosk_approvals,
+              detail: loc.abtm.kiosk_approvals_detail,
+              onPress: () => navigate('AbtmKioskApproval', {}),
+              testID: 'AbtmApprovalsRow',
+            },
+            {
+              title: loc.abtm.activity_title,
+              detail: loc.abtm.activity_detail,
+              onPress: () => navigate('AbtmActivity'),
+              testID: 'AbtmActivityRow',
+            },
+          ]}
+        />
+
+        {profile ? (
+          <Card testID="AbtmProfile">
+            <Title>{loc.abtm.account_card_title}</Title>
+            <Facts
+              rows={[
+                [loc.abtm.phone_label, profile.maskedPhone],
+                [loc.abtm.email_label, profile.maskedEmail],
+                ...(profile.createdAt ? [[loc.abtm.member_since_label, formatDate(profile.createdAt)] as [string, string]] : []),
+              ]}
+            />
+            <Hint>{loc.formatString(loc.abtm.change_contact, { phone: SUPPORT_PHONE })}</Hint>
+            <Gap size={16} />
+            <SecondButton title={loc.abtm.sign_out} onPress={signOut} testID="AbtmSignOut" />
+          </Card>
+        ) : null}
+      </Overlap>
+    </Page>
   );
 };
 
 export default AbtmAccount;
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { paddingBottom: 40 },
-  spinner: { marginTop: 16 },
-  signOut: { marginHorizontal: 16 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: brand.page },
+  spinner: { marginVertical: 16 },
 });

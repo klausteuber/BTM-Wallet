@@ -17,6 +17,7 @@ import {
   UIManager,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import BrandSlash from './BrandSlash';
 import { LightningArkWallet, LightningCustodianWallet, MultisigHDWallet } from '../class';
 import WalletGradient from '../class/wallet-gradient';
 import { useSizeClass, SizeClass } from '../blue_modules/sizeClass';
@@ -40,6 +41,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 interface NewWalletPanelProps {
   onPress: () => void;
+  /** The customer already has a wallet: a small "Add a wallet" card the height of a wallet card. */
+  compact?: boolean;
 }
 
 const nStyles = StyleSheet.create({
@@ -113,9 +116,64 @@ const nStyles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 18,
   },
+  compact: {
+    minHeight: 164,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#b9bbd0',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+  },
+  compactPlus: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#e6e7f4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  compactPlusText: {
+    color: AMERICA_BLUE,
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: -2,
+  },
+  compactTitle: {
+    color: AMERICA_BLUE,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  compactText: {
+    color: '#555874',
+    fontSize: 13.5,
+    textAlign: 'center',
+    marginTop: 4,
+  },
 });
 
-const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress }) => {
+const AddWalletCard: React.FC<{ onPress: () => void; width?: number }> = ({ onPress, width }) => (
+  <Pressable
+    onPress={onPress}
+    testID="CreateAWallet"
+    accessibilityRole="button"
+    accessibilityLabel={loc.wallets.list_add_another}
+    style={({ pressed }) => [width ? { width: width + 20 } : null, { opacity: pressed ? 0.7 : 1 }]}
+  >
+    <View style={[nStyles.compact, width ? { width } : null]}>
+      <View style={nStyles.compactPlus}>
+        <Text style={nStyles.compactPlusText}>+</Text>
+      </View>
+      <Text style={nStyles.compactTitle}>{loc.wallets.list_add_another}</Text>
+      <Text style={nStyles.compactText}>{loc.wallets.list_add_another_text}</Text>
+    </View>
+  </Pressable>
+);
+
+const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress, compact }) => {
   const { width } = useWindowDimensions();
   const itemWidth = width * 0.82 > 375 ? 375 : width * 0.82;
   const { isLarge } = useSizeClass();
@@ -146,6 +204,8 @@ const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress }) => {
       friction: 4,
     }).start();
   }, [scale]);
+
+  if (compact) return <AddWalletCard onPress={onPress} width={isLarge ? undefined : itemWidth} />;
 
   return (
     <Pressable
@@ -219,9 +279,10 @@ const iStyles = StyleSheet.create({
   root: { paddingRight: 20 },
   rootLargeDevice: { marginVertical: 20 },
   grad: {
-    padding: 15,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 14,
     minHeight: 164,
+    overflow: 'hidden',
   },
   balanceContainer: {
     height: 40,
@@ -238,33 +299,35 @@ const iStyles = StyleSheet.create({
   },
   label: {
     backgroundColor: 'transparent',
-    fontSize: 19,
+    fontSize: 17,
+    fontWeight: '600',
   },
   balance: {
     backgroundColor: 'transparent',
-    fontWeight: 'bold',
-    fontSize: 36,
+    fontWeight: '800',
+    fontSize: 34,
   },
   latestTx: {
     backgroundColor: 'transparent',
     fontSize: 13,
+    opacity: 0.78,
   },
   latestTxTime: {
     backgroundColor: 'transparent',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '700',
+    fontSize: 15,
   },
   shadowContainer: {
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 25 / 100,
-        shadowRadius: 8,
-        borderRadius: 12,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.18,
+        shadowRadius: 16,
+        borderRadius: 14,
       },
       android: {
-        elevation: 8,
-        borderRadius: 12,
+        elevation: 6,
+        borderRadius: 14,
       },
     }),
   },
@@ -380,7 +443,8 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
         image = direction === 'rtl' ? require('../img/vault-shape-rtl.png') : require('../img/vault-shape.png');
         break;
       default:
-        image = direction === 'rtl' ? require('../img/btc-shape-rtl.png') : require('../img/btc-shape.png');
+        // Plain bitcoin wallets carry the website's red slash instead of a watermark.
+        image = undefined;
     }
 
     let latestTransactionText;
@@ -423,7 +487,7 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
         >
           <View style={[iStyles.shadowContainer, { backgroundColor: colors.background, shadowColor: colors.shadowColor }]}>
             <LinearGradient colors={WalletGradient.gradientsFor(item.type)} style={iStyles.grad}>
-              <ImageBackground source={image} style={iStyles.image} />
+              {image ? <ImageBackground source={image} style={iStyles.image} /> : <BrandSlash width={170} bottom={30} />}
               <Text style={iStyles.br} />
               {!isPlaceHolder && (
                 <>
@@ -733,7 +797,8 @@ const WalletsCarousel = forwardRef<FlatListRefType, WalletsCarouselProps>((props
 
   const keyExtractor = useCallback((item: TWallet, index: number) => (item?.getID ? item.getID() : index.toString()), []);
 
-  const sliderHeight = 258;
+  // Tall enough for the setup card when there are no wallets; a wallet card is ~200.
+  const sliderHeight = data.length > 0 ? 196 : 258;
 
   useEffect(() => {
     return () => {
@@ -818,13 +883,13 @@ const WalletsCarousel = forwardRef<FlatListRefType, WalletsCarouselProps>((props
       automaticallyAdjustsScrollIndicatorInsets
       style={{ minHeight: sliderHeight + 12 }}
       onScrollToIndexFailed={onScrollToIndexFailed}
-      ListFooterComponent={onNewWalletPress ? <NewWalletPanel onPress={onNewWalletPress} /> : null}
+      ListFooterComponent={onNewWalletPress ? <NewWalletPanel onPress={onNewWalletPress} compact={data.length > 0} /> : null}
       {...props}
     />
   ) : (
     <View style={cStyles.contentLargeScreen}>
       {renderNonFlatListWallets()}
-      {onNewWalletPress && <NewWalletPanel onPress={onNewWalletPress} />}
+      {onNewWalletPress && <NewWalletPanel onPress={onNewWalletPress} compact={data.length > 0} />}
     </View>
   );
 });

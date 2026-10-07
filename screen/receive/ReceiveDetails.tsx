@@ -28,6 +28,7 @@ import presentAlert from '../../components/Alert';
 import * as AmountInput from '../../components/AmountInput';
 import BottomModal, { BottomModalHandle } from '../../components/BottomModal';
 import Button from '../../components/Button';
+import { brand } from '../../components/brand';
 import CopyTextToClipboard from '../../components/CopyTextToClipboard';
 import HandOffComponent from '../../components/HandOffComponent';
 import HeaderMenuButton from '../../components/HeaderMenuButton';
@@ -52,7 +53,6 @@ import { ATM_RECEIVE_QR_FULLSCREEN_SIZE, getReceiveQRCodeSize } from './receiveQ
 
 const segmentControlValues = [loc.wallets.details_address, loc.bip47.payment_code];
 const AMERICA_BLUE = '#040766';
-const AMERICA_RED = '#ED122E';
 
 type StickyHeaderProps = {
   wallet: any;
@@ -83,14 +83,30 @@ type AtmActionButtonProps = {
   title: string;
   iconName: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'alert';
+  variant?: 'primary' | 'secondary' | 'alert' | 'tile';
 };
 
 const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: AtmActionButtonProps) => {
   const { colors } = useTheme();
+  if (variant === 'tile') {
+    // Small secondary action (copy, share, amount) laid out three across.
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPress={onPress}
+        style={({ pressed }) => [styles.atmTile, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Icon color={brand.blue} name={iconName} size={20} type="ionicon" />
+        <Text numberOfLines={1} adjustsFontSizeToFit style={styles.atmTileText}>
+          {title}
+        </Text>
+      </Pressable>
+    );
+  }
   const isPrimary = variant === 'primary';
   const isAlert = variant === 'alert';
-  const backgroundColor = isPrimary ? AMERICA_BLUE : isAlert ? AMERICA_RED : (colors.lightButton ?? '#F4F6FB');
+  const backgroundColor = isPrimary || isAlert ? brand.red : (colors.lightButton ?? '#F4F6FB');
   const borderColor = isPrimary || isAlert ? backgroundColor : (colors.lightBorder ?? '#D9DAE5');
   const textColor = isPrimary || isAlert ? '#FFFFFF' : colors.buttonTextColor;
   const iconColor = isPrimary || isAlert ? '#FFFFFF' : AMERICA_BLUE;
@@ -194,9 +210,6 @@ const ReceiveDetails = () => {
       borderColor: colors.lightBorder,
       backgroundColor: colors.elevated,
     },
-    atmBadgeText: {
-      color: '#FFFFFF',
-    },
     atmBackupBody: {
       color: colors.alternativeTextColor,
     },
@@ -217,11 +230,12 @@ const ReceiveDetails = () => {
     atmModalOverlay: {
       backgroundColor: colors.foregroundColor === '#ffffff' ? 'rgba(4, 7, 102, 0.96)' : 'rgba(4, 7, 102, 0.98)',
     },
+    // iOS shows this as a sheet that already starts below the status bar; Android is full screen.
     atmContentTop: {
-      paddingTop: insets.top + 8,
+      paddingTop: Platform.OS === 'ios' ? 16 : insets.top + 8,
     },
     atmCloseButton: {
-      top: insets.top + 6,
+      top: Platform.OS === 'ios' ? 28 : insets.top + 20,
     },
     atmFullscreenTop: {
       paddingTop: insets.top + 16,
@@ -616,9 +630,6 @@ const ReceiveDetails = () => {
                   </BlueText>
                 )}
                 <BlueText style={[styles.atmHelperText, stylesHook.atmBrandHeading]}>{loc.receive.atm_helper}</BlueText>
-                <View style={styles.atmBadge}>
-                  <BlueText style={[styles.atmBadgeText, stylesHook.atmBadgeText]}>{loc.wallets.atm_badge}</BlueText>
-                </View>
                 <View style={[styles.atmAddressCard, stylesHook.atmAddressCard]}>
                   <View style={styles.atmAddressMetaRow}>
                     <BlueText style={[styles.atmAddressLabel, stylesHook.atmAddressLabel]}>{loc.receive.atm_address_label}</BlueText>
@@ -641,27 +652,26 @@ const ReceiveDetails = () => {
                     onPress={() => setIsAtmQrVisible(true)}
                     variant="primary"
                   />
-                  <View style={styles.atmActionSpacer} />
-                  <AtmActionButton
-                    title={loc.receive.atm_copy_address}
-                    iconName={hasCopiedAtmAddress ? 'checkmark-circle-outline' : 'copy-outline'}
-                    onPress={handleAtmCopyAddress}
-                    variant="secondary"
-                  />
-                  <View style={styles.atmActionSpacer} />
-                  <AtmActionButton
-                    title={loc.receive.atm_share}
-                    iconName="share-social-outline"
-                    onPress={handleShareButtonPressed}
-                    variant="secondary"
-                  />
-                  <View style={styles.atmActionSpacer} />
-                  <AtmActionButton
-                    title={loc.receive.details_setAmount}
-                    iconName="pricetag-outline"
-                    onPress={showCustomAmountModal}
-                    variant="secondary"
-                  />
+                  <View style={styles.atmTileRow}>
+                    <AtmActionButton
+                      title={hasCopiedAtmAddress ? loc.receive.atm_copied : loc.receive.atm_copy}
+                      iconName={hasCopiedAtmAddress ? 'checkmark-circle-outline' : 'copy-outline'}
+                      onPress={handleAtmCopyAddress}
+                      variant="tile"
+                    />
+                    <AtmActionButton
+                      title={loc.receive.atm_share_short}
+                      iconName="share-outline"
+                      onPress={handleShareButtonPressed}
+                      variant="tile"
+                    />
+                    <AtmActionButton
+                      title={loc.receive.atm_amount}
+                      iconName="pricetag-outline"
+                      onPress={showCustomAmountModal}
+                      variant="tile"
+                    />
+                  </View>
                 </View>
               </View>
             </View>
@@ -920,7 +930,7 @@ const ReceiveDetails = () => {
           hitSlop={10}
           style={[styles.atmCloseButton, stylesHook.atmCloseButton]}
         >
-          <Icon name="close" type="ionicon" size={22} color={AMERICA_BLUE} />
+          <Icon name="close" type="ionicon" size={20} color={brand.blue} />
         </Pressable>
       )}
 
@@ -1111,31 +1121,11 @@ const styles = StyleSheet.create({
   },
   atmPanel: {
     width: '100%',
-    borderWidth: 1,
-    borderRadius: 18,
+    borderWidth: 0,
+    borderRadius: 14,
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
-    shadowColor: AMERICA_BLUE,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-  },
-  atmBadge: {
-    alignSelf: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: AMERICA_RED,
-    marginBottom: 4,
-  },
-  atmBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    paddingTop: 22,
+    paddingBottom: 20,
   },
   atmAmountText: {
     fontSize: 22,
@@ -1152,16 +1142,16 @@ const styles = StyleSheet.create({
   },
   atmHelperText: {
     fontSize: 18,
-    lineHeight: 26,
-    fontWeight: '700',
+    lineHeight: 24,
+    fontWeight: '800',
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 12,
+    marginTop: 18,
+    marginBottom: 14,
   },
   atmAddressCard: {
     width: '100%',
-    borderWidth: 1,
-    borderRadius: 14,
+    borderWidth: 0,
+    borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     marginTop: 4,
@@ -1174,15 +1164,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   atmAddressLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   atmAddressValue: {
-    fontSize: 14,
+    fontSize: 14.5,
     lineHeight: 20,
-    textAlign: 'center',
+    fontWeight: '600',
   },
   atmAddressCopiedChip: {
     flexDirection: 'row',
@@ -1201,18 +1189,38 @@ const styles = StyleSheet.create({
   },
   atmHintText: {
     textAlign: 'center',
-    fontSize: 14,
-    lineHeight: 22,
-    marginTop: 12,
+    fontSize: 13.5,
+    lineHeight: 19,
+    marginTop: 10,
   },
   atmButtonStack: {
-    marginTop: 14,
+    marginTop: 16,
     width: '100%',
+  },
+  atmTileRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  atmTile: {
+    flex: 1,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: brand.page,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  atmTileText: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: '700',
+    color: brand.blue,
   },
   atmActionButton: {
     width: '100%',
-    minHeight: 54,
-    borderRadius: 14,
+    minHeight: 52,
+    borderRadius: 10,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1243,9 +1251,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
   },
-  atmActionSpacer: {
-    height: 10,
-  },
   atmBackupSection: {
     width: '100%',
     paddingHorizontal: 20,
@@ -1275,15 +1280,15 @@ const styles = StyleSheet.create({
   },
   atmCloseButton: {
     position: 'absolute',
-    left: 14,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    right: 28,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E4EE',
+    backgroundColor: brand.tint,
+    borderWidth: 0,
+    borderColor: 'transparent',
     zIndex: 20,
     shadowColor: AMERICA_BLUE,
     shadowOffset: { width: 0, height: 2 },

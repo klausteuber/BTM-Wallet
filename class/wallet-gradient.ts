@@ -18,7 +18,7 @@ import { LightningArkWallet } from './wallets/lightning-ark-wallet.ts';
 
 export default class WalletGradient {
   static hdSegwitP2SHWallet: string[] = ['#040766', '#020344']; // American Blue
-  static hdSegwitBech32Wallet: string[] = ['#ED122E', '#C00E24']; // American Red
+  static hdSegwitBech32Wallet: string[] = ['#040766', '#020438']; // American Blue, the website's hero gradient
   static segwitBech32Wallet: string[] = ['#ED122E', '#C00E24']; // American Red
   static watchOnlyWallet: string[] = ['#474646', '#282828']; // Dark Gray
   static legacyWallet: string[] = ['#38E3A5', '#2BC48A']; // American Mint

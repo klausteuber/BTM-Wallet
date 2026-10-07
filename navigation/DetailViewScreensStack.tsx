@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import HeaderRightButton from '../components/HeaderRightButton';
+import { brand, fonts } from '../components/brand';
 import navigationStyle, { CloseButtonPosition } from '../components/navigationStyle';
 import { useTheme } from '../components/themes';
 import { useExtendedNavigation } from '../hooks/useExtendedNavigation';
@@ -130,12 +131,24 @@ const DetailViewStackScreensStack = () => {
       <DetailViewStack.Screen
         name="AbtmAccount"
         component={AbtmAccount}
-        options={navigationStyle({ title: loc.abtm.account_title, statusBarStyle: 'auto' })(theme)}
+        options={navigationStyle({
+          title: loc.abtm.account_title,
+          statusBarStyle: 'light',
+          headerStyle: { backgroundColor: brand.blue },
+          headerTintColor: '#ffffff',
+          headerTitleStyle: { fontFamily: fonts.bold, fontSize: 17, color: '#ffffff' },
+        })(theme)}
       />
       <DetailViewStack.Screen
         name="AbtmSignIn"
         component={AbtmSignIn}
-        options={navigationStyle({ title: loc.abtm.sign_in, statusBarStyle: 'auto' })(theme)}
+        options={navigationStyle({
+          title: '',
+          statusBarStyle: 'light',
+          headerStyle: { backgroundColor: brand.blue },
+          headerTintColor: '#ffffff',
+          headerTitleStyle: { fontFamily: fonts.bold, fontSize: 17, color: '#ffffff' },
+        })(theme)}
       />
       <DetailViewStack.Screen
         name="AbtmActivity"

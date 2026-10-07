@@ -35,8 +35,10 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
     ...pressableProps
   } = props;
 
+  // Primary: brand red with white text, as on account.americabitcoinatm.com.
+  // A caller-supplied background keeps the theme's text colour unless told otherwise.
   let backgroundColor = customBackgroundColor ?? colors.mainColor;
-  let fontColor = buttonTextColor ?? colors.buttonTextColor;
+  let fontColor = buttonTextColor ?? (customBackgroundColor ? colors.buttonTextColor : '#ffffff');
   if (disabled) {
     backgroundColor = colors.buttonDisabledBackgroundColor;
     fontColor = colors.buttonDisabledTextColor;
@@ -91,11 +93,11 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
 
 const styles = StyleSheet.create({
   button: {
-    borderWidth: 0.7,
-    minHeight: 45,
-    height: 48,
-    maxHeight: 48,
-    borderRadius: 25,
+    borderWidth: 0,
+    minHeight: 50,
+    height: 52,
+    maxHeight: 52,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -108,15 +110,15 @@ const styles = StyleSheet.create({
   },
   text: {
     marginHorizontal: 8,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   pressableWrapper: {
     overflow: 'hidden',
-    borderRadius: 25,
+    borderRadius: 10,
   },
   pressed: {
-    opacity: 0.6,
+    opacity: 0.8,
   },
 });
 

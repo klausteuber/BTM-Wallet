@@ -22,11 +22,14 @@ type SecondButtonProps = {
 
 export const SecondButton = forwardRef<React.ElementRef<typeof TouchableOpacity>, SecondButtonProps>((props, ref) => {
   const { colors } = useTheme();
+  // Secondary: the website's outline button (white, blue border, blue text).
   let backgroundColor = props.backgroundColor ? props.backgroundColor : colors.buttonGrayBackgroundColor;
   let fontColor = colors.secondButtonTextColor;
+  let borderColor: string = props.backgroundColor ? 'transparent' : colors.secondButtonTextColor;
   if (props.disabled === true) {
     backgroundColor = colors.buttonDisabledBackgroundColor;
     fontColor = colors.buttonDisabledTextColor;
+    borderColor = 'transparent';
   }
 
   const buttonView = props.loading ? (
@@ -43,23 +46,24 @@ export const SecondButton = forwardRef<React.ElementRef<typeof TouchableOpacity>
       disabled={props.disabled || props.loading}
       accessibilityRole="button"
       testID={props.testID}
-      style={[styles.button, { backgroundColor }]}
+      style={[styles.button, { backgroundColor, borderColor }]}
       {...props}
       ref={ref}
     >
       {buttonView}
     </TouchableOpacity>
   ) : (
-    <View style={[styles.button, { backgroundColor }]}>{buttonView}</View>
+    <View style={[styles.button, { backgroundColor, borderColor }]}>{buttonView}</View>
   );
 });
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 45,
-    height: 48,
-    maxHeight: 48,
-    borderRadius: 7,
+    minHeight: 50,
+    height: 52,
+    maxHeight: 52,
+    borderRadius: 10,
+    borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -72,8 +76,8 @@ const styles = StyleSheet.create({
   },
   text: {
     marginHorizontal: 8,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
   },
   view: {
     flexDirection: 'row',

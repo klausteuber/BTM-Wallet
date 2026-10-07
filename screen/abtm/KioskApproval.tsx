@@ -3,11 +3,11 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import Button from '../../components/Button';
 import { SecondButton } from '../../components/SecondButton';
-import { useTheme } from '../../components/themes';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { AbtmApiError, KioskAuthorization, pairedWalletApi } from '../../blue_modules/paired-wallet-api';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
+import { brand } from '../../components/brand';
 import loc from '../../loc';
 import { Body, Card, ErrorText, Gap, Label, Pill, Title } from './ui';
 
@@ -32,7 +32,6 @@ function clock(seconds: number): string {
  * does the kiosk learn the full address. Polled while this screen is open.
  */
 const AbtmKioskApproval: React.FC = () => {
-  const { colors } = useTheme();
   const navigation = useExtendedNavigation();
   const route = useRoute<Route>();
   const [item, setItem] = useState<KioskAuthorization | null>(null);
@@ -156,7 +155,7 @@ const AbtmKioskApproval: React.FC = () => {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: colors.elevated }} contentContainerStyle={styles.scroll}>
+    <ScrollView style={styles.page} contentContainerStyle={styles.scroll}>
       {content}
       {error ? (
         <Card>
@@ -176,6 +175,7 @@ const AbtmKioskApproval: React.FC = () => {
 export default AbtmKioskApproval;
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 40 },
+  page: { backgroundColor: brand.page },
+  scroll: { paddingTop: 16, paddingBottom: 40 },
   spinner: { marginTop: 24 },
 });

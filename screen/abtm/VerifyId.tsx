@@ -3,10 +3,10 @@ import { ActivityIndicator, Linking, ScrollView, StyleSheet } from 'react-native
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Button from '../../components/Button';
 import { SecondButton } from '../../components/SecondButton';
-import { useTheme } from '../../components/themes';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { refreshAbtmAccount } from '../../hooks/useAbtmAccount';
 import { KycOptions, pairedWalletApi } from '../../blue_modules/paired-wallet-api';
+import { brand } from '../../components/brand';
 import loc from '../../loc';
 import AgreeRow from './AgreeRow';
 import { Body, Card, ErrorText, Gap, Label, Title } from './ui';
@@ -26,7 +26,6 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
  * consent wording the server sends, and the server records the version agreed to.
  */
 const AbtmVerifyId: React.FC = () => {
-  const { colors } = useTheme();
   const navigation = useExtendedNavigation();
   const [options, setOptions] = useState<KycOptions | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -233,7 +232,7 @@ const AbtmVerifyId: React.FC = () => {
   }
 
   return (
-    <ScrollView style={{ backgroundColor: colors.elevated }} contentContainerStyle={styles.scroll}>
+    <ScrollView style={styles.page} contentContainerStyle={styles.scroll}>
       {!options && !error ? <ActivityIndicator style={styles.spinner} /> : null}
       {outcomeCard}
       {body}
@@ -250,6 +249,7 @@ const AbtmVerifyId: React.FC = () => {
 export default AbtmVerifyId;
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 40 },
+  page: { backgroundColor: brand.page },
+  scroll: { paddingTop: 16, paddingBottom: 40 },
   spinner: { marginTop: 24 },
 });

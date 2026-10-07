@@ -1,15 +1,31 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { Text } from '@rneui/themed';
+import { Linking, TextInput } from 'react-native';
 import Button from '../../components/Button';
-import { useTheme } from '../../components/themes';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { pairedWalletApi } from '../../blue_modules/paired-wallet-api';
 import { refreshAbtmAccount } from '../../hooks/useAbtmAccount';
 import { SUPPORT_PHONE } from '../../blue_modules/send-guard';
 import loc from '../../loc';
 import AgreeRow from './AgreeRow';
-import { Body, ErrorText, Field, formatPhoneInput, Gap, Label, phoneDigits, Title } from './ui';
+import {
+  AuthFooter,
+  AuthScreen,
+  AuthTitle,
+  Body,
+  CodeField,
+  ErrorText,
+  Field,
+  formatPhoneInput,
+  Gap,
+  Hint,
+  Label,
+  LinkButton,
+  LinkRow,
+  Notice,
+  PhoneField,
+  phoneDigits,
+  Steps,
+} from './ui';
 
 type Step = 'phone' | 'code' | 'email_backup_code' | 'email' | 'email_code' | 'terms';
 
@@ -21,7 +37,6 @@ const RESEND_SECONDS = 30;
  * email address with a code and accept the Terms.
  */
 const AbtmSignIn: React.FC = () => {
-  const { colors } = useTheme();
   const navigation = useExtendedNavigation();
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
@@ -129,7 +144,7 @@ const AbtmSignIn: React.FC = () => {
     });
 
   const codeField = (onSubmit: () => void) => (
-    <Field
+    <CodeField
       ref={codeInput}
       testID="AbtmCode"
       value={code}
@@ -138,16 +153,20 @@ const AbtmSignIn: React.FC = () => {
       textContentType="oneTimeCode"
       autoComplete="sms-otp"
       maxLength={6}
-      placeholder="123456"
+      placeholder="••••••"
       returnKeyType="done"
       onSubmitEditing={onSubmit}
     />
   );
 
-  const link = (title: string, onPress: () => void, disabled = false, testID?: string) => (
-    <TouchableOpacity accessibilityRole="button" onPress={onPress} disabled={disabled || busy} testID={testID} style={styles.link}>
-      <Text style={[styles.linkText, { color: disabled ? colors.alternativeTextColor : colors.buttonAlternativeTextColor }]}>{title}</Text>
-    </TouchableOpacity>
+  // New accounts walk through Phone → Email → Terms, shown as the website's step pills.
+  const signupSteps = (current: 0 | 1 | 2) => (
+    <Steps
+      items={[loc.abtm.step_phone, loc.abtm.step_email, loc.abtm.step_terms].map((label, index) => ({
+        label,
+        state: index < current ? 'done' : index === current ? 'current' : 'todo',
+      }))}
+    />
   );
 
   let content: React.ReactNode;
@@ -155,11 +174,11 @@ const AbtmSignIn: React.FC = () => {
     case 'phone':
       content = (
         <>
-          <Title>{loc.abtm.signin_title}</Title>
+          <AuthTitle>{loc.abtm.signin_title}</AuthTitle>
           <Body muted>{loc.abtm.signin_intro}</Body>
-          <Gap />
+          <Gap size={20} />
           <Label>{loc.abtm.phone_label}</Label>
-          <Field
+          <PhoneField
             testID="AbtmPhone"
             value={phone}
             onChangeText={value => setPhone(formatPhoneInput(value))}
@@ -171,52 +190,66 @@ const AbtmSignIn: React.FC = () => {
             onSubmitEditing={sendText}
             autoFocus
           />
-          <Gap size={8} />
-          <Body muted>{loc.abtm.phone_hint}</Body>
-          <Gap />
-          <Button testID="AbtmSendCode" title={loc.abtm.send_code} onPress={sendText} disabled={busy || phoneDigits(phone).length !== 10} />
+          <Hint>{loc.abtm.phone_hint}</Hint>
+          <Gap size={22} />
+          <Button
+            testID="AbtmSendCode"
+            title={loc.abtm.send_code}
+            onPress={sendText}
+            disabled={busy || phoneDigits(phone).length !== 10}
+            showActivityIndicator={busy}
+          />
         </>
       );
       break;
     case 'code':
       content = (
         <>
-          <Title>{loc.abtm.code_title}</Title>
-          <Body muted>{loc.formatString(loc.abtm.code_sent_to, { phone })}</Body>
-          <Gap />
+          <AuthTitle>{loc.abtm.code_title}</AuthTitle>
+          <Body muted>{loc.formatString(loc.abtm.code_sent_to, { phone: `+1 ${phone}` })}</Body>
+          <Gap size={20} />
           {codeField(checkText)}
-          <Gap />
-          <Button testID="AbtmCheckCode" title={loc._.continue} onPress={checkText} disabled={busy || code.length !== 6} />
-          <Gap size={8} />
-          {link(
-            resendIn > 0 ? loc.formatString(loc.abtm.resend_in, { seconds: resendIn }) : loc.abtm.resend_code,
-            resendText,
-            resendIn > 0,
-          )}
-          {link(loc.abtm.email_instead, emailInstead, false, 'AbtmEmailInstead')}
+          <Gap size={22} />
+          <Button
+            testID="AbtmCheckCode"
+            title={loc._.continue}
+            onPress={checkText}
+            disabled={busy || code.length !== 6}
+            showActivityIndicator={busy}
+          />
+          <LinkRow>
+            <LinkButton
+              title={resendIn > 0 ? (loc.formatString(loc.abtm.resend_in, { seconds: resendIn }) as string) : loc.abtm.resend_code}
+              onPress={resendText}
+              disabled={busy || resendIn > 0}
+            />
+            <LinkButton title={loc.abtm.email_instead} onPress={emailInstead} disabled={busy} testID="AbtmEmailInstead" />
+          </LinkRow>
         </>
       );
       break;
     case 'email_backup_code':
       content = (
         <>
-          <Title>{loc.abtm.email_code_title}</Title>
+          <AuthTitle>{loc.abtm.email_code_title}</AuthTitle>
           <Body muted>{loc.abtm.email_backup_sent}</Body>
-          <Gap />
+          <Gap size={20} />
           {codeField(checkEmailBackup)}
-          <Gap />
-          <Button title={loc.abtm.sign_in} onPress={checkEmailBackup} disabled={busy || code.length !== 6} />
-          <Gap size={8} />
-          {link(loc.abtm.use_text_instead, () => go('code'))}
+          <Gap size={22} />
+          <Button title={loc.abtm.sign_in} onPress={checkEmailBackup} disabled={busy || code.length !== 6} showActivityIndicator={busy} />
+          <LinkRow>
+            <LinkButton title={loc.abtm.use_text_instead} onPress={() => go('code')} disabled={busy} />
+          </LinkRow>
         </>
       );
       break;
     case 'email':
       content = (
         <>
-          <Title>{loc.abtm.new_account_title}</Title>
+          {signupSteps(1)}
+          <AuthTitle>{loc.abtm.new_account_title}</AuthTitle>
           <Body muted>{loc.abtm.new_account_intro}</Body>
-          <Gap />
+          <Gap size={20} />
           <Label>{loc.abtm.first_name_label}</Label>
           <Field
             testID="AbtmFirstName"
@@ -239,73 +272,81 @@ const AbtmSignIn: React.FC = () => {
             returnKeyType="next"
             onSubmitEditing={sendEmail}
           />
-          <Gap />
-          <Button testID="AbtmSendEmailCode" title={loc.abtm.send_email_code} onPress={sendEmail} disabled={busy || !email.includes('@')} />
+          <Gap size={22} />
+          <Button
+            testID="AbtmSendEmailCode"
+            title={loc.abtm.send_email_code}
+            onPress={sendEmail}
+            disabled={busy || !email.includes('@')}
+            showActivityIndicator={busy}
+          />
         </>
       );
       break;
     case 'email_code':
       content = (
         <>
-          <Title>{loc.abtm.email_code_title}</Title>
+          {signupSteps(1)}
+          <AuthTitle>{loc.abtm.email_code_title}</AuthTitle>
           <Body muted>{loc.formatString(loc.abtm.email_code_sent_to, { email: signup.current.maskedEmail || email })}</Body>
-          <Gap />
+          <Gap size={20} />
           {codeField(checkEmail)}
-          <Gap />
-          <Button testID="AbtmCheckEmailCode" title={loc._.continue} onPress={checkEmail} disabled={busy || code.length !== 6} />
-          <Gap size={8} />
-          {link(loc.abtm.change_email, () => setStep('email'))}
+          <Gap size={22} />
+          <Button
+            testID="AbtmCheckEmailCode"
+            title={loc._.continue}
+            onPress={checkEmail}
+            disabled={busy || code.length !== 6}
+            showActivityIndicator={busy}
+          />
+          <LinkRow>
+            <LinkButton title={loc.abtm.change_email} onPress={() => setStep('email')} disabled={busy} />
+          </LinkRow>
         </>
       );
       break;
     case 'terms':
       content = (
         <>
-          <Title>{loc.abtm.terms_title}</Title>
+          {signupSteps(2)}
+          <AuthTitle>{loc.abtm.terms_title}</AuthTitle>
           <Body muted>{loc.abtm.terms_intro}</Body>
-          <Gap size={8} />
-          {link(loc.abtm.terms_of_service, () => terms && Linking.openURL(terms.termsUrl))}
-          {link(loc.abtm.privacy_policy, () => terms && Linking.openURL(terms.privacyUrl))}
-          <Gap size={8} />
+          <LinkRow>
+            <LinkButton title={loc.abtm.terms_of_service} onPress={() => terms && Linking.openURL(terms.termsUrl)} />
+            <LinkButton title={loc.abtm.privacy_policy} onPress={() => terms && Linking.openURL(terms.privacyUrl)} />
+          </LinkRow>
+          <Gap size={14} />
           <AgreeRow testID="AbtmAgree" value={agreed} onChange={setAgreed} label={loc.abtm.terms_agree} />
-          <Gap />
-          <Button testID="AbtmCreateAccount" title={loc.abtm.create_account} onPress={createAccount} disabled={busy || !agreed} />
+          <Gap size={22} />
+          <Button
+            testID="AbtmCreateAccount"
+            title={loc.abtm.create_account}
+            onPress={createAccount}
+            disabled={busy || !agreed}
+            showActivityIndicator={busy}
+          />
         </>
       );
       break;
   }
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: colors.elevated }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {content}
-        {error ? (
-          <>
-            <Gap size={12} />
-            <ErrorText>{error}</ErrorText>
-          </>
-        ) : null}
-        {notice ? (
-          <>
-            <Gap size={12} />
-            <Body muted>{notice}</Body>
-          </>
-        ) : null}
-        <Gap size={32} />
-        <Body muted>{loc.formatString(loc.abtm.need_help, { phone: SUPPORT_PHONE })}</Body>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <AuthScreen footer={<AuthFooter>{loc.formatString(loc.abtm.need_help, { phone: SUPPORT_PHONE })}</AuthFooter>}>
+      {error ? (
+        <>
+          <ErrorText>{error}</ErrorText>
+          <Gap size={16} />
+        </>
+      ) : null}
+      {notice ? (
+        <>
+          <Notice>{notice}</Notice>
+          <Gap size={16} />
+        </>
+      ) : null}
+      {content}
+    </AuthScreen>
   );
 };
 
 export default AbtmSignIn;
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { padding: 20 },
-  link: { paddingVertical: 10 },
-  linkText: { fontSize: 16, fontWeight: '600' },
-});

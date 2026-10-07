@@ -3,6 +3,7 @@ import React from 'react';
 import { Image, Keyboard, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
 import loc from '../loc';
+import { fonts } from './brand';
 import { Theme } from './themes';
 
 const styles = StyleSheet.create({
@@ -114,8 +115,13 @@ const navigationStyle = (
       const baseHeaderStyle = {
         headerShadowVisible: false,
         headerTitleStyle: {
-          fontWeight: '600' as const,
-          color: theme.colors.foregroundColor,
+          fontFamily: fonts.bold,
+          fontSize: 17,
+          color: theme.dark ? theme.colors.foregroundColor : '#040766',
+        },
+        headerLargeTitleStyle: {
+          fontFamily: fonts.extrabold,
+          color: theme.dark ? theme.colors.foregroundColor : '#040766',
         },
         headerTintColor: theme.colors.foregroundColor,
         headerBackButtonDisplayMode: 'minimal',

@@ -1,6 +1,7 @@
 import './gesture-handler';
 import 'react-native-get-random-values';
 import './shim.js';
+import './blue_modules/brand-font';
 
 import React, { useEffect } from 'react';
 import { AppRegistry, LogBox } from 'react-native';
