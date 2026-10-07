@@ -10,32 +10,44 @@ interface HeaderRightButtonProps {
   testID?: string;
 }
 
+// A plain text bar button, the way iOS draws "Edit" / "Done" / "Details".
+// No fill of our own: on iOS 26 the navigation bar wraps every bar item in a
+// Liquid Glass capsule, so a filled pill here showed up as a pill inside a
+// pill. Earlier iOS versions and Android draw header text buttons without a
+// background too, so this reads as native everywhere.
 const HeaderRightButton: React.FC<HeaderRightButtonProps> = ({ disabled = true, onPress, title, testID }) => {
   const { colors } = useTheme();
-  const opacity = disabled ? 0.5 : 1;
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
       disabled={disabled}
-      style={[styles.save, { backgroundColor: colors.lightButton }, { opacity }]}
+      style={[styles.button, disabled && styles.disabled]}
       onPress={onPress}
+      hitSlop={HIT_SLOP}
       testID={testID}
     >
-      <Text style={[styles.saveText, { color: colors.buttonTextColor }]}>{title}</Text>
+      <Text style={[styles.title, { color: colors.buttonTextColor }]} numberOfLines={1}>
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };
 
+const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
 const styles = StyleSheet.create({
-  save: {
+  button: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 80,
-    borderRadius: 8,
-    height: 34,
+    minHeight: 36,
+    paddingHorizontal: 6,
   },
-  saveText: {
-    fontSize: 15,
+  disabled: {
+    opacity: 0.35,
+  },
+  title: {
+    fontSize: 17,
     fontWeight: '600',
   },
 });

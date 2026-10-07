@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useReducer } from 'react';
-import { ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Switch, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Switch, View } from 'react-native';
 import { Text } from '@rneui/themed';
 import { PayjoinClient } from 'payjoin-client';
 import BigNumber from 'bignumber.js';
@@ -11,6 +11,7 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import presentAlert from '../../components/Alert';
 import { useTheme } from '../../components/themes';
 import Button from '../../components/Button';
+import DetailsHeaderButton from '../../components/HeaderRightButton';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import SafeArea from '../../components/SafeArea';
 import { satoshiToBTC, satoshiToLocalCurrency } from '../../blue_modules/currency';
@@ -98,14 +99,8 @@ const Confirm: React.FC = () => {
     transactionAmountFiat: {
       color: colors.feeText,
     },
-    txDetails: {
-      backgroundColor: colors.lightButton,
-    },
     valueValue: {
       color: colors.alternativeTextColor2,
-    },
-    valueUnit: {
-      color: colors.buttonTextColor,
     },
     root: {
       backgroundColor: colors.elevated,
@@ -117,10 +112,10 @@ const Confirm: React.FC = () => {
 
   const HeaderRightButton = useMemo(
     () => (
-      <TouchableOpacity
-        accessibilityRole="button"
+      <DetailsHeaderButton
         testID="TransactionDetailsButton"
-        style={[styles.txDetails, stylesHook.txDetails]}
+        disabled={false}
+        title={loc.send.create_details}
         onPress={async () => {
           if (await isBiometricUseCapableAndEnabled()) {
             if (!(await unlockWithBiometrics())) {
@@ -136,22 +131,9 @@ const Confirm: React.FC = () => {
             feeSatoshi,
           });
         }}
-      >
-        <Text style={[styles.txText, stylesHook.valueUnit]}>{loc.send.create_details}</Text>
-      </TouchableOpacity>
+      />
     ),
-    [
-      stylesHook.txDetails,
-      stylesHook.valueUnit,
-      isBiometricUseCapableAndEnabled,
-      navigate,
-      fee,
-      recipients,
-      memo,
-      tx,
-      satoshiPerByte,
-      feeSatoshi,
-    ],
+    [isBiometricUseCapableAndEnabled, navigate, fee, recipients, memo, tx, satoshiPerByte, feeSatoshi],
   );
 
   useEffect(() => {
@@ -431,17 +413,6 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
     fontWeight: '500',
     alignSelf: 'center',
-  },
-  txDetails: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 80,
-    borderRadius: 8,
-    height: 38,
-  },
-  txText: {
-    fontSize: 15,
-    fontWeight: '600',
   },
   payjoinWrapper: {
     flexDirection: 'row',
