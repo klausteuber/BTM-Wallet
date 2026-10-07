@@ -21,7 +21,12 @@ import RBFCancel from '../screen/transactions/RBFCancel';
 import TransactionStatus from '../screen/transactions/TransactionStatus';
 import WalletAddresses from '../screen/wallets/WalletAddresses';
 import WalletDetails from '../screen/wallets/WalletDetails';
-import PairedWalletSetup from '../screen/wallets/PairedWalletSetup';
+import AbtmAccount from '../screen/abtm/Account';
+import AbtmSignIn from '../screen/abtm/SignIn';
+import AbtmActivity from '../screen/abtm/Activity';
+import AbtmVerifyId from '../screen/abtm/VerifyId';
+import AbtmKioskApproval from '../screen/abtm/KioskApproval';
+import AccountButton from '../components/icons/AccountButton';
 import GenerateWord from '../screen/wallets/generateWord';
 import SelectWallet from '../screen/wallets/SelectWallet';
 import WalletsList from '../screen/wallets/WalletsList';
@@ -72,10 +77,16 @@ const DetailViewStackScreensStack = () => {
   const RightBarButtons = useMemo(
     () =>
       sizeClass === SizeClass.Large ? (
-        <SettingsButton />
+        <>
+          <AccountButton />
+          <View style={styles.width24} />
+          <SettingsButton />
+        </>
       ) : (
         <>
           <AddWalletButton onPress={navigateToAddWallet} />
+          <View style={styles.width24} />
+          <AccountButton />
           <View style={styles.width24} />
           <SettingsButton />
         </>
@@ -115,12 +126,29 @@ const DetailViewStackScreensStack = () => {
         })(theme)}
       />
       <DetailViewStack.Screen
-        name="PairedWalletSetup"
-        component={PairedWalletSetup}
-        options={navigationStyle({
-          headerTitle: 'ABTM Pairing',
-          statusBarStyle: 'auto',
-        })(theme)}
+        name="AbtmAccount"
+        component={AbtmAccount}
+        options={navigationStyle({ title: loc.abtm.account_title, statusBarStyle: 'auto' })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="AbtmSignIn"
+        component={AbtmSignIn}
+        options={navigationStyle({ title: loc.abtm.sign_in, statusBarStyle: 'auto' })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="AbtmActivity"
+        component={AbtmActivity}
+        options={navigationStyle({ title: loc.abtm.activity_title, statusBarStyle: 'auto' })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="AbtmVerifyId"
+        component={AbtmVerifyId}
+        options={navigationStyle({ title: loc.abtm.id_title, statusBarStyle: 'auto' })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="AbtmKioskApproval"
+        component={AbtmKioskApproval}
+        options={navigationStyle({ title: loc.abtm.kiosk_approvals, statusBarStyle: 'auto' })(theme)}
       />
       <DetailViewStack.Screen
         name="TransactionDetails"

@@ -933,6 +933,48 @@ private_lane :setup_app_store_connect_api_key do
   end
 end
 
+desc "TestFlight build from this Mac (Xcode automatic signing). You sign in to Apple yourself when prompted."
+lane :beta_local do |options|
+  # Nothing here stores credentials: before_all signs in interactively (or with your own
+  # APPLE_API_KEY_* / FASTLANE_USER env vars), and the upload asks for an app-specific
+  # password unless FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD is set in your shell.
+  app_id = "com.americabitcoinatm.wallet"
+
+  # React Native's own Hermes switch breaks on the spaces in this checkout's path.
+  sh(File.join(project_root, "scripts", "hermes-config.sh"), "Release")
+
+  build_number = options[:build_number]
+  unless build_number
+    begin
+      build_number = latest_testflight_build_number(app_identifier: app_id).to_i + 1
+    rescue StandardError => e
+      UI.important("Could not read the latest TestFlight build (#{e.message}); using a timestamp.")
+      build_number = Time.now.strftime("%y%m%d%H%M").to_i
+    end
+  end
+  increment_build_number(xcodeproj: File.join(project_root, "ios", "BlueWallet.xcodeproj"), build_number: build_number.to_s)
+
+  ipa = build_app(
+    workspace: File.join(project_root, "ios", "BlueWallet.xcworkspace"),
+    scheme: "BlueWallet",
+    configuration: "Release",
+    export_method: "app-store",
+    clean: true,
+    output_directory: File.join(project_root, "build"),
+    output_name: "AmericaBitcoinWallet.ipa",
+    xcargs: "-allowProvisioningUpdates",
+    export_options: { signingStyle: "automatic", teamID: "HA66WMZT25" }
+  )
+
+  upload_to_testflight(
+    app_identifier: app_id,
+    ipa: ipa,
+    skip_waiting_for_build_processing: true,
+    changelog: options[:changelog] || "America Bitcoin account: sign in, ID verification, wallet registration, Bitcoin ATM approvals, send protections."
+  )
+  UI.success("Uploaded build #{build_number} to TestFlight.")
+end
+
 desc "Deploy iOS build to TestFlight (default) or App Store review"
 lane :deploy do |options|
   UI.message("Starting deployment process...")

@@ -13,6 +13,11 @@ PODS:
   - hermes-engine (0.78.2):
     - hermes-engine/Pre-built (= 0.78.2)
   - hermes-engine/Pre-built (0.78.2)
+  - IdensicMobileSDK (1.46.1):
+    - IdensicMobileSDK/Default (= 1.46.1)
+  - IdensicMobileSDK/Core (1.46.1)
+  - IdensicMobileSDK/Default (1.46.1):
+    - IdensicMobileSDK/Core
   - lottie-ios (4.5.0)
   - lottie-react-native (7.3.4):
     - DoubleConversion
@@ -1320,6 +1325,9 @@ PODS:
     - Yoga
   - react-native-menu (1.2.4):
     - React
+  - react-native-mobilesdk-module (1.46.1):
+    - IdensicMobileSDK (= 1.46.1)
+    - React-Core
   - react-native-safe-area-context (5.5.2):
     - React-Core
   - react-native-secure-key-store (2.0.10):
@@ -1990,6 +1998,7 @@ DEPENDENCIES:
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
+  - "react-native-mobilesdk-module (from `../node_modules/@sumsub/react-native-mobilesdk-module`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-secure-key-store (from `../node_modules/react-native-secure-key-store`)
   - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
@@ -2048,6 +2057,8 @@ DEPENDENCIES:
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
+  https://github.com/SumSubstance/Specs.git:
+    - IdensicMobileSDK
   trunk:
     - CocoaAsyncSocket
     - lottie-ios
@@ -2152,6 +2163,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-menu:
     :path: "../node_modules/@react-native-menu/menu"
+  react-native-mobilesdk-module:
+    :path: "../node_modules/@sumsub/react-native-mobilesdk-module"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-secure-key-store:
@@ -2276,6 +2289,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   hermes-engine: 2771b98fb813fdc6f92edd7c9c0035ecabf9fee7
+  IdensicMobileSDK: 55901f7749293cf02ea8c13f9ee04b1473c9214f
   lottie-ios: a881093fab623c467d3bce374367755c272bdd59
   lottie-react-native: 0fdfbaa934fc6d3acbffbac5fb4d73d48e37fdf5
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
@@ -2316,6 +2330,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 1b6097f71e3cf785a40d22be7904f17e924965bb
   react-native-menu: 475e400d9b57949c076a0844e130044b45f2aa3d
+  react-native-mobilesdk-module: eebd6cc979904d529db390037db7d2aba6d28592
   react-native-safe-area-context: 0f7bf11598f9a61b7ceac8dc3f59ef98697e99e1
   react-native-secure-key-store: eb45b44bdec3f48e9be5cdfca0f49ddf64892ea6
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
@@ -2375,6 +2390,6 @@ SPEC CHECKSUMS:
   Yoga: e14bad835e12b6c7e2260fc320bd00e0f4b45add
   ZXingObjC: 8898711ab495761b2dbbdec76d90164a6d7e14c5
 
-PODFILE CHECKSUM: eb430c3fd96af23d4962c4c041798d65efc6843e
+PODFILE CHECKSUM: 9eaf6a8c0a395c561f5109e6ca9ecca1d980ad1d
 
 COCOAPODS: 1.16.2

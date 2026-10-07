@@ -24,7 +24,11 @@ export type DetailViewStackParamList = {
   WalletsList: { onBarScanned?: string };
   WalletTransactions: { isLoading?: boolean; walletID: string; walletType: string; onBarScanned?: string };
   WalletDetails: { walletID: string };
-  PairedWalletSetup: { walletID: string };
+  AbtmAccount: undefined;
+  AbtmSignIn: undefined;
+  AbtmActivity: undefined;
+  AbtmVerifyId: undefined;
+  AbtmKioskApproval: { authorizationId?: string };
   TransactionDetails: { tx: Transaction; hash: string; walletID: string };
   TransactionStatus: { hash: string; walletID?: string };
   CPFP: {

@@ -44,6 +44,7 @@ export type TNavigationWrapper = {
 
 export type SendDetailsStackParamList = {
   SendDetails: SendDetailsParams;
+  SendSafetyCheck: { addresses: string[] };
   SelectFee: {
     networkTransactionFees: {
       fastestFee: number;

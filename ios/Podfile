@@ -18,6 +18,10 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+# SumSub's iOS SDK (IdensicMobileSDK) is published in its own spec repo.
+source 'https://cdn.cocoapods.org/'
+source 'https://github.com/SumSubstance/Specs.git'
+
 workspace 'BlueWallet'
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
@@ -52,9 +56,25 @@ post_install do |installer|
     :mac_catalyst_enabled => true,
     # :ccache_enabled => true
   )
+  # React Native 0.78's codegen phase runs `/bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"`,
+  # and with-environment.sh then runs `$1` unquoted: both split on the spaces in this
+  # checkout's path ("Chainlogic Database", "Wallet V2 - kyc link"). Source the environment
+  # with no arguments and run the script quoted instead.
+  unquoted = '/bin/sh -c "$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT"'
+  installer.pods_project.targets.each do |target|
+    target.shell_script_build_phases.each do |phase|
+      next unless phase.shell_script&.include?(unquoted)
+      phase.shell_script = phase.shell_script.sub(unquoted, '( set --; . "$WITH_ENVIRONMENT"; /bin/sh "$SCRIPT_PHASES_SCRIPT" )')
+    end
+  end
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      # fmt 11 (React Native 0.78) fails under Xcode 26+ clang in C++20 mode
+      # ("call to consteval function ... is not a constant expression"). C++17 avoids consteval.
+      if target.name == 'fmt'
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
       
       if ['React-Core-AccessibilityResources'].include? target.name 
         config.build_settings['CODE_SIGN_STYLE'] = "Manual"

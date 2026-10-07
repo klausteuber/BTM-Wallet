@@ -13,6 +13,7 @@ const Settings = () => {
 
   return (
     <SafeAreaScrollView>
+      <ListItem title={loc.abtm.account_title} onPress={() => navigate('AbtmAccount')} testID="AbtmAccountSettings" chevron />
       <ListItem title={loc.settings.general} onPress={() => navigate('GeneralSettings')} testID="GeneralSettings" chevron />
       <ListItem title={loc.settings.currency} onPress={() => navigate('Currency')} testID="Currency" chevron />
       <ListItem title={loc.settings.language} onPress={() => navigate('Language')} testID="Language" chevron />

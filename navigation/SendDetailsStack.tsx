@@ -20,6 +20,7 @@ import HeaderRightButton from '../components/HeaderRightButton';
 import { BitcoinUnit } from '../models/bitcoinUnits';
 import { ScanQRCodeComponent } from './LazyLoadScanQRCodeStack';
 import SelectFeeScreen from '../screen/SelectFeeScreen';
+import SendSafetyCheck from '../screen/abtm/SendSafetyCheck';
 import { Platform } from 'react-native';
 
 const Stack = createNativeStackNavigator<SendDetailsStackParamList>();
@@ -52,6 +53,11 @@ const SendDetailsStack = () => {
           headerTitle: '',
           sheetGrabberVisible: true,
         })(theme)}
+      />
+      <Stack.Screen
+        name="SendSafetyCheck"
+        component={SendSafetyCheck}
+        options={navigationStyle({ title: loc.abtm.safety_check_title, gestureEnabled: false })(theme)}
       />
       <Stack.Screen
         name="Confirm"

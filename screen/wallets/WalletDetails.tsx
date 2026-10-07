@@ -344,10 +344,7 @@ const WalletDetails: React.FC = () => {
       walletID,
     });
 
-  const navigateToPairedWalletSetup = () =>
-    navigate('PairedWalletSetup', {
-      walletID,
-    });
+  const navigateToAbtmAccount = () => navigate('AbtmAccount');
 
   const navigateToContacts = () => navigate('PaymentCodeList', { walletID });
 
@@ -500,13 +497,9 @@ const WalletDetails: React.FC = () => {
               </Text>
               {pairedWalletInfo ? (
                 <>
-                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>abtm pairing status</Text>
+                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.abtm.wallet_title.toLowerCase()}</Text>
                   <Text style={[styles.textValue, stylesHook.textValue]} selectable>
-                    {pairedWalletInfo.status || 'not_paired'}
-                  </Text>
-                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>abtm paired address</Text>
-                  <Text style={[styles.textValue, stylesHook.textValue]} selectable>
-                    {pairedWalletInfo.currentAddress || 'Not paired yet'}
+                    {pairedWalletInfo.status === 'active' ? loc.abtm.wallet_registered : loc.abtm.wallet_not_registered}
                   </Text>
                 </>
               ) : null}
@@ -669,7 +662,7 @@ const WalletDetails: React.FC = () => {
                 {wallet.type === ABTMPairedWallet.type && (
                   <>
                     <BlueSpacing20 />
-                    <SecondButton onPress={navigateToPairedWalletSetup} title="ABTM pairing" />
+                    <SecondButton onPress={navigateToAbtmAccount} title={loc.abtm.account_title} />
                   </>
                 )}
                 {wallet.type === MultisigHDWallet.type && (

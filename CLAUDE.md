@@ -96,3 +96,16 @@ npm run clean:ios        # Clean iOS (node_modules, Pods, cache)
 - iOS development requires Rosetta-compatible simulator for debugging
 - Private keys never leave the device - security is paramount
 - Translations managed via Transifex
+
+## America Bitcoin account (October 2026)
+
+The app's America Bitcoin account, native ID verification, wallet registration,
+kiosk approvals and send protections are documented in `docs/ABTM_ACCOUNT.md`.
+The server is `account_service/` in the BTM-Dashboard repo.
+
+- This checkout's path contains spaces, which breaks several React Native 0.78
+  build scripts. Run `scripts/hermes-config.sh Debug|Release` before building, and
+  keep the Podfile's `post_install` fixes (codegen quoting, `fmt` as C++17).
+- TestFlight from this Mac: `bundle exec fastlane beta_local` with Ruby 3.1
+  (`/opt/homebrew/opt/ruby@3.1/bin` first on PATH). Never store Apple credentials.
+- The only git remote is a personal GitHub; don't push without asking.

@@ -56,6 +56,7 @@ import { CommonToolTipActions, ToolTipAction } from '../../typings/CommonToolTip
 import ActionSheet from '../ActionSheet';
 import { isCancel, pickTransaction } from '../../blue_modules/fs';
 import { Measure } from '../../class/measure';
+import { allClear, evaluateSend } from '../../blue_modules/send-guard';
 
 interface IPaymentDestinations {
   address: string; // btc address or payment code
@@ -557,6 +558,15 @@ const SendDetails = () => {
         triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
         return;
       }
+    }
+
+    // Scam protection: the first send to an address this phone never paid goes through a
+    // short scam check and a hold (15 minutes; 24 hours for customers 65+).
+    const destinations = addresses.map(a => a.address).filter(Boolean);
+    if (!allClear(await evaluateSend(destinations, wallets as any))) {
+      setIsLoading(false);
+      navigation.navigate('SendSafetyCheck', { addresses: destinations });
+      return;
     }
 
     try {

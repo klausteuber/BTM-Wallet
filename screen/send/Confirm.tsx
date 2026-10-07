@@ -27,6 +27,7 @@ import { HDSegwitBech32Wallet } from '../../class';
 import { useSettings } from '../../hooks/context/useSettings';
 import { majorTomToGroundControl } from '../../blue_modules/notifications';
 import { uint8ArrayToHex } from '../../blue_modules/uint8array-extras';
+import { recordSent } from '../../blue_modules/send-guard';
 
 enum ActionType {
   SET_LOADING = 'SET_LOADING',
@@ -215,6 +216,8 @@ const Confirm: React.FC = () => {
 
       const txid = bitcoin.Transaction.fromHex(tx).getId();
       txidsToWatch.push(txid);
+      // Paid once: later sends to these addresses skip the new-address scam check.
+      recordSent([...recipients, ...(targets || [])].map(r => r.address || '').filter(Boolean)).catch(() => {});
       majorTomToGroundControl([], [], txidsToWatch);
       let amount = 0;
       for (const recipient of recipients) {
