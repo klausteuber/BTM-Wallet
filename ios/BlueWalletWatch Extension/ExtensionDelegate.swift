@@ -7,7 +7,6 @@
 
 import WatchKit
 import ClockKit
-import Bugsnag
 import WatchConnectivity
 
 // WatchKit 2 uses WKExtensionDelegate, not WKApplicationDelegate
@@ -21,9 +20,6 @@ class ExtensionDelegate: NSObject, WKExtensionDelegate {
     
     scheduleNextReload()
     updatePreferredFiatCurrency()
-    if let isDoNotTrackEnabled = groupUserDefaults?.bool(forKey: "donottrack"), !isDoNotTrackEnabled {
-      Bugsnag.start()
-    }
   }
   
   private func initializeWCSession() {

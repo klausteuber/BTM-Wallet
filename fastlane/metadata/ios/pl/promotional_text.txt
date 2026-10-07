@@ -4,5 +4,5 @@
 * Elastyczne opłaty
 * Replace-By-Fee
 * SegWit
-* Portfele tylko-do-wglądu(Sentinel)
+* Portfele tylko-do-wgladu Sentinel
 * Sieć Lightning

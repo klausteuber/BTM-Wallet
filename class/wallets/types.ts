@@ -2,6 +2,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import { CoinSelectOutput, CoinSelectReturnInput, CoinSelectUtxo } from 'coinselect';
 
 import { BitcoinUnit } from '../../models/bitcoinUnits';
+import { ABTMPairedWallet } from './abtm-paired-wallet';
 import { HDAezeedWallet } from './hd-aezeed-wallet';
 import { HDLegacyBreadwalletWallet } from './hd-legacy-breadwallet-wallet';
 import { HDLegacyElectrumSeedP2PKHWallet } from './hd-legacy-electrum-seed-p2pkh-wallet';
@@ -146,6 +147,7 @@ export type ExtendedTransaction = Transaction & {
 };
 
 export type TWallet =
+  | ABTMPairedWallet
   | HDAezeedWallet
   | HDLegacyBreadwalletWallet
   | HDLegacyElectrumSeedP2PKHWallet
@@ -166,4 +168,4 @@ export type TWallet =
   | TaprootWallet
   | WatchOnlyWallet;
 
-export type THDWalletForWatchOnly = HDSegwitBech32Wallet | HDSegwitP2SHWallet | HDLegacyP2PKHWallet | HDTaprootWallet;
+export type THDWalletForWatchOnly = ABTMPairedWallet | HDSegwitBech32Wallet | HDSegwitP2SHWallet | HDLegacyP2PKHWallet | HDTaprootWallet;

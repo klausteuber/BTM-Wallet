@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet
+package com.americabitcoinatm.wallet
 
 import android.util.Log
 import java.text.NumberFormat

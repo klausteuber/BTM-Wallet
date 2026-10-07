@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import DefaultPreference from 'react-native-default-preference';
 import { isReadClipboardAllowed, setReadClipboardAllowed } from '../../blue_modules/clipboard';
-import { getPreferredCurrency, GROUP_IO_BLUEWALLET, initCurrencyDaemon, setPreferredCurrency } from '../../blue_modules/currency';
+import { getPreferredCurrency, GROUP_SHARED_PREFS, initCurrencyDaemon, setPreferredCurrency } from '../../blue_modules/currency';
 import { clearUseURv1, isURv1Enabled, setUseURv1 } from '../../blue_modules/ur';
 import { BlueApp } from '../../class';
 import { saveLanguage, STORAGE_KEY } from '../../loc';
@@ -21,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const getDoNotTrackStorage = async (): Promise<boolean> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const doNotTrack = await DefaultPreference.get(BlueApp.DO_NOT_TRACK);
     return doNotTrack === '1';
   } catch {
@@ -32,7 +32,7 @@ const getDoNotTrackStorage = async (): Promise<boolean> => {
 
 export const setTotalBalanceViewEnabledStorage = async (value: boolean): Promise<void> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     await DefaultPreference.set(TotalWalletsBalanceKey, value ? 'true' : 'false');
     console.debug('setTotalBalanceViewEnabledStorage value:', value);
   } catch (e) {
@@ -42,7 +42,7 @@ export const setTotalBalanceViewEnabledStorage = async (value: boolean): Promise
 
 export const getIsTotalBalanceViewEnabled = async (): Promise<boolean> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const isEnabledValue = (await DefaultPreference.get(TotalWalletsBalanceKey)) ?? 'true';
     console.debug('getIsTotalBalanceViewEnabled', isEnabledValue);
     return isEnabledValue === 'true';
@@ -54,7 +54,7 @@ export const getIsTotalBalanceViewEnabled = async (): Promise<boolean> => {
 
 export const setTotalBalancePreferredUnitStorageFunc = async (unit: BitcoinUnit): Promise<void> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     await DefaultPreference.set(TotalWalletsBalancePreferredUnit, unit);
   } catch (e) {
     console.error('Error setting TotalBalancePreferredUnit:', e);
@@ -63,7 +63,7 @@ export const setTotalBalancePreferredUnitStorageFunc = async (unit: BitcoinUnit)
 
 export const getTotalBalancePreferredUnit = async (): Promise<BitcoinUnit> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const unit = (await DefaultPreference.get(TotalWalletsBalancePreferredUnit)) as BitcoinUnit | null;
     return unit ?? BitcoinUnit.BTC;
   } catch (e) {
@@ -152,7 +152,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+        await DefaultPreference.setName(GROUP_SHARED_PREFS);
       } catch (e) {
         console.error('Error setting preference name:', e);
       }
@@ -244,7 +244,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
 
   const setDoNotTrackStorage = useCallback(async (value: boolean): Promise<void> => {
     try {
-      await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+      await DefaultPreference.setName(GROUP_SHARED_PREFS);
       if (value) {
         await DefaultPreference.set(BlueApp.DO_NOT_TRACK, '1');
       } else {

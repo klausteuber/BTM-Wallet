@@ -18,6 +18,7 @@ import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
 
 const branch = require('../../current-branch.json');
+const COMPANY_WEBSITE_URL = 'https://americabitcoinatm.com';
 
 const About: React.FC = () => {
   const { navigate } = useExtendedNavigation();
@@ -57,29 +58,28 @@ const About: React.FC = () => {
   };
 
   const handleOnTwitterPress = () => {
-    Linking.openURL('https://twitter.com/bluewalletio');
+    Linking.openURL(COMPANY_WEBSITE_URL);
   };
 
   const handleOnDiscordPress = () => {
-    Linking.openURL('https://discord.gg/btWq2Aby2z');
+    Linking.openURL(COMPANY_WEBSITE_URL);
   };
 
   const handleOnTelegramPress = () => {
-    Linking.openURL('https://t.me/bluewallethat');
+    Linking.openURL(COMPANY_WEBSITE_URL);
   };
 
   const handleOnGithubPress = () => {
-    Linking.openURL('https://github.com/BlueWallet/BlueWallet');
+    Linking.openURL(COMPANY_WEBSITE_URL);
   };
 
   const handleOnRatePress = () => {
     const options = {
-      AppleAppID: '1376878040',
-      GooglePackageName: 'io.bluewallet.bluewallet',
+      GooglePackageName: 'com.americabitcoinatm.wallet',
       preferredAndroidMarket: AndroidMarket.Google,
       preferInApp: Platform.OS !== 'android',
       openAppStoreIfInAppFails: true,
-      fallbackPlatformURL: 'https://bluewallet.io',
+      fallbackPlatformURL: COMPANY_WEBSITE_URL,
     };
     Rate.rate(options, success => {
       if (success) {

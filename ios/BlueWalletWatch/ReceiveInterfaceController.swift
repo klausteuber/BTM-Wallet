@@ -7,7 +7,6 @@
 import WatchKit
 import WatchConnectivity
 import Foundation
-import EFQRCode
 
 class ReceiveInterfaceController: WKInterfaceController {
 
@@ -54,19 +53,10 @@ class ReceiveInterfaceController: WKInterfaceController {
     private func setupQRCode() {
       guard let address = receiveType == .Address ? wallet?.receiveAddress : wallet?.paymentCode else { return }
         addressLabel.setText(address)
-        generateQRCode(from: address)
-    }
-
-    private func generateQRCode(from content: String) {
-        DispatchQueue.global(qos: .userInteractive).async {
-          guard let cgImage = EFQRCode.generate(for: content) else { return }
-            DispatchQueue.main.async {
-                let image = UIImage(cgImage: cgImage)
-                self.imageInterface.setImage(image)
-                self.loadingIndicator.setHidden(true)
-                self.imageInterface.setHidden(false)
-            }
-        }
+        // QR code display not available on watchOS — show address text instead
+        loadingIndicator.setHidden(true)
+        imageInterface.setHidden(true)
+        addressLabel.setHidden(false)
     }
 
     private func setupMenuItems() {

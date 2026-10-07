@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet
+package com.americabitcoinatm.wallet
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -13,7 +13,7 @@ class BitcoinPriceWidget : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "BitcoinPriceWidget"
-        private const val SHARED_PREF_NAME = "group.io.bluewallet.bluewallet"
+        private const val SHARED_PREF_NAME = "group.com.americabitcoinatm.wallet"
         
         fun updateNetworkStatus(context: Context, appWidgetIds: IntArray) {
             val isNetworkAvailable = NetworkUtils.isNetworkAvailable(context)

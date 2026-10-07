@@ -123,47 +123,72 @@ struct WalletInformationAndMarketWidgetEntryView: View {
     }
 
     var body: some View {
-        if family == .systemLarge {
-            HStack(alignment: .center, spacing: nil, content: {
-                VStack(alignment: .leading, spacing: nil, content: {
-                    HStack(content: {
-                        WalletBalance.padding()
-                    }).background(Color.widgetBackground)
-                    HStack(content: {
-                        MarketStack
-                    }).padding()
-                    SendReceiveButtonsView
-                }).background(Color(.lightGray).opacity(0.77))
-            })
-        } else {
+        #if os(watchOS)
             HStack(content: {
                 WalletBalance.padding()
                 HStack(content: {
                     MarketStack.padding()
                 }).background(Color(.lightGray).opacity(0.77))
             }).background(Color.widgetBackground)
-        }
+        #else
+            if family == .systemLarge {
+                HStack(alignment: .center, spacing: nil, content: {
+                    VStack(alignment: .leading, spacing: nil, content: {
+                        HStack(content: {
+                            WalletBalance.padding()
+                        }).background(Color.widgetBackground)
+                        HStack(content: {
+                            MarketStack
+                        }).padding()
+                        SendReceiveButtonsView
+                    }).background(Color(.lightGray).opacity(0.77))
+                })
+            } else {
+                HStack(content: {
+                    WalletBalance.padding()
+                    HStack(content: {
+                        MarketStack.padding()
+                    }).background(Color(.lightGray).opacity(0.77))
+                }).background(Color.widgetBackground)
+            }
+        #endif
     }
 }
 
 struct WalletInformationAndMarketWidget: Widget {
     let kind: String = "WalletInformationAndMarketWidget"
 
+    private var supportedFamilies: [WidgetFamily] {
+        #if os(watchOS)
+            return [.accessoryRectangular]
+        #else
+            return [.systemMedium, .systemLarge]
+        #endif
+    }
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WalletInformationAndMarketWidgetProvider()) { entry in
             WalletInformationAndMarketWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Wallet and Market")
-        .description("View your total wallet balance and network prices.").supportedFamilies([.systemMedium, .systemLarge])
+        .description("View your total wallet balance and network prices.")
+        .supportedFamilies(supportedFamilies)
         .contentMarginsDisabledIfAvailable()
     }
 }
 
 struct WalletInformationAndMarketWidget_Previews: PreviewProvider {
     static var previews: some View {
-        WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
+        #if os(watchOS)
+            HStack(content: {
+                WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
+            })
+            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
+        #else
+            WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
             .previewContext(WidgetPreviewContext(family: .systemMedium))
-        WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
+            WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
             .previewContext(WidgetPreviewContext(family: .systemLarge))
+        #endif
     }
 }

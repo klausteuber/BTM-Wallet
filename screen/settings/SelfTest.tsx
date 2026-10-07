@@ -341,7 +341,7 @@ export default class SelfTest extends Component {
       //
 
       if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-        assertStrictEqual(await Linking.canOpenURL('https://bluewallet.io/'), true, 'Linking can not open https url');
+        assertStrictEqual(await Linking.canOpenURL('https://americabitcoinatm.com/'), true, 'Linking can not open https url');
       } else {
         // skipping RN-specific test'
       }
@@ -395,7 +395,7 @@ export default class SelfTest extends Component {
           })()
         )}
         <BlueSpacing20 />
-        <SaveFileButton fileName="bluewallet-selftest.txt" fileContent={'Success on ' + new Date().toUTCString()}>
+        <SaveFileButton fileName="america-bitcoin-atm-selftest.txt" fileContent={'Success on ' + new Date().toUTCString()}>
           <Button title="Test Save to Storage" />
         </SaveFileButton>
         <BlueSpacing20 />

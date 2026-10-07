@@ -14,6 +14,7 @@ import { writeFileAndExport } from '../../blue_modules/fs';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { BlueCard, BlueText } from '../../BlueComponents';
 import {
+  ABTMPairedWallet,
   HDAezeedWallet,
   HDSegwitBech32Wallet,
   LegacyWallet,
@@ -89,6 +90,7 @@ const WalletDetails: React.FC = () => {
     }
   }, [wallet]);
   const [isMasterFingerPrintVisible, setIsMasterFingerPrintVisible] = useState<boolean>(false);
+  const pairedWalletInfo = wallet.type === ABTMPairedWallet.type ? (wallet as ABTMPairedWallet).getPairedWalletInfo() : null;
 
   // Fetch ark address when wallet is a LightningArkWallet
   useEffect(() => {
@@ -342,29 +344,35 @@ const WalletDetails: React.FC = () => {
       walletID,
     });
 
+  const navigateToPairedWalletSetup = () =>
+    navigate('PairedWalletSetup', {
+      walletID,
+    });
+
   const navigateToContacts = () => navigate('PaymentCodeList', { walletID });
 
   const exportInternals = async () => {
     if (backdoorPressed < 10) return setBackdoorPressed(backdoorPressed + 1);
     setBackdoorPressed(0);
-    if (wallet.type !== HDSegwitBech32Wallet.type) return;
+    if (![HDSegwitBech32Wallet.type, ABTMPairedWallet.type].includes(wallet.type)) return;
+    const hdWallet = wallet as HDSegwitBech32Wallet | ABTMPairedWallet;
     const fileNameExternals = 'wallet-externals.json';
     const contents = JSON.stringify(
       {
-        _balances_by_external_index: wallet._balances_by_external_index,
-        _balances_by_internal_index: wallet._balances_by_internal_index,
-        _txs_by_external_index: wallet._txs_by_external_index,
-        _txs_by_internal_index: wallet._txs_by_internal_index,
-        _utxo: wallet._utxo,
-        next_free_address_index: wallet.next_free_address_index,
-        next_free_change_address_index: wallet.next_free_change_address_index,
-        internal_addresses_cache: wallet.internal_addresses_cache,
-        external_addresses_cache: wallet.external_addresses_cache,
-        _xpub: wallet._xpub,
-        gap_limit: wallet.gap_limit,
-        label: wallet.label,
-        _lastTxFetch: wallet._lastTxFetch,
-        _lastBalanceFetch: wallet._lastBalanceFetch,
+        _balances_by_external_index: hdWallet._balances_by_external_index,
+        _balances_by_internal_index: hdWallet._balances_by_internal_index,
+        _txs_by_external_index: hdWallet._txs_by_external_index,
+        _txs_by_internal_index: hdWallet._txs_by_internal_index,
+        _utxo: hdWallet._utxo,
+        next_free_address_index: hdWallet.next_free_address_index,
+        next_free_change_address_index: hdWallet.next_free_change_address_index,
+        internal_addresses_cache: hdWallet.internal_addresses_cache,
+        external_addresses_cache: hdWallet.external_addresses_cache,
+        _xpub: hdWallet._xpub,
+        gap_limit: hdWallet.gap_limit,
+        label: hdWallet.label,
+        _lastTxFetch: hdWallet._lastTxFetch,
+        _lastBalanceFetch: hdWallet._lastBalanceFetch,
       },
       null,
       2,
@@ -378,15 +386,16 @@ const WalletDetails: React.FC = () => {
     setBackdoorPressed(0);
     const msg = 'Transactions & balances purged. Pls go to main screen and back to rerender screen';
 
-    if (wallet.type === HDSegwitBech32Wallet.type) {
-      wallet._txs_by_external_index = {};
-      wallet._txs_by_internal_index = {};
+    if ([HDSegwitBech32Wallet.type, ABTMPairedWallet.type].includes(wallet.type)) {
+      const hdWallet = wallet as HDSegwitBech32Wallet | ABTMPairedWallet;
+      hdWallet._txs_by_external_index = {};
+      hdWallet._txs_by_internal_index = {};
       presentAlert({ message: msg });
 
-      wallet._balances_by_external_index = {};
-      wallet._balances_by_internal_index = {};
-      wallet._lastTxFetch = 0;
-      wallet._lastBalanceFetch = 0;
+      hdWallet._balances_by_external_index = {};
+      hdWallet._balances_by_internal_index = {};
+      hdWallet._lastTxFetch = 0;
+      hdWallet._lastBalanceFetch = 0;
     }
 
     // @ts-expect-error: Need to fix later
@@ -489,6 +498,18 @@ const WalletDetails: React.FC = () => {
               <Text style={[styles.textValue, stylesHook.textValue]} selectable>
                 {wallet.typeReadable}
               </Text>
+              {pairedWalletInfo ? (
+                <>
+                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>abtm pairing status</Text>
+                  <Text style={[styles.textValue, stylesHook.textValue]} selectable>
+                    {pairedWalletInfo.status || 'not_paired'}
+                  </Text>
+                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>abtm paired address</Text>
+                  <Text style={[styles.textValue, stylesHook.textValue]} selectable>
+                    {pairedWalletInfo.currentAddress || 'Not paired yet'}
+                  </Text>
+                </>
+              ) : null}
               {wallet.type === LightningArkWallet.type && (
                 <>
                   <Text style={[styles.textLabel1, stylesHook.textLabel1]}>Ark {loc.wallets.details_address.toLowerCase()}</Text>
@@ -645,6 +666,12 @@ const WalletDetails: React.FC = () => {
               <View>
                 <BlueSpacing20 />
                 <Button onPress={navigateToWalletExport} testID="WalletExport" title={loc.wallets.details_export_backup} />
+                {wallet.type === ABTMPairedWallet.type && (
+                  <>
+                    <BlueSpacing20 />
+                    <SecondButton onPress={navigateToPairedWalletSetup} title="ABTM pairing" />
+                  </>
+                )}
                 {wallet.type === MultisigHDWallet.type && (
                   <>
                     <BlueSpacing20 />

@@ -77,7 +77,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Krijo një memorie të kriptuar",
     "create_password_explanation": "Fjalekalimi per depozizen fallco nuk duhet te jete i njejti me ate te depozites se vertete.",
-    "help": "Në rrethana të caktuara, mund të detyroheni të zbuloni një fjalëkalim. Për të mbajtur monedhat tuaja të sigurta, BlueWallet mund të krijojë një hapësirë tjetër të koduar me një fjalëkalim të ndryshëm. Nën presion, mund ta zbuloni këtë fjalëkalim një pale të tretë. Nëse futet në BlueWallet, ai do të hapë një hapësirë të re “të rreme”. Kjo do të duket e ligjshme për palën e tretë, por në mënyrë të fshehtë do të mbajë të sigurt hapësirën tuaj kryesore me monedhat.",
+    "help": "Në rrethana të caktuara, mund të detyroheni të zbuloni një fjalëkalim. Për të mbajtur monedhat tuaja të sigurta, America Bitcoin ATM Wallet mund të krijojë një hapësirë tjetër të koduar me një fjalëkalim të ndryshëm. Nën presion, mund ta zbuloni këtë fjalëkalim një pale të tretë. Nëse futet në America Bitcoin ATM Wallet, ai do të hapë një hapësirë të re “të rreme”. Kjo do të duket e ligjshme për palën e tretë, por në mënyrë të fshehtë do të mbajë të sigurt hapësirën tuaj kryesore me monedhat.",
     "help2": "Hapësira e re do të jetë plotësisht funksionale dhe mund të ruani aty shuma minimale në mënyrë që të duket më e besueshme.",
     "password_should_not_match": "Fjalekalimi eshte ne perdorim. Ju lutem, provin nje fjalekalim tjeter.",
     "title": "Mohim i besueshëm"

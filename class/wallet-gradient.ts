@@ -1,4 +1,5 @@
 import { useTheme } from '../components/themes';
+import { ABTMPairedWallet } from './wallets/abtm-paired-wallet';
 import { HDAezeedWallet } from './wallets/hd-aezeed-wallet';
 import { HDLegacyBreadwalletWallet } from './wallets/hd-legacy-breadwallet-wallet';
 import { HDLegacyElectrumSeedP2PKHWallet } from './wallets/hd-legacy-electrum-seed-p2pkh-wallet';
@@ -59,6 +60,7 @@ export default class WalletGradient {
         gradient = WalletGradient.hdSegwitP2SHWallet;
         break;
       case HDSegwitBech32Wallet.type:
+      case ABTMPairedWallet.type:
       case HDSegwitElectrumSeedP2WPKHWallet.type:
       case SLIP39SegwitBech32Wallet.type:
         gradient = WalletGradient.hdSegwitBech32Wallet;

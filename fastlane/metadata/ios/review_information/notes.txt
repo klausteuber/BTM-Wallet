@@ -1,1 +1,11 @@
-test
+App is fully functional without login or external accounts.
+
+Review focus:
+1. Create an on-chain wallet and view wallet details.
+2. Open Market / Price widgets (if available on your test device).
+3. Confirm deep links for bitcoin:, lightning:, and abtm: schemes are handled.
+4. Confirm QR scanning, receive, and send flows are available.
+
+No age-restricted or gated content.
+Support: https://americabitcoinatm.com
+Privacy policy: https://americabitcoinatm.com/privacy-policy/

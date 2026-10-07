@@ -224,9 +224,9 @@ const NotificationSettings: React.FC = () => {
               type: 'font-awesome',
               color: colors.foregroundColor,
             }}
-            onPress={() => Linking.openURL('https://github.com/BlueWallet/GroundControl')}
+            onPress={() => Linking.openURL('https://americabitcoinatm.com/groundcontrol')}
             titleStyle={{ color: colors.buttonAlternativeTextColor }}
-            title="github.com/BlueWallet/GroundControl"
+            title="americabitcoinatm.com/groundcontrol"
             color={colors.buttonTextColor}
             buttonStyle={[styles.buttonStyle, stylesWithThemeHook.buttonStyles]}
           />

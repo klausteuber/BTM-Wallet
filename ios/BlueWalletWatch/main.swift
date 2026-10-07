@@ -6,3 +6,8 @@
 //  Copyright © 2025 BlueWallet. All rights reserved.
 //
 
+import WatchKit
+import Foundation
+
+// WatchKit entry point for watch extension apps
+WKApplicationMain(CommandLine.argc, CommandLine.unsafeArgv, NSStringFromClass(ExtensionDelegate.self))

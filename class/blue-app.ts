@@ -9,6 +9,7 @@ import Realm from 'realm';
 import * as encryption from '../blue_modules/encryption';
 import presentAlert from '../components/Alert';
 import { randomBytes } from './rng';
+import { ABTMPairedWallet } from './wallets/abtm-paired-wallet';
 import { HDAezeedWallet } from './wallets/hd-aezeed-wallet';
 import { HDLegacyBreadwalletWallet } from './wallets/hd-legacy-breadwallet-wallet';
 import { HDLegacyElectrumSeedP2PKHWallet } from './wallets/hd-legacy-electrum-seed-p2pkh-wallet';
@@ -406,6 +407,9 @@ export class BlueApp {
             break;
           case HDSegwitBech32Wallet.type:
             unserializedWallet = HDSegwitBech32Wallet.fromJson(key) as unknown as HDSegwitBech32Wallet;
+            break;
+          case ABTMPairedWallet.type:
+            unserializedWallet = ABTMPairedWallet.fromJson(key) as unknown as ABTMPairedWallet;
             break;
           case HDTaprootWallet.type:
             unserializedWallet = HDTaprootWallet.fromJson(key) as unknown as HDTaprootWallet;

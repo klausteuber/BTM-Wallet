@@ -65,7 +65,7 @@ const SignVerify = () => {
   });
 
   const handleShare = () => {
-    const baseUri = 'https://bluewallet.github.io/VerifySignature';
+    const baseUri = 'https://americabitcoinatm.com/verify-signature';
     const uri = `${baseUri}?a=${address}&m=${encodeURIComponent(message)}&s=${encodeURIComponent(signature)}`;
     Share.open({ message: uri }).catch(error => console.log(error));
   };

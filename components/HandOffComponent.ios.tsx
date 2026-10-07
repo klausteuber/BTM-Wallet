@@ -3,7 +3,7 @@ import DefaultPreference from 'react-native-default-preference';
 // @ts-ignore: Handoff is not typed
 import Handoff from 'react-native-handoff';
 import { useSettings } from '../hooks/context/useSettings';
-import { GROUP_IO_BLUEWALLET } from '../blue_modules/currency';
+import { GROUP_SHARED_PREFS } from '../blue_modules/currency';
 import { BlueApp } from '../class';
 import { HandOffComponentProps } from './types';
 
@@ -22,7 +22,7 @@ const MemoizedHandOffComponent = React.memo(HandOffComponent);
 
 export const setIsHandOffUseEnabled = async (value: boolean) => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     await DefaultPreference.set(BlueApp.HANDOFF_STORAGE_KEY, value.toString());
     console.debug('setIsHandOffUseEnabled', value);
   } catch (error) {
@@ -33,7 +33,7 @@ export const setIsHandOffUseEnabled = async (value: boolean) => {
 
 export const getIsHandOffUseEnabled = async (): Promise<boolean> => {
   try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
+    await DefaultPreference.setName(GROUP_SHARED_PREFS);
     const isEnabledValue = await DefaultPreference.get(BlueApp.HANDOFF_STORAGE_KEY);
     const result = isEnabledValue === 'true';
     console.debug('getIsHandOffUseEnabled', result);

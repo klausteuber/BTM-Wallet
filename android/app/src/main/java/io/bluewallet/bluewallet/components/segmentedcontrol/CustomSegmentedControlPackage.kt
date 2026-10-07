@@ -1,4 +1,4 @@
-package io.bluewallet.bluewallet.components.segmentedcontrol
+package com.americabitcoinatm.wallet.components.segmentedcontrol
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

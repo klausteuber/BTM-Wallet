@@ -15,7 +15,7 @@ import assert from 'assert';
 
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { BlueButtonLink, BlueFormLabel, BlueText } from '../../BlueComponents';
-import { HDSegwitBech32Wallet, HDTaprootWallet, LightningCustodianWallet, HDLegacyP2PKHWallet } from '../../class';
+import { ABTMPairedWallet, HDSegwitBech32Wallet, HDTaprootWallet, LightningCustodianWallet, HDLegacyP2PKHWallet } from '../../class';
 import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
 import { useTheme } from '../../components/themes';
@@ -68,10 +68,11 @@ interface TAction {
 }
 
 const index2walletType: Record<number, { text: string; subtitle: string; walletType: string }> = {
-  0: { subtitle: 'p2wpkh/HD', text: `${loc.multisig.native_segwit_title}`, walletType: HDSegwitBech32Wallet.type },
-  1: { subtitle: 'p2pkh/HD', text: `${loc.multisig.legacy_title}`, walletType: HDLegacyP2PKHWallet.type },
-  2: { subtitle: 'p2tr/HD', text: 'Taproot', walletType: HDTaprootWallet.type },
-  3: {
+  0: { subtitle: 'ABTM/BIP84', text: 'ABTM Paired Wallet', walletType: ABTMPairedWallet.type },
+  1: { subtitle: 'p2wpkh/HD', text: `${loc.multisig.native_segwit_title}`, walletType: HDSegwitBech32Wallet.type },
+  2: { subtitle: 'p2pkh/HD', text: `${loc.multisig.legacy_title}`, walletType: HDLegacyP2PKHWallet.type },
+  3: { subtitle: 'p2tr/HD', text: 'Taproot', walletType: HDTaprootWallet.type },
+  4: {
     // lightning
     subtitle: LightningCustodianWallet.subtitleReadable,
     text: LightningCustodianWallet.typeReadable,
@@ -82,7 +83,7 @@ const index2walletType: Record<number, { text: string; subtitle: string; walletT
 const initialState: State = {
   isLoading: true,
   walletBaseURI: '',
-  selectedIndex: 0,
+  selectedIndex: 1,
   label: '',
   selectedWalletType: ButtonSelected.ONCHAIN,
 };
@@ -326,11 +327,15 @@ const WalletsAdd: React.FC = () => {
     } else if (selectedWalletType === ButtonSelected.ARK) {
       createLightningArkWallet();
     } else if (selectedWalletType === ButtonSelected.ONCHAIN) {
-      let w: HDSegwitBech32Wallet | HDLegacyP2PKHWallet | HDTaprootWallet;
+      let w: ABTMPairedWallet | HDSegwitBech32Wallet | HDLegacyP2PKHWallet | HDTaprootWallet;
 
       for (let c = 0; c < Object.values(index2walletType).length; c++) {
         if (c === selectedIndex) {
           switch (index2walletType[c].walletType) {
+            case ABTMPairedWallet.type:
+              w = new ABTMPairedWallet();
+              w.setLabel(label || ABTMPairedWallet.defaultLabel);
+              break;
             case HDTaprootWallet.type:
               w = new HDTaprootWallet();
               w.setLabel(label || loc.wallets.details_title);
@@ -365,7 +370,12 @@ const WalletsAdd: React.FC = () => {
         await saveToDisk();
 
         triggerHapticFeedback(HapticFeedbackTypes.NotificationSuccess);
-        if (w.type === HDLegacyP2PKHWallet.type || w.type === HDSegwitBech32Wallet.type || w.type === HDTaprootWallet.type) {
+        if (
+          w.type === ABTMPairedWallet.type ||
+          w.type === HDLegacyP2PKHWallet.type ||
+          w.type === HDSegwitBech32Wallet.type ||
+          w.type === HDTaprootWallet.type
+        ) {
           navigate('PleaseBackup', {
             walletID: w.getID(),
           });
@@ -454,7 +464,7 @@ const WalletsAdd: React.FC = () => {
   };
 
   const onLearnMorePressed = () => {
-    Linking.openURL('https://bluewallet.io/lightning/');
+    Linking.openURL('https://americabitcoinatm.com/lightning/');
   };
 
   const LightningButtonMemo = useMemo(

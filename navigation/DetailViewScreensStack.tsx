@@ -21,6 +21,7 @@ import RBFCancel from '../screen/transactions/RBFCancel';
 import TransactionStatus from '../screen/transactions/TransactionStatus';
 import WalletAddresses from '../screen/wallets/WalletAddresses';
 import WalletDetails from '../screen/wallets/WalletDetails';
+import PairedWalletSetup from '../screen/wallets/PairedWalletSetup';
 import GenerateWord from '../screen/wallets/generateWord';
 import SelectWallet from '../screen/wallets/SelectWallet';
 import WalletsList from '../screen/wallets/WalletsList';
@@ -110,6 +111,14 @@ const DetailViewStackScreensStack = () => {
         component={WalletDetails}
         options={navigationStyle({
           headerTitle: loc.wallets.details_title,
+          statusBarStyle: 'auto',
+        })(theme)}
+      />
+      <DetailViewStack.Screen
+        name="PairedWalletSetup"
+        component={PairedWalletSetup}
+        options={navigationStyle({
+          headerTitle: 'ABTM Pairing',
           statusBarStyle: 'auto',
         })(theme)}
       />

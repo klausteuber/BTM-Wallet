@@ -44,7 +44,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
       #endif
         }
 
-        self.moduleName = "BlueWallet"
+        self.moduleName = "AmericaBitcoinATM"
         self.dependencyProvider = RCTAppDependencyProvider()
         self.initialProps = [:]
 
@@ -304,7 +304,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
 
         userDefaultsGroup?.setValue(userActivityData, forKey: "onUserActivityOpen")
 
-        if ["io.bluewallet.bluewallet.receiveonchain", "io.bluewallet.bluewallet.xpub", "io.bluewallet.bluewallet.blockexplorer"].contains(activityType) {
+        if ["com.americabitcoinatm.wallet.receiveonchain", "com.americabitcoinatm.wallet.xpub", "com.americabitcoinatm.wallet.blockexplorer"].contains(activityType) {
           EventEmitter.shared().sendUserActivity(userActivityData)
             return true
         }
@@ -417,7 +417,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
             builder.replace(menu: .file, with: newFileMenu)
         }
         
-        // BlueWallet -> Settings (Command + ,)
+        // America Bitcoin ATM Wallet -> Settings (Command + ,)
         let settingsCommand = UIKeyCommand(
             title: "Settings...",
             action: #selector(openSettings),
@@ -462,7 +462,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
     }
     
     @objc func showHelp(_ sender: Any) {
-        if let url = URL(string: "https://bluewallet.io/docs") {
+        if let url = URL(string: "https://americabitcoinatm.com") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }

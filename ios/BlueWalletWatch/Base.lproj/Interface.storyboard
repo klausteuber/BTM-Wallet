@@ -6,10 +6,10 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="22609"/>
     </dependencies>
     <scenes>
-        <!--BlueWallet-->
+        <!--America Bitcoin ATM Wallet-->
         <scene sceneID="aou-V4-d1y">
             <objects>
-                <controller title="BlueWallet" id="AgC-eL-Hgc" customClass="InterfaceController" customModule="BlueWalletWatch" customModuleProvider="target">
+                <controller title="America Bitcoin ATM Wallet" id="AgC-eL-Hgc" customClass="InterfaceController" customModule="BlueWalletWatch" customModuleProvider="target">
                     <items>
                         <table alignment="left" id="jUH-JS-ccp">
                             <items>
@@ -36,7 +36,7 @@
                                 </tableRow>
                             </items>
                         </table>
-                        <label alignment="center" verticalAlignment="center" hidden="YES" text="No wallets available. Please, add one by opening BlueWallet on your iPhone." textAlignment="center" numberOfLines="0" id="I2I-8t-hp3"/>
+                        <label alignment="center" verticalAlignment="center" hidden="YES" text="No wallets available. Please, add one by opening America Bitcoin ATM Wallet on your iPhone." textAlignment="center" numberOfLines="0" id="I2I-8t-hp3"/>
                     </items>
                     <connections>
                         <outlet property="noWalletsAvailableLabel" destination="I2I-8t-hp3" id="c4O-Mg-3ps"/>

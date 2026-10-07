@@ -24,6 +24,7 @@ export type DetailViewStackParamList = {
   WalletsList: { onBarScanned?: string };
   WalletTransactions: { isLoading?: boolean; walletID: string; walletType: string; onBarScanned?: string };
   WalletDetails: { walletID: string };
+  PairedWalletSetup: { walletID: string };
   TransactionDetails: { tx: Transaction; hash: string; walletID: string };
   TransactionStatus: { hash: string; walletID?: string };
   CPFP: {
