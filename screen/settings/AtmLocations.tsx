@@ -196,7 +196,10 @@ const buildDirectionsUrl = (location: AtmLocation): string => {
   const destination = `${latitude},${longitude}`;
 
   if (Platform.OS === 'ios') {
-    return `http://maps.apple.com/?ll=${destination}&q=${encodeURIComponent(location.name)}`;
+    // A driving route from the customer's location (the old ll= link only dropped a pin). Routing to
+    // the street address shows a real place as the destination; sll keeps the lookup near the kiosk.
+    const target = location.address ? encodeURIComponent(`${location.name}, ${location.address}`) : destination;
+    return `http://maps.apple.com/?daddr=${target}&sll=${destination}&dirflg=d`;
   }
 
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
