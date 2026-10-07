@@ -644,7 +644,6 @@ const ReceiveDetails = () => {
                     {address}
                   </Text>
                 </View>
-                <BlueText style={[styles.atmHintText, stylesHook.atmHint]}>{loc.receive.atm_brightness_tip}</BlueText>
                 <View style={styles.atmButtonStack}>
                   <AtmActionButton
                     title={loc.receive.atm_fullscreen}
@@ -1186,12 +1185,6 @@ const styles = StyleSheet.create({
     color: AMERICA_BLUE,
     fontWeight: '700',
     marginLeft: 4,
-  },
-  atmHintText: {
-    textAlign: 'center',
-    fontSize: 13.5,
-    lineHeight: 19,
-    marginTop: 10,
   },
   atmButtonStack: {
     marginTop: 16,
