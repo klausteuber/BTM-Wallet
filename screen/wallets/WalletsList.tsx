@@ -28,6 +28,8 @@ import useMenuElements from '../../hooks/useMenuElements';
 import SafeAreaSectionList from '../../components/SafeAreaSectionList';
 import { scanQrHelper } from '../../helpers/scan-qr.ts';
 import { createATMReceiveResetAction } from './atmReceiveNavigation';
+import { useAbtmAccount } from '../../hooks/useAbtmAccount';
+import { registeredWalletOnPhone } from '../../blue_modules/abtm-wallet';
 
 const WalletsListSections = { CAROUSEL: 'CAROUSEL', TRANSACTIONS: 'TRANSACTIONS' };
 
@@ -115,6 +117,14 @@ const WalletsList: React.FC = () => {
   const walletsCount = useRef<number>(wallets.length);
   const walletActionButtonsRef = useRef<any>();
   const atmWallets = useMemo(() => wallets.filter(item => item.chain === Chain.ONCHAIN && item.allowReceive()), [wallets]);
+  // Once the account has a registered wallet on this phone, our ATMs already know where to
+  // send (the customer approves in the app), so the main button becomes Send. Everyone else
+  // still shows a QR code at the ATM, so for them it stays Receive (also on long press).
+  const { profile } = useAbtmAccount();
+  const sendWallet = useMemo(
+    () => (profile?.wallet.registered ? registeredWalletOnPhone(wallets, profile.wallet.firstAddress) : undefined),
+    [profile, wallets],
+  );
 
   const stylesHook = StyleSheet.create({
     walletsListWrapper: {
@@ -428,13 +438,18 @@ const WalletsList: React.FC = () => {
   );
 
   const handlePrimaryActionButtonPressed = useCallback(() => {
+    if (sendWallet) {
+      // @ts-ignore react-navigation nested modal params
+      navigation.navigate('SendDetailsRoot', { screen: 'SendDetails', params: { walletID: sendWallet.getID() } });
+      return;
+    }
     if (atmWallets.length === 0) {
       navigation.navigate('AddWalletRoot');
       return;
     }
 
     handleOpenAtmReceive();
-  }, [atmWallets.length, handleOpenAtmReceive, navigation]);
+  }, [atmWallets.length, handleOpenAtmReceive, navigation, sendWallet]);
 
   const pasteFromClipboard = useCallback(async () => {
     onBarScanned(await getClipboardContent());
@@ -501,19 +516,21 @@ const WalletsList: React.FC = () => {
   }, [atmWallets.length, handleOpenAtmReceive, navigation, onBarScanned, pasteFromClipboard]);
 
   const renderScanButton = useCallback(() => {
-    const actionText =
-      atmWallets.length === 0
+    const actionText = sendWallet
+      ? loc.send.header
+      : atmWallets.length === 0
         ? loc.wallets.atm_home_create_short
         : atmWallets.length === 1
           ? loc.wallets.atm_home_show_qr_short
           : loc.wallets.atm_home_show_qr_multi_short;
 
-    const actionIcon =
-      atmWallets.length === 0 ? (
-        <Icon name="add-circle-outline" type="ionicon" color="#FFFFFF" />
-      ) : (
-        <Icon name="qr-code-outline" type="ionicon" color="#FFFFFF" size={18} />
-      );
+    const actionIcon = sendWallet ? (
+      <Icon name="arrow-up" type="ionicon" color="#FFFFFF" size={18} />
+    ) : atmWallets.length === 0 ? (
+      <Icon name="add-circle-outline" type="ionicon" color="#FFFFFF" />
+    ) : (
+      <Icon name="qr-code-outline" type="ionicon" color="#FFFFFF" size={18} />
+    );
 
     return (
       <FContainer ref={walletActionButtonsRef}>
@@ -522,7 +539,7 @@ const WalletsList: React.FC = () => {
           onLongPress={primaryButtonLongPress}
           icon={actionIcon}
           text={actionText}
-          testID="HomeScreenScanButton"
+          testID={sendWallet ? 'HomeScreenSendButton' : 'HomeScreenScanButton'}
           variant="primary"
         />
         <FButton
@@ -534,7 +551,14 @@ const WalletsList: React.FC = () => {
         />
       </FContainer>
     );
-  }, [atmWallets.length, colors.foregroundColor, handleOpenAtmLocations, handlePrimaryActionButtonPressed, primaryButtonLongPress]);
+  }, [
+    atmWallets.length,
+    colors.foregroundColor,
+    handleOpenAtmLocations,
+    handlePrimaryActionButtonPressed,
+    primaryButtonLongPress,
+    sendWallet,
+  ]);
 
   const sectionListKeyExtractor = useCallback((item: any, index: any) => {
     return `${item}${index}}`;
