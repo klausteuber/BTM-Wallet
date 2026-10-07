@@ -123,7 +123,12 @@ export type AccountProfile = {
   age65Plus: boolean | null;
   supportPhone: string;
   verifyUrl: string;
+  /** Opted in to promo texts (at the current phone number). */
+  smsMarketing?: boolean;
 };
+
+/** The optional promo-text opt-in the server offers at signup: show `text` verbatim. */
+export type SmsMarketingOffer = { version: string; text: string };
 
 export type ActivityEvent = { event: string; label: string; at: string; device: string };
 
@@ -429,16 +434,25 @@ class PairedWalletApi {
     signupToken: string,
     emailToken: string,
     code: string,
-  ): Promise<{ verifiedToken: string; terms: { version: string; termsUrl: string; privacyUrl: string } }> {
+  ): Promise<{
+    verifiedToken: string;
+    terms: { version: string; termsUrl: string; privacyUrl: string };
+    smsMarketing?: SmsMarketingOffer;
+  }> {
     return this.rawRequest('/signup/email/verify', { method: 'POST', body: { signupToken, emailToken, code } });
   }
 
-  async signupComplete(verifiedToken: string, termsVersion: string, phone: string): Promise<void> {
+  /**
+   * Create the account. `smsMarketingVersion` is the version of the promo-text wording the
+   * customer was shown and ticked; leave it out (the default) when the box was not ticked.
+   */
+  async signupComplete(verifiedToken: string, termsVersion: string, phone: string, smsMarketingVersion?: string | null): Promise<void> {
     const baseUrl = await this.getConfiguredBaseUrl();
     const registration = await this.getDeviceRegistration();
+    const smsMarketing = smsMarketingVersion ? { smsMarketing: true, smsMarketingVersion } : {};
     const response = await this.rawRequest(
       '/signup/complete',
-      { method: 'POST', body: { verifiedToken, acceptTerms: true, termsVersion, ...registration } },
+      { method: 'POST', body: { verifiedToken, acceptTerms: true, termsVersion, ...smsMarketing, ...registration } },
       { baseUrl },
     );
     await this.startSession(response, phone, baseUrl);

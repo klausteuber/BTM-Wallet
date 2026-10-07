@@ -262,6 +262,7 @@
     "terms_of_service": "Terms of Service",
     "privacy_policy": "Privacy Policy",
     "terms_agree": "I agree to the Terms of Service and Privacy Policy.",
+    "sms_optin_label": "Promo texts (optional)",
     "create_account": "Create account",
     "step_phone": "Phone",
     "step_email": "Email",
