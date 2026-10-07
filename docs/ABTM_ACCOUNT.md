@@ -27,7 +27,8 @@ The app talks to the customer account service at
 | Foreground poller that opens the approval screen | `components/AbtmKioskWatcher.tsx` |
 | Send protections (logic + storage) | `blue_modules/send-guard.ts` |
 | Send protections (screen) | `screen/abtm/SendSafetyCheck.tsx` |
-| Wallet helpers (create, find registered) | `blue_modules/abtm-wallet.ts` |
+| Wallet helpers (create, which wallets can register, find registered) | `blue_modules/abtm-wallet.ts` |
+| Registration payload (no wallet-class imports, used by the API client) | `blue_modules/abtm-registration.ts` |
 
 Entry points: the person icon in the wallet list header, Settings → America
 Bitcoin account, and Wallet details on an America Bitcoin wallet.
@@ -67,6 +68,21 @@ registers it: a signed challenge from the server, signed with receive address
 The customer is then sent to back up the recovery phrase. An America Bitcoin
 wallet already on the phone can be registered instead. The account card shows
 the next receive address and a QR button.
+
+**Customers updating from 7.2.x.** Every earlier release made a standard
+HD native-SegWit wallet ("Wallet", "My Bitcoin Wallet"), not an America Bitcoin
+one. The account card offers to register that wallet as it is (same seed,
+balance and wallet ID; nothing is converted), with "Create a new wallet instead"
+as the secondary choice, which warns that the customer would then have two
+recovery phrases. `registrableWallets()` in `blue_modules/abtm-wallet.ts`
+decides which wallets qualify: America Bitcoin wallets, then standard
+native-SegWit HD wallets that hold their keys. Watch-only, Taproot, legacy,
+nested-SegWit, multisig and Lightning wallets never do, since the server only
+derives `xpub/0/i` p2wpkh addresses. Before registering an existing wallet the
+app refreshes it, and the registration carries `firstUnusedIndex` (its first
+unused receive address) so the server never hands a kiosk an address the wallet
+already received to. Registering an old wallet shows us its past transactions;
+the card says so.
 
 **Kiosk approvals.** When a kiosk asks to send to the customer's wallet, the
 customer has 2 minutes. While the app is open, the watcher polls

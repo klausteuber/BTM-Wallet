@@ -18,7 +18,8 @@ import ReactNativeBiometrics from 'react-native-biometrics';
 import RNSecureKeyStore, { ACCESSIBLE } from 'react-native-secure-key-store';
 import { sha256 } from '@noble/hashes/sha256';
 
-import { ABTMPairedWallet } from '../class/wallets/abtm-paired-wallet';
+import type { ABTMPairedWallet } from '../class/wallets/abtm-paired-wallet';
+import { ABTM_WALLET_TYPE, buildPairingRegistration, RegistrableWallet } from './abtm-registration';
 import { uint8ArrayToHex } from './uint8array-extras';
 
 export const MOBILE_API_PREFIX = '/api/mobile/v1';
@@ -507,18 +508,24 @@ class PairedWalletApi {
     );
   }
 
-  /** Prove ownership of receive address 0 and register the wallet's xpub with the account. */
-  async registerPairedWallet(wallet: ABTMPairedWallet) {
+  /**
+   * Prove ownership of receive address 0 and register the wallet's xpub with the account.
+   * Works for an America Bitcoin wallet and for a standard native-SegWit HD wallet
+   * (see `registrableWallets`); only the former stores the account's wallet info locally.
+   */
+  async registerPairedWallet(wallet: RegistrableWallet) {
     const challenge = await this.createRegistrationChallenge();
     const response = await this.rawRequest(
       '/paired-wallet/register',
       {
         method: 'POST',
-        body: { ...wallet.buildPairingRegistration(challenge.message), challengeToken: challenge.challengeToken },
+        body: { ...buildPairingRegistration(wallet, challenge.message), challengeToken: challenge.challengeToken },
       },
       { auth: true, signed: true, promptMessage: 'Confirm to register your wallet' },
     );
-    await this.applyRemoteWallet(wallet, response.pairedWallet, await this.getConfiguredBaseUrl());
+    if (wallet.type === ABTM_WALLET_TYPE) {
+      await this.applyRemoteWallet(wallet, response.pairedWallet, await this.getConfiguredBaseUrl());
+    }
     return response;
   }
 

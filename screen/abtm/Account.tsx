@@ -10,9 +10,17 @@ import { useStorage } from '../../hooks/context/useStorage';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { useAbtmAccount } from '../../hooks/useAbtmAccount';
 import { AbtmApiError, DEFAULT_API_BASE_URL, pairedWalletApi } from '../../blue_modules/paired-wallet-api';
-import { abtmWallets, newAbtmWallet, nextReceiveAddress, registeredWalletOnPhone } from '../../blue_modules/abtm-wallet';
-import { ABTMPairedWallet } from '../../class/wallets/abtm-paired-wallet';
-import loc from '../../loc';
+import {
+  isAbtmWallet,
+  newAbtmWallet,
+  nextReceiveAddress,
+  RegistrableWallet,
+  registrableWallets,
+  registrationAddress,
+  registeredWalletOnPhone,
+} from '../../blue_modules/abtm-wallet';
+import loc, { formatBalance } from '../../loc';
+import { BitcoinUnit } from '../../models/bitcoinUnits';
 import { Body, Card, ErrorText, formatDate, Gap, Label, Pill, Title } from './ui';
 
 const DEV_SERVER = 'http://localhost:5121';
@@ -53,11 +61,15 @@ const AbtmAccount: React.FC = () => {
 
   const registered = profile?.wallet.registered ? profile.wallet.firstAddress : null;
   const onPhone = registeredWalletOnPhone(wallets, registered);
-  const unregistered = abtmWallets(wallets).filter(w => !registered || w.getRegistrationAddress() !== registered);
+  // America Bitcoin wallets first, then standard wallets made by earlier versions of the app.
+  const unregistered = registrableWallets(wallets).filter(w => !registered || registrationAddress(w) !== registered);
 
-  const register = async (wallet: ABTMPairedWallet, isNew: boolean) => {
+  const register = async (wallet: RegistrableWallet, isNew: boolean) => {
     setBusy(true);
     try {
+      // An existing wallet may not have been refreshed this session: find its first unused
+      // receive address so the server never hands a kiosk one the wallet already received to.
+      if (!isNew) await wallet.fetchBalance();
       await pairedWalletApi.registerPairedWallet(wallet);
       await saveToDisk();
       await account.refresh();
@@ -72,7 +84,7 @@ const AbtmAccount: React.FC = () => {
 
   const createWallet = async () => {
     setBusy(true);
-    let wallet: ABTMPairedWallet;
+    let wallet: RegistrableWallet;
     try {
       wallet = await newAbtmWallet();
       addWallet(wallet);
@@ -93,6 +105,17 @@ const AbtmAccount: React.FC = () => {
       buttons: [
         { text: loc._.cancel, style: 'cancel' },
         { text: loc.abtm.wallet_create_new, style: 'destructive', onPress: createWallet },
+      ],
+    });
+
+  // A customer who already has a wallet on this phone is told the new one is separate.
+  const confirmCreateInstead = () =>
+    presentAlert({
+      title: loc.abtm.wallet_create_instead_title,
+      message: loc.abtm.wallet_create_instead_message,
+      buttons: [
+        { text: loc._.cancel, style: 'cancel' },
+        { text: loc.abtm.wallet_create_new, onPress: createWallet },
       ],
     });
 
@@ -177,16 +200,38 @@ const AbtmAccount: React.FC = () => {
       );
     }
     if (unregistered.length > 0) {
+      const single = unregistered.length === 1;
+      const describe = (w: RegistrableWallet) => ({
+        label: w.getLabel(),
+        balance: formatBalance(Number(w.getBalance()) || 0, BitcoinUnit.BTC, true),
+      });
+      const intro = isAbtmWallet(unregistered[0])
+        ? loc.formatString(loc.abtm.wallet_register_existing, { label: unregistered[0].getLabel() })
+        : single
+          ? loc.formatString(loc.abtm.wallet_register_legacy, describe(unregistered[0]))
+          : loc.abtm.wallet_register_legacy_many;
       return (
         <>
-          <Body>{loc.formatString(loc.abtm.wallet_register_existing, { label: unregistered[0].getLabel() })}</Body>
+          <Body>{intro}</Body>
+          {unregistered.some(w => !isAbtmWallet(w)) ? (
+            <>
+              <Gap size={8} />
+              <Body muted>{loc.abtm.wallet_register_legacy_note}</Body>
+            </>
+          ) : null}
+          {unregistered.map((w, i) => (
+            <React.Fragment key={w.getID()}>
+              <Gap size={12} />
+              <Button
+                title={single ? loc.abtm.wallet_register : (loc.formatString(loc.abtm.wallet_register_named, describe(w)) as string)}
+                onPress={() => register(w, false)}
+                disabled={busy}
+                testID={i === 0 ? 'AbtmRegisterWallet' : `AbtmRegisterWallet${i}`}
+              />
+            </React.Fragment>
+          ))}
           <Gap size={12} />
-          <Button
-            title={loc.abtm.wallet_register}
-            onPress={() => register(unregistered[0], false)}
-            disabled={busy}
-            testID="AbtmRegisterWallet"
-          />
+          <SecondButton title={loc.abtm.wallet_create_instead} onPress={confirmCreateInstead} disabled={busy} testID="AbtmCreateInstead" />
         </>
       );
     }
