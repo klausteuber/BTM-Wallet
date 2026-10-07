@@ -82,18 +82,23 @@ function handleTap(data: Record<string, any> | null | undefined): void {
 
 let listening = false;
 let sentToken: string | null = null;
+let sendingToken: string | null = null; // iOS can report the same token twice at once
 
 function listen(): void {
   if (listening || Platform.OS !== 'ios') return;
   listening = true;
   PushNotificationIOS.addEventListener('register', (token: string) => {
-    if (!token || token === sentToken) return;
+    if (!token || token === sentToken || token === sendingToken) return;
+    sendingToken = token;
     pairedWalletApi
       .savePushToken(token, __DEV__ ? 'sandbox' : 'production')
       .then(() => {
         sentToken = token;
       })
-      .catch(e => console.debug('ABTM push token not saved:', e?.message));
+      .catch(e => console.debug('ABTM push token not saved:', e?.message))
+      .finally(() => {
+        sendingToken = null;
+      });
   });
   PushNotificationIOS.addEventListener('registrationError', (error: { message: string }) => {
     console.debug('ABTM push registration failed:', error?.message);
