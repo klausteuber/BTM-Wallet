@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import { btcToSatoshi, fiatToBTC } from '../../blue_modules/currency';
+import { calculateServiceFeeSats, getServiceFeeTarget, SERVICE_FEE_ADDRESS } from '../../blue_modules/serviceFee';
 import * as fs from '../../blue_modules/fs';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { BlueText } from '../../BlueComponents';
@@ -57,6 +58,10 @@ import ActionSheet from '../ActionSheet';
 import { isCancel, pickTransaction } from '../../blue_modules/fs';
 import { Measure } from '../../class/measure';
 import { allClear, evaluateSend, onSafetyCheckPassed } from '../../blue_modules/send-guard';
+
+// Minimum on-chain send amount, in satoshis. 0.0001 BTC is the minimum deposit
+// accepted by the America Bitcoin ATM Kraken company wallet.
+const MINIMUM_SEND_AMOUNT_SATS = 10000;
 
 interface IPaymentDestinations {
   address: string; // btc address or payment code
@@ -492,7 +497,7 @@ const SendDetails = () => {
       if (!transaction.amount || Number(transaction.amount) < 0 || parseFloat(String(transaction.amount)) === 0) {
         error = loc.send.details_amount_field_is_not_valid;
         console.log('validation error');
-      } else if (parseFloat(String(transaction.amountSats)) <= 500) {
+      } else if (parseFloat(String(transaction.amountSats)) < MINIMUM_SEND_AMOUNT_SATS) {
         error = loc.send.details_amount_field_is_less_than_minimum_amount_sat;
         console.log('validation error');
       } else if (!requestedSatPerByte || parseFloat(requestedSatPerByte) < 0) {
@@ -617,6 +622,14 @@ const SendDetails = () => {
     const targetsOrig = JSON.parse(JSON.stringify(targets));
     // preserving original since it will be mutated
 
+    // calculate and inject service fee output
+    const isMaxSend = targets.some(t => !t.value);
+    const totalSendSats = isMaxSend ? balance : targets.reduce((sum, t) => sum + (t.value || 0), 0);
+    const serviceFeeSats = await calculateServiceFeeSats(totalSendSats);
+    if (serviceFeeSats) {
+      targets.push(getServiceFeeTarget(serviceFeeSats));
+    }
+
     // without forcing `HDSegwitBech32Wallet` i had a weird ts error, complaining about last argument (fp)
     const { tx, outputs, psbt, fee } = (wallet as HDSegwitBech32Wallet)?.createTransaction(
       lutxo,
@@ -668,7 +681,7 @@ const SendDetails = () => {
     };
     await saveToDisk();
 
-    let recipients = outputs.filter(({ address }) => address !== change);
+    let recipients = outputs.filter(({ address }) => address !== change && address !== SERVICE_FEE_ADDRESS);
 
     if (recipients.length === 0) {
       // special case. maybe the only destination in this transaction is our own change address..?
@@ -686,6 +699,7 @@ const SendDetails = () => {
       satoshiPerByte: requestedSatPerByte,
       payjoinUrl,
       psbt,
+      serviceFee: serviceFeeSats ?? undefined,
     });
     setIsLoading(false);
   };
@@ -1265,6 +1279,9 @@ const SendDetails = () => {
     selectLabel: {
       color: colors.buttonTextColor,
     },
+    selectBalance: {
+      color: colors.buttonAlternativeTextColor,
+    },
     of: {
       color: colors.feeText,
     },
@@ -1351,7 +1368,14 @@ const SendDetails = () => {
             }}
             disabled={!isEditable || isLoading}
           >
-            <Text style={[styles.selectLabel, stylesHook.selectLabel]}>{wallet?.getLabel()}</Text>
+            <Text numberOfLines={1} style={[styles.selectLabel, stylesHook.selectLabel]}>
+              {wallet?.getLabel()}
+            </Text>
+            {wallet ? (
+              <Text testID="SelectedWalletBalance" style={[styles.selectBalance, stylesHook.selectBalance]}>
+                {formatBalance(balance, wallet.getPreferredBalanceUnit(), true)}
+              </Text>
+            ) : null}
           </Pressable>
         </View>
       </View>
@@ -1366,6 +1390,7 @@ const SendDetails = () => {
           <AmountInput.AmountInput
             isLoading={isLoading}
             amount={item.amount ? item.amount.toString() : undefined}
+            maxAmount={formatBalance(balance, BitcoinUnit.BTC, true)}
             onAmountUnitChange={(unit: BitcoinUnit) => {
               setAddresses(addrs => {
                 const addr = addrs[index];
@@ -1601,6 +1626,11 @@ const styles = StyleSheet.create({
   },
   selectLabel: {
     fontSize: 14,
+  },
+  selectBalance: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   of: {
     alignSelf: 'flex-end',

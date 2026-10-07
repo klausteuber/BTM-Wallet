@@ -20,6 +20,11 @@ type TPushToken = {
   os: string; // its actually ('ios' | 'android'), but types for the lib are a bit more generic...
 };
 
+type TNotificationWallet = {
+  getID?: () => string;
+  getAllExternalAddresses?: () => string[];
+};
+
 // thats unwrapped `ReceivedNotification`, withall `data` fields inline
 type TPayload = {
   // inherited from `ReceivedNotification`:
@@ -200,6 +205,38 @@ export const majorTomToGroundControl = async (addresses: string[], hashes: strin
     console.error('Error in majorTomToGroundControl:', error);
     throw error;
   }
+};
+
+export const collectWalletExternalAddressesForNotifications = (wallets: TNotificationWallet[] = []): string[] => {
+  const addresses = new Set<string>();
+
+  for (const wallet of wallets) {
+    if (typeof wallet?.getAllExternalAddresses !== 'function') {
+      continue;
+    }
+
+    try {
+      for (const address of wallet.getAllExternalAddresses()) {
+        if (typeof address === 'string' && address.length > 0) {
+          addresses.add(address);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to collect notification addresses for wallet:', wallet.getID?.(), error);
+    }
+  }
+
+  return [...addresses];
+};
+
+export const registerWalletsForNotifications = async (wallets: TNotificationWallet[] = []) => {
+  const addresses = collectWalletExternalAddressesForNotifications(wallets);
+
+  if (addresses.length === 0) {
+    return;
+  }
+
+  return majorTomToGroundControl(addresses, [], []);
 };
 
 /**

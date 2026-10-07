@@ -1,13 +1,13 @@
-# America Bitcoin ATM Wallet App - Privacy Policy
+# America Bitcoin Wallet App - Privacy Policy
 
 **Effective Date: February 26, 2026**
 **Last Updated: February 26, 2026**
 
-America Digital Inc, doing business as America Bitcoin ATM ("we," "us," or "our"), operates the America Bitcoin ATM Wallet mobile application (the "App"). This Privacy Policy describes how the App handles your information and is provided in addition to the America Bitcoin ATM general privacy policy, which governs our ATM kiosk services and website at americabitcoinatm.com.
+America Digital Inc, doing business as America Bitcoin ATM ("we," "us," or "our"), operates the America Bitcoin Wallet mobile application (the "App"). This Privacy Policy describes how the App handles your information and is provided in addition to the America Bitcoin ATM general privacy policy, which governs our ATM kiosk services and website at americabitcoinatm.com.
 
 ## 1. Overview
 
-The America Bitcoin ATM Wallet is a self-custody Bitcoin wallet. Your private keys, recovery phrases, and wallet data are generated and stored exclusively on your device. We do not have access to your private keys, cannot view your balances, and cannot recover your wallet if your recovery phrase is lost.
+The America Bitcoin Wallet is a self-custody Bitcoin wallet. Your private keys, recovery phrases, and wallet data are generated and stored exclusively on your device. We do not have access to your private keys, cannot view your balances, and cannot recover your wallet if your recovery phrase is lost.
 
 This App does not require you to create an account with us. There is no login, no registration, and no personal information submitted to America Digital Inc through normal use of the App.
 
@@ -179,4 +179,4 @@ NMLS ID: 2521734
 
 ---
 
-*This Privacy Policy applies solely to the America Bitcoin ATM Wallet mobile application. For information about privacy practices relating to America Bitcoin ATM kiosk services and our website, please refer to the general privacy policy at americabitcoinatm.com/privacy-policy/.*
+*This Privacy Policy applies solely to the America Bitcoin Wallet mobile application. For information about privacy practices relating to America Bitcoin ATM kiosk services and our website, please refer to the general privacy policy at americabitcoinatm.com/privacy-policy/.*

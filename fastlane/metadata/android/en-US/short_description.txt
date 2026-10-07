@@ -1,1 +1,1 @@
-Thin Bitcoin Wallet Built with React Native and Electrum
+Non-custodial Bitcoin wallet. Your private keys never leave your device.

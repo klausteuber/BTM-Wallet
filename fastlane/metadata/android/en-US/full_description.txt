@@ -1,38 +1,44 @@
-A Bitcoin wallet that allows you to store, send Bitcoin, receive Bitcoin with focus on security and simplicity.
-On America Bitcoin ATM Wallet, a bitcoin wallet you own you private keys. A Bitcoin wallet made by Bitcoin users for the community.
-You can instantly transact with anyone in the world and transform the financial system right from your pocket.
-Create for free unlimited number of bitcoin wallets or import your existing one on your Android device. It's simple and fast.
-_____
+America Bitcoin ATM Wallet is a Bitcoin wallet for Android. Your private keys are generated on your device and stay there. We never receive them, and there is no account to sign up for.
 
-Here's what you get:
+WHAT YOU CONTROL
 
-1 - Security by design
+• Your keys, your bitcoin
+Private keys are stored on your device using Android Keystore. We cannot move your bitcoin, freeze your wallet, or recover it for you.
 
-• Open Source
-MIT licensed, you can build it and run it on your own! Made with ReactNative
+• Your own backup
+Each wallet is backed up by a recovery phrase that you write down yourself. There is no cloud backup. If you lose both the phrase and your device, the bitcoin cannot be recovered by anyone.
 
-• Plausible deniability
-Password which decrypts fake bitcoin wallets if you are forced to disclose your access
+• Your choice of fee
+Set the fee you are willing to pay, starting at 1 satoshi per byte. The app shows current network estimates, and the decision stays with you.
 
-• Full encryption
-On top of the iOS multi-layer encryption, we encrypt everything with added passwords
+WHAT YOU CAN DO
 
-• SegWit & HD wallets
-SegWit supported and HD wallets enable
-
-2 - Focused on your experience
-
-• Be in control
-Private keys never leave your device. You control your private keys
-
-• Flexible fees
-Starting from 1 Satoshi. Defined by you, the user
-
-• Replace-By-Fee
-(RBF) Speed-up your transactions by increasing the fee (BIP125)
+• Create and import wallets
+Create as many wallets as you want, or import an existing one. Supports hierarchical deterministic wallets, SegWit addresses, and legacy single-address wallets.
 
 • Watch-only wallets
-Watch-only wallets allow you to keep an eye on your cold storage without touching the hardware.
+Follow the balance and incoming payments of a cold storage wallet without putting its private keys on your phone.
 
-• Lightning Network
-Lightning wallet with zero-configuration. Unfairly cheap and fast transactions with the best Bitcoin user experience.
+• Replace-By-Fee (BIP125)
+Raise the fee on a transaction that has not confirmed yet to speed it up.
+
+• Multisig vaults
+Create multisig wallets and co-sign transactions with hardware wallets or other devices using PSBT.
+
+• Decoy password
+Set a second password that opens a different set of wallets, for situations where you may be compelled to unlock the app.
+
+• Lightning, with your own server
+Connect an LNDHub server that you run to send and receive Lightning payments. No Lightning server is included or configured by default.
+
+BEFORE YOU START
+
+• Bitcoin transactions are irreversible. Once a transaction confirms, it cannot be cancelled, reversed, or refunded, by us or by anyone else.
+• Check the receiving address before every send. Malware and clipboard hijacking substitute addresses.
+• If someone pressures you to send bitcoin urgently, treat it as a scam. Callers claiming to be from a government agency, your bank, or technical support do not ask to be paid in bitcoin. Stop and contact our support team at (888) 437-7582 before sending anything.
+
+HOW IT CONNECTS
+
+The app reads the blockchain and broadcasts transactions through Electrum servers, and you can point it at your own Electrum server in settings. Bitcoin price data is fetched from public exchange APIs.
+
+Open source under the MIT license.

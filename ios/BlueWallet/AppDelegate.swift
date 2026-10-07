@@ -69,7 +69,17 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
 
     override func bundleURL() -> URL? {
         #if DEBUG
-        return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+        if let packagerURL = RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index") {
+            return packagerURL
+        }
+
+        if let bundledURL = Bundle.main.url(forResource: "main", withExtension: "jsbundle") {
+            NSLog("[AppDelegate] Metro unavailable, falling back to bundled main.jsbundle")
+            return bundledURL
+        }
+
+        NSLog("[AppDelegate] Unable to find a JS bundle from Metro or the app bundle")
+        return nil
         #else
         return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
         #endif

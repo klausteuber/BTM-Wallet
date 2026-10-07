@@ -1,0 +1,265 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#content"
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e8]: Looking for higher limits?
+        - generic [ref=e10]: Register in less than 2 minutes. $29,500/day limits!
+      - link "Apply for high limits" [ref=e15] [cursor=pointer]:
+        - /url: /high-limit-form/
+        - generic [ref=e17]: Apply for high limits
+    - banner [ref=e18]:
+      - generic [ref=e19]:
+        - link "America Bitcoin ATM logo" [ref=e22] [cursor=pointer]:
+          - /url: https://americabitcoinatm.com
+          - img "America Bitcoin ATM logo" [ref=e23]
+        - navigation "Menu" [ref=e26]:
+          - list [ref=e27]:
+            - listitem [ref=e28]:
+              - link "High Limit Account" [ref=e29] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/high-limit-form/
+            - listitem [ref=e30]:
+              - link "Atm locations" [ref=e31] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/locations/
+            - listitem [ref=e32]:
+              - link "Host an ATM" [ref=e33] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/host-an-atm/
+            - listitem [ref=e34]:
+              - link "About Us" [ref=e35] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/about-us/
+            - listitem [ref=e36]:
+              - link "Blog" [ref=e37] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/blog/
+            - listitem [ref=e38]:
+              - link "Contact Us" [ref=e39] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/contact-us/
+            - listitem [ref=e40]:
+              - link "Help Center" [ref=e41] [cursor=pointer]:
+                - /url: https://americabitcoinatm.com/help-center/
+        - link "(888) 437-7582" [ref=e45] [cursor=pointer]:
+          - /url: tel:888-437-7582
+          - generic [ref=e46]:
+            - img [ref=e48]
+            - generic [ref=e53]: (888) 437-7582
+  - generic [ref=e54]:
+    - heading "Find a Bitcoin ATM Location Near Me" [level=1] [ref=e59]
+    - generic [ref=e61]:
+      - navigation "breadcrumbs" [ref=e65]:
+        - paragraph [ref=e66]:
+          - link "All locations" [ref=e67] [cursor=pointer]:
+            - /url: https://americabitcoinatm.com/locations
+          - text: / Bitcoin ATM Locations
+      - heading "Bitcoin & crypto ATM Locations" [level=2] [ref=e71]
+      - navigation [ref=e74]:
+        - list [ref=e75]:
+          - listitem [ref=e76]:
+            - link "Arizona" [ref=e77] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/arizona/
+          - listitem [ref=e78]:
+            - link "Arkansas" [ref=e79] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/arkansas/
+          - listitem [ref=e80]:
+            - link "Colorado" [ref=e81] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/colorado/
+          - listitem [ref=e82]:
+            - link "Florida" [ref=e83] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/florida/
+          - listitem [ref=e84]:
+            - link "Georgia" [ref=e85] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/georgia/
+          - listitem [ref=e86]:
+            - link "Hawaii" [ref=e87] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/hawaii/
+          - listitem [ref=e88]:
+            - link "Illinois" [ref=e89] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/illinois/
+          - listitem [ref=e90]:
+            - link "Indiana" [ref=e91] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/indiana/
+          - listitem [ref=e92]:
+            - link "Kentucky" [ref=e93] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/kentucky/
+          - listitem [ref=e94]:
+            - link "Maryland" [ref=e95] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/maryland/
+          - listitem [ref=e96]:
+            - link "Massachusetts" [ref=e97] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/massachusetts/
+          - listitem [ref=e98]:
+            - link "Michigan" [ref=e99] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/michigan/
+          - listitem [ref=e100]:
+            - link "Minnesota" [ref=e101] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/minnesota/
+          - listitem [ref=e102]:
+            - link "Missouri" [ref=e103] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/missouri/
+          - listitem [ref=e104]:
+            - link "Montana" [ref=e105] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/montana/
+          - listitem [ref=e106]:
+            - link "Nevada" [ref=e107] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/nevada/
+          - listitem [ref=e108]:
+            - link "New Hampshire" [ref=e109] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/new-hampshire/
+          - listitem [ref=e110]:
+            - link "New Jersey" [ref=e111] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/new-jersey/
+          - listitem [ref=e112]:
+            - link "North Carolina" [ref=e113] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/north-carolina/
+          - listitem [ref=e114]:
+            - link "Oklahoma" [ref=e115] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/oklahoma/
+          - listitem [ref=e116]:
+            - link "Oregon" [ref=e117] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/oregon/
+          - listitem [ref=e118]:
+            - link "South Carolina" [ref=e119] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/south-carolina/
+          - listitem [ref=e120]:
+            - link "Tennessee" [ref=e121] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/tennessee/
+          - listitem [ref=e122]:
+            - link "Texas" [ref=e123] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/texas/
+          - listitem [ref=e124]:
+            - link "Utah" [ref=e125] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/utah/
+          - listitem [ref=e126]:
+            - link "Virginia" [ref=e127] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/virginia/
+          - listitem [ref=e128]:
+            - link "Washington" [ref=e129] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/washington/
+          - listitem [ref=e130]:
+            - link "West Virginia" [ref=e131] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/west-virginia/
+          - listitem [ref=e132]:
+            - link "Wyoming" [ref=e133] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/wyoming/
+    - generic [ref=e137]:
+      - heading "Remember to bring" [level=5] [ref=e140]
+      - heading "Here's what you need to buy Bitcoin at the ATM" [level=2] [ref=e143]
+      - generic [ref=e145]:
+        - generic [ref=e150]:
+          - img [ref=e153]
+          - generic [ref=e158]:
+            - heading "Valid Indentification" [level=5] [ref=e159]
+            - paragraph [ref=e160]: You will need a Driver License or Passport.
+        - generic [ref=e165]:
+          - img [ref=e168]
+          - generic [ref=e172]:
+            - heading "Bring Cash" [level=5] [ref=e173]
+            - paragraph [ref=e174]: Remember to bring Cash to buy Bitcoin at our ATMs. You will insert cash to complete the transaction.
+        - generic [ref=e179]:
+          - img [ref=e182]
+          - generic [ref=e187]:
+            - heading "Mobile Phone" [level=5] [ref=e188]
+            - paragraph [ref=e189]: You will receive a code in your phone number to secure the transaction.
+        - generic [ref=e194]:
+          - img [ref=e197]
+          - generic [ref=e200]:
+            - heading "Bitcoin Wallet" [level=5] [ref=e201]
+            - paragraph [ref=e202]: You will be requested a QR Code of your Bitcoin Wallet or other cryptocurrency wallet for our ATM to send to the correct wallet.
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - img [ref=e212]
+        - heading "Buying bitcoin made easy" [level=2] [ref=e216]
+      - generic [ref=e218]:
+        - generic [ref=e220]:
+          - heading "Step 1" [level=5] [ref=e223]
+          - heading "Scan your Bitcoin wallet" [level=4] [ref=e226]
+          - paragraph [ref=e229]: Enter your phone number and proceed to scanning a Bitcoin Wallet. Your wallet address will also be shown.
+        - generic [ref=e231]:
+          - heading "Step 2" [level=5] [ref=e234]
+          - heading "Insert cash" [level=4] [ref=e237]
+          - paragraph [ref=e240]: Insert cash one bill at a time into the bitcoin ATM. Once all bills are entered, confirm the amount and click BUY on the screen.
+        - generic [ref=e242]:
+          - heading "Step 3" [level=5] [ref=e245]
+          - heading "Coins are sent instantly!" [level=4] [ref=e248]
+          - paragraph [ref=e251]: Coins are sent instantly!
+        - link "Get started now" [ref=e255] [cursor=pointer]:
+          - /url: "#locations"
+          - generic [ref=e257]: Get started now
+    - generic [ref=e259]:
+      - heading "\"Entering the world of cryptocurrency felt overwhelming until I discovered America Bitcoin ATM. As a newcomer, I was searching for a fast and secure way to buy Bitcoin, and America Bitcoin ATM exceeded my expectations.\"" [level=2] [ref=e262]
+      - paragraph [ref=e265]: Rebecca R.
+      - paragraph [ref=e268]: First-Time Bitcoin Buyer
+  - generic [ref=e269]:
+    - generic [ref=e271]:
+      - generic [ref=e272]:
+        - img "America Bitcoin ATM logo" [ref=e275]
+        - heading "Buy and sell cryptocurrency at the lowest rates an America Bitcoin ATM near you." [level=5] [ref=e278]
+        - paragraph [ref=e281]: "FinCEN: 3100029597181 / NMLS ID: 2521734"
+        - list [ref=e284]:
+          - listitem [ref=e285]:
+            - link "Twitter" [ref=e286] [cursor=pointer]:
+              - /url: https://twitter.com/americabtm
+              - generic [ref=e287]: Twitter
+              - img [ref=e288]
+          - listitem [ref=e290]:
+            - link "Instagram" [ref=e291] [cursor=pointer]:
+              - /url: https://www.instagram.com/americabitcoinatm/
+              - generic [ref=e292]: Instagram
+              - img [ref=e293]
+      - generic [ref=e295]:
+        - heading "Products" [level=6] [ref=e298]
+        - list [ref=e301]:
+          - listitem [ref=e302]:
+            - link "Apply For High Limits" [ref=e303] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/high-limit-form/
+              - generic [ref=e304]: Apply For High Limits
+          - listitem [ref=e305]:
+            - link "Bitcoin ATM Locations" [ref=e306] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/
+              - generic [ref=e307]: Bitcoin ATM Locations
+          - listitem [ref=e308]:
+            - link "Host an ATM" [ref=e309] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/host-an-atm/
+              - generic [ref=e310]: Host an ATM
+      - generic [ref=e311]:
+        - heading "Resources" [level=6] [ref=e314]
+        - list [ref=e317]:
+          - listitem [ref=e318]:
+            - link "ATM Locations" [ref=e319] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/locations/
+              - generic [ref=e320]: ATM Locations
+          - listitem [ref=e321]:
+            - link "Beware of Scams" [ref=e322] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/recognizing-and-avoiding-bitcoin-atm-scams/
+              - generic [ref=e323]: Beware of Scams
+          - listitem [ref=e324]:
+            - link "Report a Scam" [ref=e325] [cursor=pointer]:
+              - /url: https://www.ic3.gov/
+              - generic [ref=e326]: Report a Scam
+          - listitem [ref=e327]:
+            - link "Maryland Fraud Fee Refund Requests" [ref=e328] [cursor=pointer]:
+              - /url: https://americabitcoinatm.com/maryland-fraud-fee-refund-request/
+              - generic [ref=e329]: Maryland Fraud Fee Refund Requests
+      - generic [ref=e330]:
+        - heading "Contact" [level=6] [ref=e333]
+        - list [ref=e336]:
+          - listitem [ref=e337]:
+            - link "(888) 437-7582" [ref=e338] [cursor=pointer]:
+              - /url: tel:888-437-7582
+              - generic [ref=e339]: (888) 437-7582
+          - listitem [ref=e340]:
+            - link "info@americabitcoinatm.com" [ref=e341] [cursor=pointer]:
+              - /url: mailto:info@americabitcoinatm.com
+              - generic [ref=e342]: info@americabitcoinatm.com
+    - generic [ref=e350]:
+      - list [ref=e355]:
+        - listitem [ref=e356]:
+          - link "Privacy Policy" [ref=e357] [cursor=pointer]:
+            - /url: https://americabitcoinatm.com/privacy-policy/
+            - generic [ref=e358]: Privacy Policy
+        - listitem [ref=e359]:
+          - link "Terms of service" [ref=e360] [cursor=pointer]:
+            - /url: https://americabitcoinatm.com/terms-of-service/
+            - generic [ref=e361]: Terms of service
+      - list [ref=e366]:
+        - listitem [ref=e367]:
+          - generic [ref=e368]: © 2026 America Digital Inc DBA America Bitcoin. All Rights Reserved.

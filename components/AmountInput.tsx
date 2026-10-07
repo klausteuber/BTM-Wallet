@@ -55,6 +55,10 @@ type AmountInputProps = Omit<TextInputProps, 'onChangeText' | 'value'> & {
    */
   amount?: string;
   /**
+   * Numeric balance to display beneath MAX when the full wallet balance is selected.
+   */
+  maxAmount?: string;
+  /**
    * The current unit of the amount (BTC, SATS, LOCAL_CURRENCY)
    */
   unit: BitcoinUnit;
@@ -74,7 +78,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
   const textInputRef = useRef<TextInput>(null);
   const { colors } = useTheme();
   const amount = props.amount || '0'; // internally amount is aways a string with a correct number
-  const { onChangeText, unit, onAmountUnitChange, disabled = false, isLoading = false, ...otherProps } = props;
+  const { onChangeText, unit, onAmountUnitChange, maxAmount, disabled = false, isLoading = false, ...otherProps } = props;
   const [isRateBeingUpdatedLocal, setIsRateBeingUpdatedLocal] = useState(false);
   const [outdatedRefreshRate, setOutdatedRefreshRate] = useState<CurrencyRate | undefined>();
 
@@ -91,7 +95,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
 
   const secondaryDisplayCurrency = useMemo(() => {
     if (amount === BitcoinUnit.MAX) {
-      return '';
+      return maxAmount ?? '';
     }
     switch (unit) {
       case BitcoinUnit.BTC: {
@@ -113,7 +117,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
         return `${res} ${loc.units[BitcoinUnit.BTC]}`;
       }
     }
-  }, [amount, unit]);
+  }, [amount, maxAmount, unit]);
 
   useEffect(() => {
     (async () => {
@@ -254,6 +258,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
     localCurrency: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2 },
     input: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2, fontSize: amount.length > 10 ? 20 : 36 },
     cryptoCurrency: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2 },
+    secondaryText: { color: colors.alternativeTextColor },
   });
 
   return (
@@ -290,7 +295,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
             )}
           </View>
           <View style={styles.secondaryRoot}>
-            <Text style={styles.secondaryText} selectable>
+            <Text testID="AmountInputSecondaryValue" style={[styles.secondaryText, stylesHook.secondaryText]} selectable>
               {secondaryDisplayCurrency}
             </Text>
           </View>
@@ -384,7 +389,6 @@ const styles = StyleSheet.create({
   },
   secondaryText: {
     fontSize: 16,
-    color: '#9BA0A9',
     fontWeight: '600',
   },
   changeAmountUnit: {

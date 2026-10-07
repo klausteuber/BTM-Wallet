@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import LottieView from 'lottie-react-native';
 import { StyleSheet, View } from 'react-native';
 import { Text } from '@rneui/themed';
 import { BlueCard } from '../../BlueComponents';
 import Button from '../../components/Button';
+import { BlueBigCheckmark } from '../../components/BlueBigCheckmark.tsx';
 import SafeArea from '../../components/SafeArea';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
@@ -27,12 +27,6 @@ const Success = () => {
   const stylesHook = StyleSheet.create({
     root: {
       backgroundColor: colors.elevated,
-    },
-    amountValue: {
-      color: colors.alternativeTextColor2,
-    },
-    amountUnit: {
-      color: colors.alternativeTextColor2,
     },
   });
 
@@ -72,7 +66,7 @@ interface SuccessViewParam {
   shouldAnimate?: boolean;
 }
 
-export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shouldAnimate = true }: SuccessViewParam) => {
+export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shouldAnimate: _shouldAnimate = true }: SuccessViewParam) => {
   const { colors } = useTheme();
 
   let unit: string = '';
@@ -116,28 +110,7 @@ export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shoul
       ) : null}
 
       <View style={styles.ready}>
-        <LottieView
-          style={styles.lottie}
-          source={require('../../img/bluenice.json')}
-          autoPlay={shouldAnimate}
-          loop={false}
-          progress={shouldAnimate ? 0 : 1}
-          colorFilters={[
-            {
-              keypath: 'spark',
-              color: colors.success,
-            },
-            {
-              keypath: 'circle',
-              color: colors.success,
-            },
-            {
-              keypath: 'Oval',
-              color: colors.successCheck,
-            },
-          ]}
-          resizeMode="center"
-        />
+        <BlueBigCheckmark />
       </View>
     </View>
   );
@@ -179,15 +152,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   ready: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignSelf: 'center',
-    alignItems: 'center',
     marginBottom: 53,
-  },
-  lottie: {
-    width: 200,
-    height: 200,
   },
 });

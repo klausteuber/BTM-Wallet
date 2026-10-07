@@ -19,6 +19,8 @@ import { useSizeClass, SizeClass } from '../blue_modules/sizeClass';
 import { isDesktop } from '../blue_modules/environment';
 import debounce from '../blue_modules/debounce';
 
+const AMERICA_BLUE = '#040766';
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -31,19 +33,19 @@ const scheduleInNextFrame = (callback: () => void): number => {
 };
 
 const LAYOUT = {
-  PADDINGS: 30,
-  ICON_MARGIN: 7,
-  BUTTON_MARGIN: 10,
+  PADDINGS: 22,
+  ICON_MARGIN: 8,
+  BUTTON_MARGIN: 12,
   MIN_BUTTON_WIDTH: 100,
   MIN_BUTTON_WIDTH_LARGE: 130,
   DRAWER_WIDTH: 320,
-  BUTTON_HEIGHT: 52,
-  SINGLE_BUTTON_HEIGHT: 58,
+  BUTTON_HEIGHT: 54,
+  SINGLE_BUTTON_HEIGHT: 56,
   CONTAINER_SIDE_MARGIN: 20,
-  DEFAULT_BORDER_RADIUS: 8,
-  SINGLE_BUTTON_RADIUS: 29,
+  DEFAULT_BORDER_RADIUS: 16,
+  SINGLE_BUTTON_RADIUS: 18,
   SINGLE_BUTTON_WIDTH_FACTOR: 0.625,
-  MAX_BUTTON_FONT_SIZE: 24,
+  MAX_BUTTON_FONT_SIZE: 17,
   SAFETY_MARGIN: 20,
   ANIMATION_DURATION: 300,
   SPRING_CONFIG: {
@@ -392,6 +394,7 @@ interface FButtonProps {
   isAnimating?: boolean;
   disabled?: boolean;
   testID?: string;
+  variant?: 'primary' | 'secondary';
   onPress: () => void;
   onLongPress?: () => void;
 }
@@ -449,19 +452,25 @@ export const FButton = ({
   fontSize = LAYOUT.MAX_BUTTON_FONT_SIZE,
   isAnimating = false,
   testID,
+  variant = 'secondary',
   ...props
 }: FButtonProps) => {
   const { colors } = useTheme();
+  const isPrimary = variant === 'primary';
 
   const customButtonStyles = useMemo(() => {
     const baseStyles = singleChild ? { ...buttonContentStaticStyles.rootSingle } : { ...buttonContentStaticStyles.root };
+    const primaryBackgroundColor = colors.foregroundColor === '#ffffff' ? colors.newBlue : AMERICA_BLUE;
+
     return {
       root: {
         ...baseStyles,
-        backgroundColor: colors.buttonBackgroundColor,
+        backgroundColor: isPrimary ? primaryBackgroundColor : colors.elevated,
+        borderColor: isPrimary ? primaryBackgroundColor : colors.lightBorder,
+        borderWidth: 1,
       },
       text: {
-        color: colors.buttonAlternativeTextColor,
+        color: isPrimary ? '#FFFFFF' : colors.foregroundColor,
         fontSize,
       },
       textDisabled: {
@@ -471,7 +480,7 @@ export const FButton = ({
       marginBottom: buttonContentStaticStyles.marginBottom,
       textBase: buttonContentStaticStyles.textBase,
     };
-  }, [colors, fontSize, singleChild]);
+  }, [colors, fontSize, isPrimary, singleChild]);
 
   const style: Record<string, any> = {};
   const additionalStyles = !last ? (isVertical ? customButtonStyles.marginBottom : customButtonStyles.marginRight) : {};

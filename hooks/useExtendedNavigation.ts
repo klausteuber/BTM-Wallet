@@ -12,6 +12,22 @@ const requiresBiometrics = ['WalletExport', 'WalletXpub', 'ViewEditMultisigCosig
 // List of screens that require wallet export to be saved
 const requiresWalletExportIsSaved = ['ReceiveDetails', 'WalletAddresses'];
 
+const rootStackScreens = new Set([
+  'DrawerRoot',
+  'UnlockWithScreen',
+  'AddWalletRoot',
+  'SendDetailsRoot',
+  'LNDCreateInvoiceRoot',
+  'ScanLNDInvoiceRoot',
+  'AztecoRedeemRoot',
+  'WalletExport',
+  'ExportMultisigCoordinationSetupRoot',
+  'ViewEditMultisigCosigners',
+  'WalletXpub',
+  'SignVerifyRoot',
+  'ScanQRCode',
+]);
+
 export const useExtendedNavigation = <T extends NavigationProp<ParamListBase>>(): T & {
   navigateToWalletsList: () => void;
 } => {
@@ -50,20 +66,21 @@ export const useExtendedNavigation = <T extends NavigationProp<ParamListBase>>()
 
       const isRequiresBiometrics = requiresBiometrics.includes(screenName);
       const isRequiresWalletExportIsSaved = requiresWalletExportIsSaved.includes(screenName);
+      const nestedParams = params && typeof params === 'object' && 'params' in params ? params.params : undefined;
+      const isATMReceiveFlow =
+        params?.mode === 'atm' || params?.entryPoint === 'atm' || nestedParams?.mode === 'atm' || nestedParams?.entryPoint === 'atm';
 
       const proceedWithNavigation = () => {
         console.log('Proceeding with navigation to', screenName);
 
-        // Navigation logic based on current route and target screen
-        if (navigationRef.current?.isReady()) {
-          // Get the current route - we need to know which navigator we're in
-          const currentRoute = navigationRef.current.getCurrentRoute();
+        if (navigationRef.isReady()) {
+          const currentRoute = navigationRef.getCurrentRoute();
           const currentRouteName = currentRoute?.name;
+          const shouldNavigateIntoDetailStack = currentRouteName === 'DrawerRoot' && !rootStackScreens.has(screenName);
+          const navigation = originalNavigation as any;
 
-          // Handle specific cases for nested navigation
-          if (currentRouteName === 'DrawerRoot') {
-            // If we're in DrawerRoot and trying to navigate to a screen that exists in DetailViewStackScreensStack
-            originalNavigation.navigate('DrawerRoot', {
+          if (shouldNavigateIntoDetailStack) {
+            navigationRef.navigate('DrawerRoot', {
               screen: 'DetailViewStackScreensStack',
               params: {
                 screen: screenName,
@@ -71,11 +88,10 @@ export const useExtendedNavigation = <T extends NavigationProp<ParamListBase>>()
               },
             });
           } else {
-            // Normal navigation
             if (typeof screenOrOptions === 'string') {
-              originalNavigation.navigate({ name: screenOrOptions, params, merge: options?.merge });
+              navigation.navigate(screenOrOptions, params, options);
             } else {
-              originalNavigation.navigate({ ...screenOrOptions, params, merge: options?.merge });
+              navigation.navigate({ ...screenOrOptions, params, merge: options?.merge });
             }
           }
         }
@@ -102,7 +118,7 @@ export const useExtendedNavigation = <T extends NavigationProp<ParamListBase>>()
             }
           }
         }
-        if (isRequiresWalletExportIsSaved) {
+        if (isRequiresWalletExportIsSaved && !isATMReceiveFlow) {
           console.log('Checking if wallet export is saved');
           let walletID: string | undefined;
           if (params && params.walletID) {
@@ -138,33 +154,33 @@ export const useExtendedNavigation = <T extends NavigationProp<ParamListBase>>()
   );
 
   const navigateToWalletsList = useCallback(() => {
-  if (navigationRef.isReady()) {
-    navigationRef.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'DrawerRoot',
-            state: {
-              routes: [
-                {
-                  name: 'DetailViewStackScreensStack',
-                  state: {
-                    routes: [
-                      {
-                        name: 'WalletsList',
-                      },
-                    ],
+    if (navigationRef.isReady()) {
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'DrawerRoot',
+              state: {
+                routes: [
+                  {
+                    name: 'DetailViewStackScreensStack',
+                    state: {
+                      routes: [
+                        {
+                          name: 'WalletsList',
+                        },
+                      ],
+                    },
                   },
-                },
-              ],
+                ],
+              },
             },
-          },
-        ],
-      })
-    );
-  }
-}, []);
+          ],
+        }),
+      );
+    }
+  }, []);
 
   return useMemo(
     () => ({

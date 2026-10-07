@@ -1,6 +1,6 @@
 {
   "name": "bluewallet",
-  "version": "7.2.4",
+  "version": "7.3.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -156,6 +156,7 @@
     "react-native-keychain": "9.1.0",
     "react-native-linear-gradient": "2.8.3",
     "react-native-localize": "3.5.4",
+    "react-native-maps": "^1.20.1",
     "react-native-permissions": "5.4.4",
     "react-native-prompt-android": "github:BlueWallet/react-native-prompt-android#ed168d66fed556bc2ed07cf498770f058b78a376",
     "react-native-push-notification": "8.1.1",
@@ -171,10 +172,11 @@
     "react-native-tcp-socket": "6.3.0",
     "react-native-vector-icons": "10.2.0",
     "react-native-watch-connectivity": "1.1.0",
+    "react-native-webview": "^13.16.0",
     "react-test-renderer": "19.0.0",
     "readable-stream": "3.6.2",
     "realm": "20.1.0",
-    "rn-qr-generator": "https://github.com/BlueWallet/rn-qr-generator.git#731ed8eb445f65f3a659632232e18ff7e1ce56d6",
+    "rn-qr-generator": "https://github.com/gevgasparyan/rn-qr-generator.git#731ed8eb445f65f3a659632232e18ff7e1ce56d6",
     "silent-payments": "github:BlueWallet/SilentPayments#59a037",
     "slip39": "https://github.com/BlueWallet/slip39-js#d316ee6",
     "stream-browserify": "3.0.0",

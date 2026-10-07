@@ -55,6 +55,9 @@
         <meta-data
             android:name="firebase_analytics_collection_enabled"
             android:value="false" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 <provider
     android:name="androidx.core.content.FileProvider"
     android:authorities="${applicationId}.provider"
@@ -198,7 +201,7 @@
             </intent-filter>
         </activity>
 
-        <meta-data android:name="com.bugsnag.android.API_KEY" android:value="17ba9059f676f1cc4f45d98182388b01" />
+        <meta-data android:name="com.bugsnag.android.API_KEY" android:value="${bugsnagApiKey}" />
     </application>
 
     <queries>

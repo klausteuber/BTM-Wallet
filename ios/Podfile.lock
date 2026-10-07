@@ -1323,6 +1323,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-maps (1.20.1):
+    - React-Core
   - react-native-menu (1.2.4):
     - React
   - react-native-mobilesdk-module (1.46.1):
@@ -1336,6 +1338,27 @@ PODS:
     - CocoaAsyncSocket
     - React-Core
   - react-native-true-sheet (2.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-webview (13.16.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1997,12 +2020,14 @@ DEPENDENCIES:
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
   - "react-native-mobilesdk-module (from `../node_modules/@sumsub/react-native-mobilesdk-module`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-secure-key-store (from `../node_modules/react-native-secure-key-store`)
   - react-native-tcp-socket (from `../node_modules/react-native-tcp-socket`)
   - "react-native-true-sheet (from `../node_modules/@lodev09/react-native-true-sheet`)"
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-performancetimeline (from `../node_modules/react-native/ReactCommon/react/performance/timeline`)
@@ -2161,6 +2186,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-maps:
+    :path: "../node_modules/react-native-maps"
   react-native-menu:
     :path: "../node_modules/@react-native-menu/menu"
   react-native-mobilesdk-module:
@@ -2173,6 +2200,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-tcp-socket"
   react-native-true-sheet:
     :path: "../node_modules/@lodev09/react-native-true-sheet"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -2329,12 +2358,14 @@ SPEC CHECKSUMS:
   react-native-document-picker: e1dc1c14b246540c048afc6dadfce2efe9f21f95
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-image-picker: 1b6097f71e3cf785a40d22be7904f17e924965bb
+  react-native-maps: 9febd31278b35cd21e4fad2cf6fa708993be5dab
   react-native-menu: 475e400d9b57949c076a0844e130044b45f2aa3d
   react-native-mobilesdk-module: eebd6cc979904d529db390037db7d2aba6d28592
   react-native-safe-area-context: 0f7bf11598f9a61b7ceac8dc3f59ef98697e99e1
   react-native-secure-key-store: eb45b44bdec3f48e9be5cdfca0f49ddf64892ea6
   react-native-tcp-socket: 120072c8020262032773f80f0daaf3964aaa08a1
   react-native-true-sheet: b593fa693ce5380ffc4a0e895ab2a9435657223e
+  react-native-webview: d9d01324f104e41fe57b8ddd048acd9e1e39caf5
   React-NativeModulesApple: fd0545efbb7f936f78edd15a6564a72d2c34bb32
   React-perflogger: 5f8fa36a8e168fb355efe72099efe77213bc2ac6
   React-performancetimeline: 8c0ecfa1ae459cc5678a65f95ac3bf85644d6feb

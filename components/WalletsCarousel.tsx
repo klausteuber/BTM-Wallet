@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, u
 import {
   Animated,
   FlatList,
+  Image,
   ImageBackground,
   Platform,
   Pressable,
@@ -29,6 +30,10 @@ import HighlightedText from './HighlightedText';
 import { BlueSpacing10 } from './BlueSpacing';
 import { useLocale } from '@react-navigation/native';
 
+const AMERICA_BLUE = '#040766';
+const AMERICA_MINT = '#38E3A5';
+const AMERICA_GRAY = '#D9DAE5';
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -39,43 +44,89 @@ interface NewWalletPanelProps {
 
 const nStyles = StyleSheet.create({
   container: {
-    borderRadius: 10,
-    minHeight: Platform.OS === 'ios' ? 164 : 181,
-    justifyContent: 'center',
+    borderRadius: 18,
+    minHeight: Platform.OS === 'ios' ? 242 : 250,
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
+    overflow: 'hidden',
+  },
+  brandLogo: {
+    width: 150,
+    height: 43,
+    resizeMode: 'contain',
+    marginBottom: 12,
   },
   addAWAllet: {
-    fontWeight: '600',
-    fontSize: 24,
-    marginBottom: 4,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 22,
+    lineHeight: 27,
+    marginBottom: 6,
+    maxWidth: 280,
   },
   addLine: {
+    color: 'rgba(255, 255, 255, 0.82)',
+    fontSize: 14,
+    lineHeight: 20,
+    maxWidth: 286,
+  },
+  footerRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  proofPoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    marginRight: 12,
+  },
+  proofDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: AMERICA_MINT,
+    marginRight: 8,
+  },
+  proofText: {
+    color: '#FFFFFF',
     fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '600',
+    flexShrink: 1,
   },
   button: {
-    marginTop: 12,
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    minHeight: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: AMERICA_GRAY,
   },
   buttonText: {
-    fontWeight: '500',
+    color: AMERICA_BLUE,
+    fontWeight: '700',
+    fontSize: 15,
+    lineHeight: 18,
   },
 });
 
 const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress }) => {
-  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const itemWidth = width * 0.82 > 375 ? 375 : width * 0.82;
   const { isLarge } = useSizeClass();
   const nStylesHooks = StyleSheet.create({
     container: isLarge
       ? {
-          paddingHorizontal: 24,
+          paddingHorizontal: 22,
+          paddingVertical: 18,
           marginVertical: 16,
         }
-      : { paddingVertical: 16, paddingHorizontal: 24 },
+      : { paddingVertical: 18, paddingHorizontal: 22 },
   });
 
   const scale = useRef(new Animated.Value(1)).current;
@@ -115,15 +166,32 @@ const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress }) => {
         style={[
           nStyles.container,
           nStylesHooks.container,
-          { backgroundColor: WalletGradient.createWallet() },
+          { backgroundColor: AMERICA_BLUE },
           isLarge ? {} : { width: itemWidth },
           { transform: [{ scale }] },
         ]}
       >
-        <Text style={[nStyles.addAWAllet, { color: colors.foregroundColor }]}>{loc.wallets.list_create_a_wallet}</Text>
-        <Text style={[nStyles.addLine, { color: colors.alternativeTextColor }]}>{loc.wallets.list_create_a_wallet_text}</Text>
-        <View style={nStyles.button}>
-          <Text style={[nStyles.buttonText, { color: colors.brandingColor }]}>{loc.wallets.list_create_a_button}</Text>
+        <View>
+          <Image accessibilityIgnoresInvertColors source={require('../img/america-bitcoin-logo.png')} style={nStyles.brandLogo} />
+          <Text numberOfLines={2} adjustsFontSizeToFit style={nStyles.addAWAllet}>
+            {loc.wallets.list_create_a_wallet}
+          </Text>
+          <Text numberOfLines={2} style={nStyles.addLine}>
+            {loc.wallets.list_create_a_wallet_text}
+          </Text>
+        </View>
+        <View style={nStyles.footerRow}>
+          <View style={nStyles.proofPoint}>
+            <View style={nStyles.proofDot} />
+            <Text numberOfLines={1} adjustsFontSizeToFit style={nStyles.proofText}>
+              {loc.wallets.home_setup_proof}
+            </Text>
+          </View>
+          <View style={nStyles.button}>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={nStyles.buttonText}>
+              {loc.wallets.list_create_a_button}
+            </Text>
+          </View>
         </View>
       </Animated.View>
     </Pressable>
@@ -665,7 +733,7 @@ const WalletsCarousel = forwardRef<FlatListRefType, WalletsCarouselProps>((props
 
   const keyExtractor = useCallback((item: TWallet, index: number) => (item?.getID ? item.getID() : index.toString()), []);
 
-  const sliderHeight = 195;
+  const sliderHeight = 258;
 
   useEffect(() => {
     return () => {

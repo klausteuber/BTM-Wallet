@@ -22,10 +22,22 @@ interface ButtonProps extends PressableProps {
 
 export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>((props, ref) => {
   const { colors } = useTheme();
+  const {
+    backgroundColor: customBackgroundColor,
+    buttonTextColor,
+    disabled,
+    icon,
+    onPress,
+    showActivityIndicator,
+    style,
+    testID,
+    title,
+    ...pressableProps
+  } = props;
 
-  let backgroundColor = props.backgroundColor ?? colors.mainColor;
-  let fontColor = props.buttonTextColor ?? colors.buttonTextColor;
-  if (props.disabled) {
+  let backgroundColor = customBackgroundColor ?? colors.mainColor;
+  let fontColor = buttonTextColor ?? colors.buttonTextColor;
+  if (disabled) {
     backgroundColor = colors.buttonDisabledBackgroundColor;
     fontColor = colors.buttonDisabledTextColor;
   }
@@ -33,7 +45,7 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
   const buttonStyle = {
     ...styles.button,
     backgroundColor,
-    borderColor: props.disabled ? colors.buttonDisabledBackgroundColor : 'transparent',
+    borderColor: disabled ? colors.buttonDisabledBackgroundColor : 'transparent',
   };
 
   const textStyle = {
@@ -41,32 +53,39 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
     color: fontColor,
   };
 
-  const buttonView = props.showActivityIndicator ? (
+  const buttonView = showActivityIndicator ? (
     <ActivityIndicator size="small" color={textStyle.color} />
   ) : (
     <>
-      {props.icon && <Icon name={props.icon.name} type={props.icon.type} color={props.icon.color} />}
-      {props.title && <Text style={textStyle}>{props.title}</Text>}
+      {icon && <Icon name={icon.name} type={icon.type} color={icon.color} />}
+      {title && (
+        <Text adjustsFontSizeToFit numberOfLines={1} style={textStyle}>
+          {title}
+        </Text>
+      )}
     </>
   );
+  const flattenedCustomStyle = StyleSheet.flatten(style);
+  const wrapperBorderRadius =
+    typeof flattenedCustomStyle?.borderRadius === 'number' ? flattenedCustomStyle.borderRadius : styles.pressableWrapper.borderRadius;
 
-  return props.onPress ? (
-    <View style={styles.pressableWrapper}>
+  return onPress ? (
+    <View style={[styles.pressableWrapper, { borderRadius: wrapperBorderRadius }]}>
       <Pressable
+        {...pressableProps}
         ref={ref}
-        testID={props.testID}
+        testID={testID}
         android_ripple={{ color: colors.androidRippleColor }}
-        style={({ pressed }) => [Platform.OS === 'ios' && pressed ? styles.pressed : null, buttonStyle, props.style, styles.content]}
+        style={({ pressed }) => [Platform.OS === 'ios' && pressed ? styles.pressed : null, buttonStyle, style, styles.content]}
         accessibilityRole="button"
-        onPress={props.onPress}
-        disabled={props.disabled}
-        {...props}
+        onPress={onPress}
+        disabled={disabled}
       >
         {buttonView}
       </Pressable>
     </View>
   ) : (
-    <View style={[buttonStyle, props.style, styles.content]}>{buttonView}</View>
+    <View style={[buttonStyle, style, styles.content]}>{buttonView}</View>
   );
 });
 
