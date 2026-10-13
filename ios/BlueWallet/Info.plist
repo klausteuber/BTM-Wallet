@@ -184,6 +184,8 @@
 	<string>We use the camera to scan QR codes and, when you verify your identity, to photograph your ID and take a selfie.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>In order to use FaceID for authentication when performing sensitive actions, we need your permission.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>America Bitcoin ATM can show where you are on the ATM locations map so you can find the nearest machine.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Identity verification may record a short video with sound to confirm it's really you.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
