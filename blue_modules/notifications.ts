@@ -15,6 +15,41 @@ export const NOTIFICATIONS_NO_AND_DONT_ASK_FLAG = 'NOTIFICATIONS_NO_AND_DONT_ASK
 let alreadyConfigured = false;
 let baseURI = groundControlUri;
 
+// ------------------------------------------------------------------ America Bitcoin ATM (Android)
+// On Android, react-native-push-notification owns the single FCM registration and the
+// single onNotification handler, so kiosk-approval pushes (blue_modules/abtm-push.ts)
+// ride on this module's configure(). iOS does not use any of this: abtm-push talks to
+// PushNotificationIOS directly there.
+
+export const ABTM_KIOSK_TYPE = 'kiosk_authorization';
+type AbtmPushHooks = { onToken: (token: string) => void; onKioskNotification: (data: Record<string, any>) => void };
+let abtmHooks: AbtmPushHooks | null = null;
+let abtmLastToken: string | null = null;
+let abtmPendingNotification: Record<string, any> | null = null; // arrived (e.g. cold launch) before abtm-push listened
+
+export function setAbtmPushHooks(hooks: AbtmPushHooks): void {
+  abtmHooks = hooks;
+  if (abtmLastToken) hooks.onToken(abtmLastToken);
+  if (abtmPendingNotification) {
+    const data = abtmPendingNotification;
+    abtmPendingNotification = null;
+    hooks.onKioskNotification(data);
+  }
+}
+
+/** The FCM token from this launch's registration, if any. */
+export function getAbtmAndroidToken(): string | null {
+  return abtmLastToken;
+}
+
+/** Kiosk data from an Android notification, whichever shape the library delivered it in. */
+function abtmKioskData(notification: any): Record<string, any> | null {
+  for (const candidate of [notification?.data?.data, notification?.data, notification]) {
+    if (candidate && candidate.type === ABTM_KIOSK_TYPE && typeof candidate.authorizationId === 'string') return candidate;
+  }
+  return null;
+}
+
 type TPushToken = {
   token: string;
   os: string; // its actually ('ios' | 'android'), but types for the lib are a bit more generic...
@@ -376,12 +411,23 @@ export const configureNotifications = async (onProcessNotifications?: () => void
         console.debug('configureNotifications: Token received:', token);
       }
       alreadyConfigured = true;
+      if (Platform.OS === 'android' && token?.token) {
+        abtmLastToken = token.token;
+        abtmHooks?.onToken(token.token);
+      }
       await _setPushToken(token);
       resolve(true);
     };
 
     // const handleNotification = async (notification: TPushNotification & { data: any }) => {
     const handleNotification = async (notification: Omit<ReceivedNotification, 'userInfo'>) => {
+      const kiosk = Platform.OS === 'android' ? abtmKioskData(notification) : null;
+      if (kiosk) {
+        if (abtmHooks) abtmHooks.onKioskNotification(kiosk);
+        else abtmPendingNotification = kiosk;
+        return;
+      }
+
       // Deep clone to avoid modifying the original object
       // @ts-ignore some missing properties hopefully will be unwrapped from `.data`
       const payload: TPayload = deepClone({
@@ -419,7 +465,9 @@ export const configureNotifications = async (onProcessNotifications?: () => void
         }
 
         const existingToken = await getPushToken();
-        if (existingToken) {
+        // Android re-registers every launch so the notification handler above is installed
+        // (otherwise a tapped kiosk-approval notification would go nowhere).
+        if (existingToken && Platform.OS !== 'android') {
           alreadyConfigured = true;
           console.debug('Notifications already configured with existing token');
           return resolve(true);

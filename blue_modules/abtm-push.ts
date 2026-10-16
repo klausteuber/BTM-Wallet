@@ -2,17 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import { checkNotifications, RESULTS } from 'react-native-permissions';
+import { checkNotifications, requestNotifications, RESULTS } from 'react-native-permissions';
+import PushNotification from 'react-native-push-notification';
+import { hasGmsSync } from 'react-native-device-info';
 
 import { navigationRef } from '../NavigationService';
+import { configureNotifications, getAbtmAndroidToken, setAbtmPushHooks } from './notifications';
 import { KioskAuthorization, pairedWalletApi } from './paired-wallet-api';
 
 /**
  * Kiosk approval requests, pushed by the account service (account_service/push.py)
  * and noticed by the in-app poller (components/AbtmKioskWatcher).
  *
- * - Registers this iPhone's APNs token with the account service, once permission
- *   is granted. Android has no push for approvals yet; the app polls while open.
+ * - Registers this phone's push token with the account service once permission is
+ *   granted: the APNs token on iPhone, the FCM token on Android (where the shared
+ *   react-native-push-notification setup in ./notifications owns registration).
  * - A tap on the notification opens the approval screen. Approving still needs
  *   Face ID and a signed request there; the notification itself can't approve.
  * - Keeps the waiting request (if any) for the home-screen banner.
@@ -24,6 +28,8 @@ import { KioskAuthorization, pairedWalletApi } from './paired-wallet-api';
 export const PUSH_ASKED_KEY = 'abtm_push_asked';
 export const PUSH_BANNER_DISMISSED_KEY = 'abtm_push_banner_dismissed';
 const KIOSK_TYPE = 'kiosk_authorization';
+/** Must match the channel_id the account service puts on FCM messages. */
+export const ANDROID_KIOSK_CHANNEL = 'abtm_kiosk';
 
 // ------------------------------------------------------------------ waiting request (banner)
 
@@ -84,7 +90,47 @@ let listening = false;
 let sentToken: string | null = null;
 let sendingToken: string | null = null; // iOS can report the same token twice at once
 
+function sendToken(token: string, environment: 'production' | 'sandbox' | 'fcm'): void {
+  if (!token || token === sentToken || token === sendingToken) return;
+  sendingToken = token;
+  pairedWalletApi
+    .savePushToken(token, environment)
+    .then(() => {
+      sentToken = token;
+    })
+    .catch(e => console.debug('ABTM push token not saved:', e?.message))
+    .finally(() => {
+      sendingToken = null;
+    });
+}
+
+const androidPushCapable = (): boolean => Platform.OS === 'android' && hasGmsSync();
+
+function listenAndroid(): void {
+  if (listening || !androidPushCapable()) return;
+  listening = true;
+  PushNotification.createChannel(
+    {
+      channelId: ANDROID_KIOSK_CHANNEL,
+      channelName: 'ATM purchase approvals',
+      channelDescription: 'Approve a purchase at our Bitcoin ATMs',
+      importance: 4, // high: heads-up, the customer is standing at the kiosk
+      vibrate: true,
+    },
+    () => {},
+  );
+  setAbtmPushHooks({
+    onToken: token => sendToken(token, 'fcm'),
+    onKioskNotification: handleTap,
+  });
+  // Install the shared handler so a tap (including one that cold-launched the app) is seen.
+  checkNotifications()
+    .then(({ status }) => (status === RESULTS.GRANTED ? configureNotifications() : false))
+    .catch(() => {});
+}
+
 function listen(): void {
+  if (Platform.OS === 'android') return listenAndroid();
   if (listening || Platform.OS !== 'ios') return;
   listening = true;
   PushNotificationIOS.addEventListener('register', (token: string) => {
@@ -120,7 +166,7 @@ export function startAbtmPushListeners(): void {
 export type PushPermission = 'granted' | 'undetermined' | 'blocked' | 'unavailable';
 
 export async function pushPermission(): Promise<PushPermission> {
-  if (Platform.OS !== 'ios') return 'unavailable';
+  if (Platform.OS !== 'ios' && !androidPushCapable()) return 'unavailable';
   const { status } = await checkNotifications();
   if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) return 'granted';
   if (status === RESULTS.DENIED) return 'undetermined'; // never asked: iOS will show its prompt
@@ -133,6 +179,18 @@ export async function pushPermission(): Promise<PushPermission> {
  * Returns whether notifications are allowed.
  */
 export async function enableAbtmPush(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    if (!androidPushCapable()) return false;
+    listen();
+    await AsyncStorage.setItem(PUSH_ASKED_KEY, '1').catch(() => {});
+    sentToken = null; // after a new sign-in the server needs the token again
+    const { status } = await requestNotifications(['alert', 'sound']); // no prompt below Android 13
+    if (status !== RESULTS.GRANTED) return false;
+    await configureNotifications(); // registers with FCM; the token arrives via the hook
+    const token = getAbtmAndroidToken(); // already registered earlier in this launch
+    if (token) sendToken(token, 'fcm');
+    return true;
+  }
   if (Platform.OS !== 'ios') return false;
   listen();
   await AsyncStorage.setItem(PUSH_ASKED_KEY, '1').catch(() => {});

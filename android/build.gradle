@@ -51,6 +51,13 @@ allprojects {
         }
         google()
                 maven { url 'https://www.jitpack.io' }
+        // Sumsub ID verification SDK (com.sumsub.sns:idensic-mobile-sdk), pulled in by
+        // @sumsub/react-native-mobilesdk-module. Only declared inside that library's own
+        // build.gradle, which the app module's dependency resolution doesn't see.
+        maven {
+            url 'https://maven.sumsub.com/repository/maven-releases/'
+            content { includeGroupByRegex 'com\\.sumsub.*' }
+        }
     }
 }
 
