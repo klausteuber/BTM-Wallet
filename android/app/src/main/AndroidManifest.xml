@@ -19,6 +19,8 @@
     <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
+    <!-- Arrives with the Sumsub SDK. A wallet has no reason to modify system settings, and Play lists it on the store page. -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:node="remove"/>
 
     <application
         android:name="com.americabitcoinatm.wallet.MainApplication"
