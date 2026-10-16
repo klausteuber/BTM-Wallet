@@ -21,6 +21,14 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
     <!-- Arrives with the Sumsub SDK. A wallet has no reason to modify system settings, and Play lists it on the store page. -->
     <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:node="remove"/>
+    <!-- The permissions above (mostly from Sumsub ID verification and the ATM map) make Play
+         treat these as required hardware, which hid 7.3.0 from ~470 devices. None are needed
+         to use the wallet: the map, video selfie and NFC are optional extras. -->
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
         android:name="com.americabitcoinatm.wallet.MainApplication"
