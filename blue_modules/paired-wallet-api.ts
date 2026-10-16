@@ -555,8 +555,8 @@ class PairedWalletApi {
 
   // ---------------------------------------------------------------- push notifications
 
-  /** This phone's APNs token, so kiosk approval requests reach it when the app is closed. */
-  async savePushToken(token: string, environment: 'production' | 'sandbox'): Promise<{ pushConfigured: boolean }> {
+  /** This phone's APNs (iOS) or FCM (Android, environment 'fcm') token, so kiosk approval requests reach it when the app is closed. */
+  async savePushToken(token: string, environment: 'production' | 'sandbox' | 'fcm'): Promise<{ pushConfigured: boolean }> {
     return this.rawRequest('/devices/push-token', { method: 'POST', body: { token, environment } }, { auth: true });
   }
 
