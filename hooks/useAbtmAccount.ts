@@ -54,6 +54,11 @@ export async function signOutOfAbtm(): Promise<void> {
   setState({ status: 'signed_out', session: null, profile: null, error: null });
 }
 
+export async function deleteAbtmAccount(): Promise<void> {
+  await pairedWalletApi.deleteAccount();
+  setState({ status: 'signed_out', session: null, profile: null, error: null });
+}
+
 pairedWalletApi.subscribe(() => {
   refreshAbtmAccount();
 });
@@ -66,10 +71,14 @@ function subscribe(listener: () => void) {
 }
 
 /** The America Bitcoin account the app is signed in to (shared by every screen). */
-export function useAbtmAccount(): AbtmAccountState & { refresh: () => Promise<void>; signOut: () => Promise<void> } {
+export function useAbtmAccount(): AbtmAccountState & {
+  refresh: () => Promise<void>;
+  signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
+} {
   const current = useSyncExternalStore(subscribe, getAbtmAccountState);
   useEffect(() => {
     if (current.status === 'loading') refreshAbtmAccount();
   }, [current.status]);
-  return { ...current, refresh: refreshAbtmAccount, signOut: signOutOfAbtm };
+  return { ...current, refresh: refreshAbtmAccount, signOut: signOutOfAbtm, deleteAccount: deleteAbtmAccount };
 }

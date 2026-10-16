@@ -25,6 +25,8 @@ import { usePendingAuthorization } from '../../blue_modules/abtm-push';
 import { Body, Card, Code, ErrorText, Facts, formatDate, Gap, HeroBand, Hint, Label, MenuCard, Overlap, Page, Pill, Title } from './ui';
 
 const DEV_SERVER = 'http://localhost:5121';
+/** Public deletion page (also declared in Play Console as the account-deletion URL). */
+export const ACCOUNT_DELETION_URL = `${DEFAULT_API_BASE_URL}/delete-account`;
 
 /** The America Bitcoin account: profile, ID verification, the registered wallet, approvals, activity. */
 const AbtmAccount: React.FC = () => {
@@ -127,6 +129,31 @@ const AbtmAccount: React.FC = () => {
       buttons: [
         { text: loc._.cancel, style: 'cancel' },
         { text: loc.abtm.sign_out, style: 'destructive', onPress: () => account.signOut() },
+      ],
+    });
+
+  const deleteAccount = () =>
+    presentAlert({
+      title: loc.abtm.delete_account_title,
+      message: loc.formatString(loc.abtm.delete_account_message, { url: ACCOUNT_DELETION_URL }) as string,
+      buttons: [
+        { text: loc._.cancel, style: 'cancel' },
+        {
+          text: loc.abtm.delete_account,
+          style: 'destructive',
+          onPress: async () => {
+            setBusy(true);
+            try {
+              await account.deleteAccount();
+              presentAlert({ message: loc.abtm.delete_account_done });
+            } catch (e: any) {
+              if (e instanceof AbtmApiError && e.code === 'biometric_cancelled') return;
+              presentAlert({ message: e.message });
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
       ],
     });
 
@@ -325,6 +352,8 @@ const AbtmAccount: React.FC = () => {
             <Hint>{loc.formatString(loc.abtm.change_contact, { phone: SUPPORT_PHONE })}</Hint>
             <Gap size={16} />
             <SecondButton title={loc.abtm.sign_out} onPress={signOut} testID="AbtmSignOut" />
+            <Gap size={8} />
+            <SecondButton title={loc.abtm.delete_account} onPress={deleteAccount} disabled={busy} testID="AbtmDeleteAccount" />
           </Card>
         ) : null}
       </Overlap>
