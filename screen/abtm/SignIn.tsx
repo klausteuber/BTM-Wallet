@@ -46,7 +46,6 @@ const AbtmSignIn: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
   const [agreed, setAgreed] = useState(false);
   // Promo texts: optional, never pre-ticked, and never a condition of the account.
   const [smsAgreed, setSmsAgreed] = useState(false);
@@ -132,7 +131,7 @@ const AbtmSignIn: React.FC = () => {
 
   const sendEmail = () =>
     run(async () => {
-      const result = await pairedWalletApi.signupSendEmail(signup.current.signupToken!, email.trim(), firstName.trim());
+      const result = await pairedWalletApi.signupSendEmail(signup.current.signupToken!, email.trim());
       signup.current = { ...signup.current, emailToken: result.emailToken, maskedEmail: result.maskedEmail };
       go('email_code');
     });
@@ -266,15 +265,6 @@ const AbtmSignIn: React.FC = () => {
           <AuthTitle>{loc.abtm.new_account_title}</AuthTitle>
           <Body muted>{loc.abtm.new_account_intro}</Body>
           <Gap size={20} />
-          <Label>{loc.abtm.first_name_label}</Label>
-          <Field
-            testID="AbtmFirstName"
-            value={firstName}
-            onChangeText={setFirstName}
-            textContentType="givenName"
-            autoComplete="given-name"
-          />
-          <Gap />
           <Label>{loc.abtm.email_label}</Label>
           <Field
             testID="AbtmEmail"

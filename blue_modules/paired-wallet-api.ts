@@ -426,8 +426,9 @@ class PairedWalletApi {
     await this.startSession(response, phone, baseUrl);
   }
 
-  async signupSendEmail(signupToken: string, email: string, firstName: string): Promise<{ emailToken: string; maskedEmail: string }> {
-    return this.rawRequest('/signup/email', { method: 'POST', body: { signupToken, email, firstName } });
+  // No name at sign-up: the account takes the first name from the ID once it is verified.
+  async signupSendEmail(signupToken: string, email: string): Promise<{ emailToken: string; maskedEmail: string }> {
+    return this.rawRequest('/signup/email', { method: 'POST', body: { signupToken, email } });
   }
 
   async signupVerifyEmail(

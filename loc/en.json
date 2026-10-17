@@ -253,7 +253,6 @@
     "use_text_instead": "Use the texted code instead",
     "new_account_title": "Create your account",
     "new_account_intro": "Add your email. We'll send a code to confirm it, so we can reach you if a text doesn't arrive.",
-    "first_name_label": "First name (optional)",
     "email_label": "Email",
     "send_email_code": "Email me a code",
     "email_code_sent_to": "We emailed a 6-digit code to {email}.",
