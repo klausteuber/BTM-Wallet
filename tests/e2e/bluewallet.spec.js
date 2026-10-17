@@ -795,6 +795,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       // on ios we dont have close or back button on this screen, so just use pull to close
       await element(by.text('Send')).swipe('down', 'fast', 0.9);
     }
+    await scrollUpOnHomeScreen(); // the swipe can leave the home screen scrolled down, hiding the wallet carousel
     await waitForId('WalletsList');
     await openScannerFromHome();
     await scanText(
@@ -815,6 +816,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       // on ios we dont have close or back button on this screen, so just use pull to close
       await element(by.text('Send')).swipe('down', 'fast', 0.9);
     }
+    await scrollUpOnHomeScreen(); // the swipe can leave the home screen scrolled down, hiding the wallet carousel
     await waitForId('WalletsList');
     await openScannerFromHome();
     await scanText(
@@ -828,6 +830,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
 
     // let's test Azteco voucher scanning now, while we have a wallet
     await goBack();
+    await scrollUpOnHomeScreen(); // closing Send can leave the home screen scrolled down, hiding the wallet carousel
     await waitForId('WalletsList');
     await openScannerFromHome();
     await scanText('https://azte.co/redeem?code=1111222233334444');
