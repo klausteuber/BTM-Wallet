@@ -59,7 +59,8 @@ describe('BlueWallet UI Tests - import Watch-only wallet (zpub)', () => {
 
     await expect(element(by.id('BitcoinAddressQRCodeContainer'))).toBeVisible();
 
-    await expect(element(by.text('bitcoin:BC1QGRHR5XC5774MAPH97D73YDRJLQQMG2V6JJLR29?amount=1&label=Test'))).toBeVisible();
+    // The ATM receive screen shows the plain address; the bitcoin: URI with amount and label goes into the QR only.
+    await expect(element(by.text('bc1qgrhr5xc5774maph97d73ydrjlqqmg2v6jjlr29'))).toBeVisible();
     await goBack();
     await element(by.id('SendButton')).tap();
     await element(by.text('OK')).tap();

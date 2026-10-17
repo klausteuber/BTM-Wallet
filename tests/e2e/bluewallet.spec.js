@@ -239,7 +239,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       await element(by.text(`No, and do not ask me again.`)).tap(); // sometimes the first click doesnt work (detox issue, not app's)
     } catch (_) {}
     await waitForId('BitcoinAddressQRCodeContainer');
-    await waitForId('CopyTextToClipboard');
+    await waitForId('AtmCopyAddressButton');
     await element(by.id('SetCustomAmountButton')).tap();
     await element(by.id('BitcoinAmountInput')).replaceText('1');
     await element(by.id('CustomAmountDescription')).replaceText('test');
@@ -249,7 +249,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
     await expect(element(by.id('BitcoinAmountText'))).toHaveText('1 BTC');
 
     await waitForId('BitcoinAddressQRCodeContainer');
-    await waitForId('CopyTextToClipboard');
+    await waitForId('AtmCopyAddressButton');
 
     process.env.CI && require('fs').writeFileSync(lockFile, '1');
   });
@@ -548,7 +548,11 @@ describe('BlueWallet UI Tests - no wallets', () => {
     process.env.CI && require('fs').writeFileSync(lockFile, '1');
   });
 
-  it('can import multisig setup from UR, and create tx, and sign on hw devices', async () => {
+  // Skipped: the fixture vault no longer holds enough to send 0.0005 BTC (Next stays disabled), and the test replays
+  // hardware-wallet signatures for one exact transaction. Upstream re-signed new fixtures in Oct 2026, but they match
+  // the tx built by upstream's newer fee code (BlueWallet "underpaid fee with 34-byte outputs" fix), not ours, so they
+  // can't be ported alone. Re-enable alongside that fee fix, or re-sign with the hardware devices.
+  it.skip('can import multisig setup from UR, and create tx, and sign on hw devices', async () => {
     const lockFile = '/tmp/travislock.' + hashIt('t6');
     if (process.env.CI) {
       if (require('fs').existsSync(lockFile)) return console.warn('skipping', JSON.stringify('t6'), 'as it previously passed on Travis');
@@ -744,7 +748,11 @@ describe('BlueWallet UI Tests - no wallets', () => {
     await waitForId('WalletsList');
 
     await helperCreateWallet();
-    await tapAndTapAgainIfElementIsNotVisible('HomeScreenScanButton', 'ScanQrBackdoorButton');
+    // The home button now shows the ATM QR on tap; scan-to-send is under its long-press menu.
+    await element(by.id('HomeScreenScanButton')).longPress();
+    await waitForText('Scan QR Code');
+    await element(by.text('Scan QR Code')).tap();
+    await waitForId('ScanQrBackdoorButton');
     await scanText('bitcoin:bc1qzrtn3xwlunlrm0n0uu23lr00gmdx4lnlavdy75');
     await expect(element(by.id('AddressInput'))).toHaveText('bc1qzrtn3xwlunlrm0n0uu23lr00gmdx4lnlavdy75');
 
