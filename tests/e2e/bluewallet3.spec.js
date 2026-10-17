@@ -49,6 +49,11 @@ describe('BlueWallet UI Tests - import Watch-only wallet (zpub)', () => {
     } catch (_) {}
     await expect(element(by.id('BitcoinAddressQRCodeContainer'))).toBeVisible();
     await expect(element(by.text('bc1qgrhr5xc5774maph97d73ydrjlqqmg2v6jjlr29'))).toBeVisible();
+    // "Set amount" is the last of the ATM screen's buttons; scroll it fully on screen before tapping.
+    await waitFor(element(by.id('SetCustomAmountButton')))
+      .toBeVisible(100)
+      .whileElement(by.id('ReceiveDetailsScrollView'))
+      .scroll(200, 'down');
     await element(by.id('SetCustomAmountButton')).tap();
     await element(by.id('BitcoinAmountInput')).replaceText('1');
     await element(by.id('CustomAmountDescription')).typeText('Test');
@@ -57,9 +62,11 @@ describe('BlueWallet UI Tests - import Watch-only wallet (zpub)', () => {
     await expect(element(by.id('CustomAmountDescriptionText'))).toHaveText('Test');
     await expect(element(by.id('BitcoinAmountText'))).toHaveText('1 BTC');
 
+    await element(by.id('ReceiveDetailsScrollView')).scrollTo('top'); // we scrolled down to reach "Set amount"
     await expect(element(by.id('BitcoinAddressQRCodeContainer'))).toBeVisible();
 
-    await expect(element(by.text('bitcoin:BC1QGRHR5XC5774MAPH97D73YDRJLQQMG2V6JJLR29?amount=1&label=Test'))).toBeVisible();
+    // The ATM receive screen shows the plain address; the bitcoin: URI with amount and label goes into the QR only.
+    await expect(element(by.text('bc1qgrhr5xc5774maph97d73ydrjlqqmg2v6jjlr29'))).toBeVisible();
     await goBack();
     await element(by.id('SendButton')).tap();
     await element(by.text('OK')).tap();

@@ -58,7 +58,7 @@ export async function helperImportWallet(importText, walletType, expectedWalletL
     .whileElement(by.id('WalletsList'))
     .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
   // going to Import Wallet screen and importing mnemonic
-  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ImportWallet');
+  await openAddWalletScreen('ImportWallet');
   await element(by.id('ImportWallet')).tap();
   await waitForId('SpeedBackdoor');
   // tapping 5 times invisible button is a backdoor:
@@ -145,7 +145,7 @@ export async function helperCreateWallet(walletName) {
     .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
 
   await sleep(200); // Wait until bounce animation finishes.
-  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'WalletNameInput');
+  await openAddWalletScreen('WalletNameInput');
   await element(by.id('WalletNameInput')).replaceText(walletName || 'cr34t3d');
   await waitForId('ActivateBitcoinButton');
   await element(by.id('ActivateBitcoinButton')).tap();
@@ -163,6 +163,25 @@ export async function helperCreateWallet(walletName) {
   await element(by.id('WalletsList')).swipe('right', 'fast', 1); // in case emu screen is small and it doesnt fit
   await sleep(200);
   await expect(element(by.id(walletName || 'cr34t3d'))).toBeVisible();
+}
+
+// "Create a wallet" opens the ATM setup screen first; BlueWallet's Add Wallet screen sits behind its
+// "Advanced wallet options" link at the bottom.
+export async function openAddWalletScreen(idToCheckVisible) {
+  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ATMWalletSetupScrollView');
+  await waitFor(element(by.id('AdvancedWalletOptionsLink')))
+    .toBeVisible()
+    .whileElement(by.id('ATMWalletSetupScrollView'))
+    .scroll(300, 'down');
+  await tapAndTapAgainIfElementIsNotVisible('AdvancedWalletOptionsLink', idToCheckVisible);
+}
+
+// The home button opens the ATM QR on tap; scan-to-send lives in its long-press menu.
+export async function openScannerFromHome() {
+  await element(by.id('HomeScreenScanButton')).longPress();
+  await waitForText('Scan QR Code');
+  await element(by.text('Scan QR Code')).tap();
+  await waitForId('ScanQrBackdoorButton');
 }
 
 export async function tapAndTapAgainIfElementIsNotVisible(idToTap, idToCheckVisible) {
@@ -244,15 +263,43 @@ export async function scanText(text) {
 }
 
 export async function goBack() {
-  if (device.getPlatform() === 'ios') {
-    try {
-      await element(by.id('BackButton')).atIndex(0).tap();
-    } catch (_) {
-      await element(by.id('NavigationCloseButton')).atIndex(0).tap();
-    }
-  } else {
+  if (device.getPlatform() !== 'ios') {
     await device.pressBack();
+    return;
   }
+
+  // Ported from upstream BlueWallet. iOS screens use the native back button, which has no testID; it's found by its
+  // accessibility label. A matcher can also hit hidden elements on screens stacked underneath, and tapping one of those
+  // does nothing (the old helper left a test stuck on Settings > Security). So only tap an element Detox reports as
+  // visible and hittable, falling back to hittable-only for iOS 26's glass back button, which fails the visibility check.
+  const candidates = [by.id('BackButton'), by.id('NavigationCloseButton'), by.label('Back'), by.text('Close')];
+  let lastErr;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    for (const requireVisible of [true, false]) {
+      for (const matcher of candidates) {
+        for (let idx = 0; idx < 6; idx++) {
+          let attrs;
+          try {
+            attrs = await element(matcher).atIndex(idx).getAttributes();
+          } catch (err) {
+            lastErr = err;
+            break; // no element at this index; try the next candidate
+          }
+          if ((requireVisible && !attrs.visible) || attrs.hittable === false) continue;
+          try {
+            await element(matcher).atIndex(idx).tap();
+            return;
+          } catch (err) {
+            lastErr = err;
+          }
+        }
+      }
+    }
+    await sleep(500);
+  }
+  const error = new Error('goBack: no back/close button was tappable after 10 attempts');
+  error.cause = lastErr;
+  throw error;
 }
 
 export async function typeTextIntoAlertInput(text) {

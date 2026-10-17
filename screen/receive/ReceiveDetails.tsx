@@ -84,9 +84,10 @@ type AtmActionButtonProps = {
   iconName: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'alert' | 'tile';
+  testID?: string;
 };
 
-const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: AtmActionButtonProps) => {
+const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary', testID }: AtmActionButtonProps) => {
   const { colors } = useTheme();
   if (variant === 'tile') {
     // Small secondary action (copy, share, amount) laid out three across.
@@ -115,6 +116,7 @@ const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary' }: At
   return (
     <Pressable
       accessibilityRole="button"
+      testID={testID}
       onPress={onPress}
       style={({ pressed }) => [
         styles.atmActionButton,
@@ -625,7 +627,7 @@ const ReceiveDetails = () => {
                   </BlueText>
                 )}
                 {isCustom && customLabel?.length > 0 && (
-                  <BlueText style={[styles.atmAmountLabel, stylesHook.atmHint]} numberOfLines={1}>
+                  <BlueText testID="CustomAmountDescriptionText" style={[styles.atmAmountLabel, stylesHook.atmHint]} numberOfLines={1}>
                     {customLabel}
                   </BlueText>
                 )}
@@ -646,6 +648,7 @@ const ReceiveDetails = () => {
                 </View>
                 <View style={styles.atmButtonStack}>
                   <AtmActionButton
+                    testID="AtmFullScreenQrButton"
                     title={loc.receive.atm_fullscreen}
                     iconName="scan-outline"
                     onPress={() => setIsAtmQrVisible(true)}
@@ -653,18 +656,21 @@ const ReceiveDetails = () => {
                   />
                   <View style={styles.atmTileRow}>
                     <AtmActionButton
+                      testID="AtmCopyAddressButton"
                       title={hasCopiedAtmAddress ? loc.receive.atm_copied : loc.receive.atm_copy}
                       iconName={hasCopiedAtmAddress ? 'checkmark-circle-outline' : 'copy-outline'}
                       onPress={handleAtmCopyAddress}
                       variant="tile"
                     />
                     <AtmActionButton
+                      testID="AtmShareButton"
                       title={loc.receive.atm_share_short}
                       iconName="share-outline"
                       onPress={handleShareButtonPressed}
                       variant="tile"
                     />
                     <AtmActionButton
+                      testID="SetCustomAmountButton"
                       title={loc.receive.atm_amount}
                       iconName="pricetag-outline"
                       onPress={showCustomAmountModal}

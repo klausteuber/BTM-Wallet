@@ -613,8 +613,11 @@ export function txhexToElectrumTransaction(txhex: string): ElectrumTransactionWi
       type = 'witness_v1_taproot';
     }
 
+    // Outputs with no address (OP_RETURN data, nonstandard scripts) are normal on mainnet. Describe them the
+    // way bitcoind does instead of throwing: one such output used to fail the whole wallet's history fetch on
+    // servers that send raw hex.
     if (!address) {
-      throw new Error('Internal error: unable to decode address from output script');
+      type = out.script[0] === 0x6a ? 'nulldata' : 'nonstandard'; // 0x6a = OP_RETURN
     }
 
     ret.vout.push({
@@ -625,7 +628,7 @@ export function txhexToElectrumTransaction(txhex: string): ElectrumTransactionWi
         hex: uint8ArrayToHex(out.script),
         reqSigs: 1, // todo
         type,
-        addresses: [address],
+        addresses: address ? [address] : [],
       },
     });
     n++;
