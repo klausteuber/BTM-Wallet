@@ -116,9 +116,9 @@ enum FiatUnitEnum: String, AppEnum, CaseIterable, Identifiable, Codable {
         case .INR:
             return "coinpaprika"
         case .IRR:
-            return "Exir"
+            return "YadioConvert"
         case .IRT:
-            return "Exir"
+            return "YadioConvert"
         case .ISK:
             return "CoinDesk"
         case .JPY:

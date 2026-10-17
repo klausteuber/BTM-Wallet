@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@rneui/themed';
 
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
@@ -12,6 +12,13 @@ import { useStorage } from '../../hooks/context/useStorage';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc from '../../loc';
 import { createATMReceiveResetAction } from './atmReceiveNavigation';
+
+// The root stack's navigation for this sheet; native-stack emits transitionEnd with `closing` once a modal is dismissed.
+type SheetNavigation = {
+  canGoBack: () => boolean;
+  goBack: () => void;
+  addListener: (event: 'transitionEnd', callback: (event: { data?: { closing?: boolean } }) => void) => () => void;
+};
 
 const AMERICA_BLUE = '#040766';
 const AMERICA_RED = '#ED122E';
@@ -46,13 +53,43 @@ const ATMWalletSetup = () => {
     return candidate;
   }, [wallets]);
 
-  const resetToATMReceive = useCallback((walletID: string) => {
-    if (!navigationRef.isReady()) {
-      return;
-    }
+  const resetToATMReceive = useCallback(
+    (walletID: string) => {
+      if (!navigationRef.isReady()) {
+        return;
+      }
 
-    navigationRef.dispatch(createATMReceiveResetAction(walletID));
-  }, []);
+      const openReceive = () => navigationRef.dispatch(createATMReceiveResetAction(walletID));
+      if (Platform.OS !== 'ios') {
+        openReceive();
+        return;
+      }
+
+      // iOS won't present a modal while another one is being dismissed. This sheet is a modal on the root stack and
+      // ReceiveDetails a modal on the nested home stack, so a single reset closed one and presented the other at the
+      // same moment, and UIKit dropped the presentation: customers landed on the wallet list instead of their QR.
+      // Close the sheet first and open the receive screen once it's gone (with a fallback in case the event is missed).
+      const sheet = navigation.getParent() as unknown as SheetNavigation | undefined;
+      let opened = false;
+      const openOnce = () => {
+        if (opened) return;
+        opened = true;
+        unsubscribe?.();
+        clearTimeout(fallback);
+        openReceive();
+      };
+      const fallback = setTimeout(openOnce, 1500);
+      const unsubscribe = sheet?.addListener('transitionEnd', event => {
+        if (event.data?.closing) openOnce();
+      });
+      if (sheet?.canGoBack()) {
+        sheet.goBack();
+      } else {
+        openOnce();
+      }
+    },
+    [navigation],
+  );
 
   const handleCreateWallet = useCallback(async () => {
     try {
@@ -139,6 +176,7 @@ const ATMWalletSetup = () => {
 
   return (
     <SafeAreaScrollView
+      testID="ATMWalletSetupScrollView"
       contentContainerStyle={[styles.root, stylesHook.root]}
       automaticallyAdjustKeyboardInsets
       keyboardShouldPersistTaps="handled"
