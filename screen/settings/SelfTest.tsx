@@ -31,6 +31,8 @@ import { BlueSpacing20 } from '../../components/BlueSpacing';
 import { BlueLoading } from '../../components/BlueLoading.tsx';
 import { LightningArkWallet } from '../../class/wallets/lightning-ark-wallet.ts';
 
+const ARK_SELF_TEST_ENABLED = false;
+
 const bip32 = BIP32Factory(ecc);
 
 type TState = {
@@ -97,7 +99,10 @@ export default class SelfTest extends Component {
 
       //
 
-      if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
+      // Skipped: @arkade-os/sdk 0.3.8 can't parse the Ark server's current responses, so this check failed the
+      // whole self-test for every user ("can't convert string to bigint"). Ark wallets are behind the developer
+      // backdoor. Re-enable with the 0.4.x SDK upgrade (upstream BlueWallet#8585).
+      if (ARK_SELF_TEST_ENABLED && typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
         const spkw = new LightningArkWallet();
         spkw.setSecret('abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about');
         await spkw.init();
