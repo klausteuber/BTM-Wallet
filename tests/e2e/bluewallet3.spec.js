@@ -62,6 +62,7 @@ describe('BlueWallet UI Tests - import Watch-only wallet (zpub)', () => {
     await expect(element(by.id('CustomAmountDescriptionText'))).toHaveText('Test');
     await expect(element(by.id('BitcoinAmountText'))).toHaveText('1 BTC');
 
+    await element(by.id('ReceiveDetailsScrollView')).scrollTo('top'); // we scrolled down to reach "Set amount"
     await expect(element(by.id('BitcoinAddressQRCodeContainer'))).toBeVisible();
 
     // The ATM receive screen shows the plain address; the bitcoin: URI with amount and label goes into the QR only.

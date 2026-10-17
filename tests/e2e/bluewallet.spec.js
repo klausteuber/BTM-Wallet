@@ -256,6 +256,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
     await expect(element(by.id('CustomAmountDescriptionText'))).toHaveText('test');
     await expect(element(by.id('BitcoinAmountText'))).toHaveText('1 BTC');
 
+    await element(by.id('ReceiveDetailsScrollView')).scrollTo('top'); // we scrolled down to reach "Set amount"
     await waitForId('BitcoinAddressQRCodeContainer');
     await waitForId('AtmCopyAddressButton');
 
