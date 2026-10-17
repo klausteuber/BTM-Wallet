@@ -480,13 +480,10 @@ const WalletsList: React.FC = () => {
       options.push(loc.wallets.paste_from_clipboard);
     }
 
-    const props = { title: loc.receive.atm_title, options, cancelButtonIndex: 0 };
-
+    // The anchor positions the sheet on iPad; it is not a menu item (pushing it into
+    // `options` showed a stray numbered button).
     const anchor = findNodeHandle(walletActionButtonsRef.current);
-
-    if (anchor) {
-      options.push(String(anchor));
-    }
+    const props = { title: loc.receive.atm_title, options, cancelButtonIndex: 0, ...(anchor ? { anchor } : {}) };
 
     ActionSheet.showActionSheetWithOptions(props, buttonIndex => {
       switch (buttonIndex) {
