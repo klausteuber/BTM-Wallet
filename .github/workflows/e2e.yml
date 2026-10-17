@@ -117,7 +117,7 @@ jobs:
 
       - name: Package simulator app
         run: |
-          APP_DIR="ios/build/Build/Products/${BUILD_CONFIGURATION}-iphonesimulator/BlueWallet.app"
+          APP_DIR="ios/build/Build/Products/${BUILD_CONFIGURATION}-iphonesimulator/America Bitcoin ATM.app"
           if [ ! -d "$APP_DIR" ]; then
             echo "Simulator app not found at $APP_DIR"
             find ios/build -maxdepth 5 -name '*.app' || true
@@ -132,6 +132,7 @@ jobs:
       - name: Install applesimutils
         run: |
           brew tap wix/brew
+          brew trust wix/brew
           brew install applesimutils
 
       - name: Run detox tests

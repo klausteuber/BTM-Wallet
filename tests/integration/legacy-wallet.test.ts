@@ -95,6 +95,8 @@ describe('LegacyWallet', function () {
 
   it('can fetch TXs when ' + cases[0][0], async () => await caseRunner(cases[0][1]), 240000);
 
+  // This public address keeps collecting dust spam (229 UTXOs by 2026-10), and fetchUtxo() downloads every
+  // one's tx hex, which can outlast the 30s default on a slow Electrum server.
   it('can fetch UTXO', async () => {
     const w = new LegacyWallet();
     w._address = '12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX';
@@ -107,7 +109,7 @@ describe('LegacyWallet', function () {
     assert.ok(w.getUtxo()[0].txid);
     assert.ok(w.getUtxo()[0].confirmations);
     assert.ok(w.getUtxo()[0].txhex);
-  });
+  }, 120000);
 });
 
 describe('SegwitP2SHWallet', function () {

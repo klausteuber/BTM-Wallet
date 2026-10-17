@@ -1,13 +1,10 @@
 name: Build Release and Upload to TestFlight (iOS)
 
+# Manual only. This is upstream BlueWallet's TestFlight pipeline: it needs App Store Connect and
+# fastlane match secrets that this repo doesn't have, so on every PR/push it could only fail.
+# iOS releases are built and uploaded locally with fastlane (beta_local). Add those secrets before
+# running this by hand.
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    types: [opened, reopened, synchronize, labeled]
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:

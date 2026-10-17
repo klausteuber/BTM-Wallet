@@ -52,10 +52,16 @@ class DeeplinkSchemaMatch {
       return;
     }
 
-    if (event.url.toLowerCase().startsWith('abtm:bitcoin:') || event.url.toLowerCase().startsWith('abtm:lightning:')) {
-      event.url = event.url.substring(11);
-    } else if (event.url.toLocaleLowerCase().startsWith('abtm://widget?action=')) {
-      event.url = event.url.substring('abtm://'.length);
+    // `bluewallet:` is the pre-rebrand scheme, still accepted so old QR codes and links keep working.
+    const lowercaseUrl = event.url.toLowerCase();
+    const appScheme = ['abtm:', 'bluewallet:'].find(
+      scheme => lowercaseUrl.startsWith(scheme + 'bitcoin:') || lowercaseUrl.startsWith(scheme + 'lightning:'),
+    );
+    const widgetScheme = ['abtm://', 'bluewallet://'].find(scheme => lowercaseUrl.startsWith(scheme + 'widget?action='));
+    if (appScheme) {
+      event.url = event.url.substring(appScheme.length);
+    } else if (widgetScheme) {
+      event.url = event.url.substring(widgetScheme.length);
     }
 
     if (DeeplinkSchemaMatch.isWidgetAction(event.url)) {
