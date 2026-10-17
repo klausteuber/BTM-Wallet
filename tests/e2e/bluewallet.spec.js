@@ -240,6 +240,11 @@ describe('BlueWallet UI Tests - no wallets', () => {
     } catch (_) {}
     await waitForId('BitcoinAddressQRCodeContainer');
     await waitForId('AtmCopyAddressButton');
+    // "Set amount" is the last of the ATM screen's buttons; scroll it fully on screen before tapping.
+    await waitFor(element(by.id('SetCustomAmountButton')))
+      .toBeVisible(100)
+      .whileElement(by.id('ReceiveDetailsScrollView'))
+      .scroll(200, 'down');
     await element(by.id('SetCustomAmountButton')).tap();
     await element(by.id('BitcoinAmountInput')).replaceText('1');
     await element(by.id('CustomAmountDescription')).replaceText('test');
