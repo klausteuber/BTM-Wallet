@@ -95,6 +95,7 @@ const AtmActionButton = ({ title, iconName, onPress, variant = 'secondary', test
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={title}
+        testID={testID}
         onPress={onPress}
         style={({ pressed }) => [styles.atmTile, { opacity: pressed ? 0.7 : 1 }]}
       >
