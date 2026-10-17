@@ -32,7 +32,8 @@ import { BlueSpacing10 } from './BlueSpacing';
 import { useLocale } from '@react-navigation/native';
 import { Icon } from '@rneui/themed';
 import { useAbtmAccount } from '../hooks/useAbtmAccount';
-import { isRegisteredWallet } from '../blue_modules/abtm-wallet';
+import { isRegisteredWallet, registrableWallets } from '../blue_modules/abtm-wallet';
+import { navigationRef } from '../NavigationService';
 
 const AMERICA_BLUE = '#040766';
 const AMERICA_MINT = '#38E3A5';
@@ -310,14 +311,29 @@ const iStyles = StyleSheet.create({
     fontWeight: '600',
     flexShrink: 1,
   },
-  registeredBadge: {
-    width: 24,
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 24,
+    paddingHorizontal: 9,
     borderRadius: 12,
     marginStart: 8,
+  },
+  verifiedPill: {
     backgroundColor: AMERICA_MINT,
-    alignItems: 'center',
-    justifyContent: 'center',
+  },
+  verifyPill: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)',
+  },
+  verifyPillText: {
+    marginStart: 0,
+    marginEnd: 2,
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginStart: 3,
   },
   balance: {
     backgroundColor: 'transparent',
@@ -378,8 +394,14 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
     const { direction } = useLocale();
     // The wallet registered to the America Bitcoin account gets a mint check, so the
     // customer can see which wallet our ATMs pay without opening the account page.
-    const { profile } = useAbtmAccount();
+    // A wallet that could be registered but isn't gets a quiet "Verify" that opens the account page.
+    const { profile, status: accountStatus } = useAbtmAccount();
     const registered = !!profile?.wallet.registered && isRegisteredWallet(item, profile.wallet.firstAddress);
+    const canVerify =
+      !registered && accountStatus !== 'loading' && !profile?.wallet.registered && registrableWallets([item as any]).length === 1;
+    const openAccount = useCallback(() => {
+      if (navigationRef.isReady()) (navigationRef as any).navigate('AbtmAccount');
+    }, []);
 
     const springConfig = useMemo(() => ({ useNativeDriver: true, tension: 100 }), []);
     const animateScale = useCallback(
@@ -526,13 +548,29 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
                     </Text>
                     {registered ? (
                       <View
-                        style={iStyles.registeredBadge}
+                        style={[iStyles.statusPill, iStyles.verifiedPill]}
                         accessible
                         accessibilityLabel={loc.abtm.wallet_registered}
                         testID="AbtmRegisteredWalletBadge"
                       >
-                        <Icon name="checkmark" type="ionicon" size={17} color={AMERICA_BLUE} />
+                        <Icon name="checkmark" type="ionicon" size={14} color={AMERICA_BLUE} />
+                        <Text style={[iStyles.statusPillText, { color: AMERICA_BLUE }]}>{loc.abtm.card_verified}</Text>
                       </View>
+                    ) : canVerify ? (
+                      <Pressable
+                        onPress={openAccount}
+                        hitSlop={10}
+                        style={[iStyles.statusPill, iStyles.verifyPill]}
+                        accessibilityRole="button"
+                        accessibilityLabel={loc.abtm.card_verify}
+                        accessibilityHint={loc.abtm.card_verify_hint}
+                        testID="AbtmVerifyWalletLink"
+                      >
+                        <Text style={[iStyles.statusPillText, iStyles.verifyPillText, { color: colors.inverseForegroundColor }]}>
+                          {loc.abtm.card_verify}
+                        </Text>
+                        <Icon name="chevron-forward" type="ionicon" size={13} color={colors.inverseForegroundColor} />
+                      </Pressable>
                     ) : null}
                   </View>
                   <View style={iStyles.balanceContainer}>

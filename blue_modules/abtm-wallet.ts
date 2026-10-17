@@ -43,3 +43,35 @@ export async function newAbtmWallet(): Promise<ABTMPairedWallet> {
 export function nextReceiveAddress(wallet: RegistrableWallet): string {
   return wallet._getExternalAddressByIndex(wallet.next_free_address_index || 0);
 }
+
+// ------------------------------------------------------------------ registering on sign-in
+
+let signedInJustNow = false;
+
+/** Sign-in just finished on this phone: the Account screen registers the wallet once, on its next look. */
+export function markSignedInJustNow(): void {
+  signedInJustNow = true;
+}
+
+/** True once per sign-in: the first caller gets it, so a wallet is never registered twice or behind the customer's back later. */
+export function takeSignedInJustNow(): boolean {
+  const value = signedInJustNow;
+  signedInJustNow = false;
+  return value;
+}
+
+/**
+ * The wallet to register straight after sign-in, so signing in is one step instead of two.
+ * Only when there is no doubt which one: the account has no wallet registered, the account
+ * service will accept this phone (`deviceReady`), and exactly one wallet on the phone can be
+ * registered. Several wallets keep the picker on the Account screen.
+ */
+export function walletToRegisterOnSignIn(
+  wallets: AnyWallet[],
+  alreadyRegistered: boolean,
+  deviceReady: boolean,
+): RegistrableWallet | undefined {
+  if (alreadyRegistered || !deviceReady) return undefined;
+  const candidates = registrableWallets(wallets);
+  return candidates.length === 1 ? candidates[0] : undefined;
+}

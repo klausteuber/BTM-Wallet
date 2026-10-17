@@ -4,6 +4,8 @@ import Button from '../../components/Button';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { pairedWalletApi, SmsMarketingOffer } from '../../blue_modules/paired-wallet-api';
 import { refreshAbtmAccount } from '../../hooks/useAbtmAccount';
+import { markSignedInJustNow, registrableWallets } from '../../blue_modules/abtm-wallet';
+import { useStorage } from '../../hooks/context/useStorage';
 import { SUPPORT_PHONE } from '../../blue_modules/send-guard';
 import loc from '../../loc';
 import AgreeRow from './AgreeRow';
@@ -38,6 +40,8 @@ const RESEND_SECONDS = 30;
  */
 const AbtmSignIn: React.FC = () => {
   const navigation = useExtendedNavigation();
+  const { wallets } = useStorage();
+  const hasWallet = registrableWallets(wallets).length > 0;
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -82,6 +86,7 @@ const AbtmSignIn: React.FC = () => {
   }, []);
 
   const finish = useCallback(async () => {
+    markSignedInJustNow();
     await refreshAbtmAccount();
     navigation.goBack();
   }, [navigation]);
@@ -201,6 +206,7 @@ const AbtmSignIn: React.FC = () => {
             autoFocus
           />
           <Hint>{loc.abtm.phone_hint}</Hint>
+          {hasWallet ? <Hint>{loc.abtm.signin_wallet_link}</Hint> : null}
           <Gap size={22} />
           <Button
             testID="AbtmSendCode"

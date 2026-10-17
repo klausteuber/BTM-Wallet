@@ -9,6 +9,9 @@ import {
   registrableWallets,
   registrationAddress,
   registrationDescriptor,
+  markSignedInJustNow,
+  takeSignedInJustNow,
+  walletToRegisterOnSignIn,
 } from '../../blue_modules/abtm-wallet';
 
 const MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
@@ -95,5 +98,36 @@ describe('ABTM wallet registration helpers', () => {
     const taproot = new HDTaprootWallet();
     taproot.setSecret(MNEMONIC);
     assert.strictEqual(isRegisteredWallet(taproot, ADDRESS_0), false);
+  });
+});
+
+describe('registering the wallet on sign-in', () => {
+  it('picks the only wallet on the phone', () => {
+    const legacy = standardWallet();
+    assert.strictEqual(walletToRegisterOnSignIn([legacy], false, true), legacy);
+  });
+
+  it('leaves the choice to the customer when there are several wallets', () => {
+    assert.strictEqual(walletToRegisterOnSignIn([standardWallet(), abtmWallet()], false, true), undefined);
+  });
+
+  it('does nothing when the account already has a wallet', () => {
+    assert.strictEqual(walletToRegisterOnSignIn([standardWallet()], true, true), undefined);
+  });
+
+  it('waits when the account service would refuse this phone', () => {
+    assert.strictEqual(walletToRegisterOnSignIn([standardWallet()], false, false), undefined);
+  });
+
+  it('ignores wallets that cannot be registered', () => {
+    const watch = new WatchOnlyWallet();
+    assert.strictEqual(walletToRegisterOnSignIn([watch as any], false, true), undefined);
+  });
+
+  it('fires once per sign-in', () => {
+    assert.strictEqual(takeSignedInJustNow(), false);
+    markSignedInJustNow();
+    assert.strictEqual(takeSignedInJustNow(), true);
+    assert.strictEqual(takeSignedInJustNow(), false);
   });
 });

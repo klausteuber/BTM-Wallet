@@ -17,6 +17,8 @@ import {
   registrableWallets,
   registrationAddress,
   registeredWalletOnPhone,
+  takeSignedInJustNow,
+  walletToRegisterOnSignIn,
 } from '../../blue_modules/abtm-wallet';
 import loc, { formatBalance } from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
@@ -84,6 +86,17 @@ const AbtmAccount: React.FC = () => {
       setBusy(false);
     }
   };
+
+  // Straight after sign-in, register the wallet on this phone without a second tap (the sign-in
+  // screen says so). Face ID still confirms it; if the customer cancels, the button below stays.
+  useEffect(() => {
+    if (account.status !== 'signed_in' || !profile || busy) return;
+    if (!takeSignedInJustNow()) return;
+    const deviceReady = !(profile.verification.identityLinked && !profile.verification.verified);
+    const wallet = walletToRegisterOnSignIn(wallets, profile.wallet.registered, deviceReady);
+    if (wallet) register(wallet, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account.status, profile]);
 
   const createWallet = async () => {
     setBusy(true);
