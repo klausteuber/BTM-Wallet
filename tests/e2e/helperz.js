@@ -58,7 +58,7 @@ export async function helperImportWallet(importText, walletType, expectedWalletL
     .whileElement(by.id('WalletsList'))
     .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
   // going to Import Wallet screen and importing mnemonic
-  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ImportWallet');
+  await openAddWalletScreen('ImportWallet');
   await element(by.id('ImportWallet')).tap();
   await waitForId('SpeedBackdoor');
   // tapping 5 times invisible button is a backdoor:
@@ -145,7 +145,7 @@ export async function helperCreateWallet(walletName) {
     .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
 
   await sleep(200); // Wait until bounce animation finishes.
-  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'WalletNameInput');
+  await openAddWalletScreen('WalletNameInput');
   await element(by.id('WalletNameInput')).replaceText(walletName || 'cr34t3d');
   await waitForId('ActivateBitcoinButton');
   await element(by.id('ActivateBitcoinButton')).tap();
@@ -163,6 +163,17 @@ export async function helperCreateWallet(walletName) {
   await element(by.id('WalletsList')).swipe('right', 'fast', 1); // in case emu screen is small and it doesnt fit
   await sleep(200);
   await expect(element(by.id(walletName || 'cr34t3d'))).toBeVisible();
+}
+
+// "Create a wallet" opens the ATM setup screen first; BlueWallet's Add Wallet screen sits behind its
+// "Advanced wallet options" link at the bottom.
+export async function openAddWalletScreen(idToCheckVisible) {
+  await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ATMWalletSetupScrollView');
+  await waitFor(element(by.id('AdvancedWalletOptionsLink')))
+    .toBeVisible()
+    .whileElement(by.id('ATMWalletSetupScrollView'))
+    .scroll(300, 'down');
+  await tapAndTapAgainIfElementIsNotVisible('AdvancedWalletOptionsLink', idToCheckVisible);
 }
 
 export async function tapAndTapAgainIfElementIsNotVisible(idToTap, idToCheckVisible) {

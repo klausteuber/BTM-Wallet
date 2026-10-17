@@ -17,6 +17,7 @@ import {
   tapIfTextPresent,
   waitForId,
   waitForText,
+  openAddWalletScreen,
 } from './helperz';
 
 // if loglevel is set to `error`, this kind of logging will still get through
@@ -494,7 +495,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       .whileElement(by.id('WalletsList'))
       .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
     // going to Import Wallet screen and importing Vault
-    await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ActivateVaultButton');
+    await openAddWalletScreen('ActivateVaultButton');
     await element(by.id('ActivateVaultButton')).tap();
     await element(by.id('Create')).tap();
     // vault settings:
@@ -560,7 +561,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       .whileElement(by.id('WalletsList'))
       .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
     // going to Import Wallet screen and importing mnemonic
-    await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ImportWallet');
+    await openAddWalletScreen('ImportWallet');
     await element(by.id('ImportWallet')).tap();
     await element(by.id('ScanImport')).tap();
 
@@ -680,7 +681,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       .whileElement(by.id('WalletsList'))
       .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
     // going to Import Wallet screen and importing mnemonic
-    await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ScrollView');
+    await openAddWalletScreen('ScrollView');
     await waitFor(element(by.id('ImportWallet')))
       .toBeVisible()
       .whileElement(by.id('ScrollView'))
@@ -757,7 +758,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       .whileElement(by.id('WalletsList'))
       .scroll(500, 'right'); // in case emu screen is small and it doesnt fit
     // going to Import Wallet screen and importing mnemonic
-    await tapAndTapAgainIfElementIsNotVisible('CreateAWallet', 'ImportWallet');
+    await openAddWalletScreen('ImportWallet');
     await element(by.id('ImportWallet')).tap();
     await element(by.id('ScanImport')).tap();
     await scanText('lndhub://a3b4c9109408a043d1ea:ec5a888596b2c45729d1@https://kek.lol');

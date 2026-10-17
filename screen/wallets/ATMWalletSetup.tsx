@@ -139,6 +139,7 @@ const ATMWalletSetup = () => {
 
   return (
     <SafeAreaScrollView
+      testID="ATMWalletSetupScrollView"
       contentContainerStyle={[styles.root, stylesHook.root]}
       automaticallyAdjustKeyboardInsets
       keyboardShouldPersistTaps="handled"
