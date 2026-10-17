@@ -258,7 +258,11 @@ describe('BlueWallet UI Tests - no wallets', () => {
 
     await element(by.id('ReceiveDetailsScrollView')).scrollTo('top'); // we scrolled down to reach "Set amount"
     await waitForId('BitcoinAddressQRCodeContainer');
-    await waitForId('AtmCopyAddressButton');
+    // The amount and label add two lines, which can push the buttons below the fold on a short screen.
+    await waitFor(element(by.id('AtmCopyAddressButton')))
+      .toBeVisible()
+      .whileElement(by.id('ReceiveDetailsScrollView'))
+      .scroll(200, 'down');
 
     process.env.CI && require('fs').writeFileSync(lockFile, '1');
   });
