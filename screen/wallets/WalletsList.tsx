@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useReducer, useRef, useMemo } from 'react';
 import { useFocusEffect, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
-import { Alert, findNodeHandle, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, findNodeHandle, Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { getClipboardContent } from '../../blue_modules/clipboard';
 import { isDesktop } from '../../blue_modules/environment';
@@ -458,43 +458,31 @@ const WalletsList: React.FC = () => {
 
     const isClipboardEmpty = (await getClipboardContent())?.trim().length === 0;
 
-    const options = [loc._.cancel, loc.wallets.atm_action_show_qr, loc.wallets.list_long_choose, loc.wallets.list_long_scan];
-    if (!isClipboardEmpty) {
-      options.push(loc.wallets.paste_from_clipboard);
-    }
-
-    const props = { title: loc.receive.atm_title, options, cancelButtonIndex: 0 };
-
-    const anchor = findNodeHandle(walletActionButtonsRef.current);
-
-    if (anchor) {
-      options.push(String(anchor));
-    }
-
-    ActionSheet.showActionSheetWithOptions(props, buttonIndex => {
-      switch (buttonIndex) {
-        case 0:
-          break;
-        case 1:
-          handleOpenAtmReceive();
-          break;
-        case 2:
-          fs.showImagePickerAndReadImage()
+    // Labels paired with their actions, so the menu can differ per platform without index bookkeeping. On Android
+    // ActionSheet is an Alert, which shows at most three buttons and silently drops the rest; leaving out Show ATM QR
+    // there (a plain tap already does it) keeps Scan QR Code reachable.
+    const actions: { label: string; run: () => void }[] = [
+      ...(Platform.OS === 'android' ? [] : [{ label: loc.wallets.atm_action_show_qr, run: handleOpenAtmReceive }]),
+      {
+        label: loc.wallets.list_long_choose,
+        run: () =>
+          fs
+            .showImagePickerAndReadImage()
             .then(onBarScanned)
             .catch(error => {
               triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
               presentAlert({ title: loc.errors.error, message: error.message });
-            });
-          break;
-        case 3:
-          scanQrHelper().then(onBarScanned);
-          break;
-        case 4:
-          if (!isClipboardEmpty) {
-            pasteFromClipboard();
-          }
-          break;
-      }
+            }),
+      },
+      { label: loc.wallets.list_long_scan, run: () => scanQrHelper().then(onBarScanned) },
+      ...(isClipboardEmpty ? [] : [{ label: loc.wallets.paste_from_clipboard, run: pasteFromClipboard }]),
+    ];
+
+    const anchor = findNodeHandle(walletActionButtonsRef.current) ?? undefined;
+    const props = { title: loc.receive.atm_title, options: [loc._.cancel, ...actions.map(a => a.label)], cancelButtonIndex: 0, anchor };
+
+    ActionSheet.showActionSheetWithOptions(props, buttonIndex => {
+      if (buttonIndex > 0) actions[buttonIndex - 1]?.run();
     });
   }, [atmWallets.length, handleOpenAtmReceive, navigation, onBarScanned, pasteFromClipboard]);
 

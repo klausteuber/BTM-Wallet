@@ -177,14 +177,14 @@
     "IRR": {
         "endPointKey": "IRR",
         "locale": "fa-IR",
-        "source": "Exir",
+        "source": "YadioConvert",
         "symbol": "﷼",
         "country": "Iran (Iranian Rial)"
     },
     "IRT": {
         "endPointKey": "IRT",
         "locale": "fa-IR",
-        "source": "Exir",
+        "source": "YadioConvert",
         "symbol": "تومان",
         "country": "Iran (Iranian Toman)"
     },
