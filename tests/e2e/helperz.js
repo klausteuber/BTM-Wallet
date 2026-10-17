@@ -176,6 +176,14 @@ export async function openAddWalletScreen(idToCheckVisible) {
   await tapAndTapAgainIfElementIsNotVisible('AdvancedWalletOptionsLink', idToCheckVisible);
 }
 
+// The home button opens the ATM QR on tap; scan-to-send lives in its long-press menu.
+export async function openScannerFromHome() {
+  await element(by.id('HomeScreenScanButton')).longPress();
+  await waitForText('Scan QR Code');
+  await element(by.text('Scan QR Code')).tap();
+  await waitForId('ScanQrBackdoorButton');
+}
+
 export async function tapAndTapAgainIfElementIsNotVisible(idToTap, idToCheckVisible) {
   // tap
   await element(by.id(idToTap)).tap();

@@ -18,6 +18,7 @@ import {
   waitForId,
   waitForText,
   openAddWalletScreen,
+  openScannerFromHome,
 } from './helperz';
 
 // if loglevel is set to `error`, this kind of logging will still get through
@@ -50,7 +51,9 @@ describe('BlueWallet UI Tests - no wallets', () => {
       .toBeVisible()
       .whileElement(by.id('AboutScrollView'))
       .scroll(500, 'down'); // in case emu screen is small and it doesnt fit
-    await tapAndTapAgainIfElementIsNotVisible('RunSelfTestButton', 'SelfTestLoading');
+    // Self-test starts on its own and can finish before a loading check would see it (it did on iOS), after which a
+    // second "tap again" has no button to hit. Tap once and wait for the result.
+    await element(by.id('RunSelfTestButton')).tap();
     await waitFor(element(by.id('SelfTestOk')))
       .toBeVisible()
       .withTimeout(300 * 1000);
@@ -753,11 +756,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
     await waitForId('WalletsList');
 
     await helperCreateWallet();
-    // The home button now shows the ATM QR on tap; scan-to-send is under its long-press menu.
-    await element(by.id('HomeScreenScanButton')).longPress();
-    await waitForText('Scan QR Code');
-    await element(by.text('Scan QR Code')).tap();
-    await waitForId('ScanQrBackdoorButton');
+    await openScannerFromHome();
     await scanText('bitcoin:bc1qzrtn3xwlunlrm0n0uu23lr00gmdx4lnlavdy75');
     await expect(element(by.id('AddressInput'))).toHaveText('bc1qzrtn3xwlunlrm0n0uu23lr00gmdx4lnlavdy75');
 
@@ -780,7 +779,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
 
     // imported
 
-    await tapAndTapAgainIfElementIsNotVisible('HomeScreenScanButton', 'ScanQrBackdoorButton');
+    await openScannerFromHome();
     await scanText(
       'lightning:lnbc1p090vrqpp5yxpd5wjtln4r874a9grkpr772cs0uyn7ayva3ypleyut7z0a4rgsdpu235hqurfdcsx7an9wf6x7undv4h8ggpgw35hqurfdchx6eff9p6nzvfc8q5scqzpgxqyz5vqcy30v2txquuh06h6946pal4dlm4hyujqv8ec3cunetf46gfydpxswedv4sr2rlg8dwpcg3fq9gah3j42373w366e6yau37t30amp5zqqftd004',
     );
@@ -796,7 +795,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       await element(by.text('Send')).swipe('down', 'fast', 0.9);
     }
     await waitForId('WalletsList');
-    await tapAndTapAgainIfElementIsNotVisible('HomeScreenScanButton', 'ScanQrBackdoorButton');
+    await openScannerFromHome();
     await scanText(
       'bitcoin:1DamianM2k8WfNEeJmyqSe2YW1upB7UATx?amount=0.000001&lightning=lnbc1u1pwry044pp53xlmkghmzjzm3cljl6729cwwqz5hhnhevwfajpkln850n7clft4sdqlgfy4qv33ypmj7sj0f32rzvfqw3jhxaqcqzysxq97zvuq5zy8ge6q70prnvgwtade0g2k5h2r76ws7j2926xdjj2pjaq6q3r4awsxtm6k5prqcul73p3atveljkn6wxdkrcy69t6k5edhtc6q7lgpe4m5k4',
     );
@@ -816,7 +815,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
       await element(by.text('Send')).swipe('down', 'fast', 0.9);
     }
     await waitForId('WalletsList');
-    await tapAndTapAgainIfElementIsNotVisible('HomeScreenScanButton', 'ScanQrBackdoorButton');
+    await openScannerFromHome();
     await scanText(
       'bitcoin:1DamianM2k8WfNEeJmyqSe2YW1upB7UATx?amount=0.000001&lightning=lnbc1u1pwry044pp53xlmkghmzjzm3cljl6729cwwqz5hhnhevwfajpkln850n7clft4sdqlgfy4qv33ypmj7sj0f32rzvfqw3jhxaqcqzysxq97zvuq5zy8ge6q70prnvgwtade0g2k5h2r76ws7j2926xdjj2pjaq6q3r4awsxtm6k5prqcul73p3atveljkn6wxdkrcy69t6k5edhtc6q7lgpe4m5k4',
     );
@@ -829,7 +828,7 @@ describe('BlueWallet UI Tests - no wallets', () => {
     // let's test Azteco voucher scanning now, while we have a wallet
     await goBack();
     await waitForId('WalletsList');
-    await tapAndTapAgainIfElementIsNotVisible('HomeScreenScanButton', 'ScanQrBackdoorButton');
+    await openScannerFromHome();
     await scanText('https://azte.co/redeem?code=1111222233334444');
     await waitForId('AztecoCode');
     await expect(element(by.id('AztecoCode'))).toBeVisible();
