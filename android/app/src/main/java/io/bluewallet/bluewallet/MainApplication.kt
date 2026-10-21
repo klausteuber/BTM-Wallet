@@ -127,6 +127,7 @@ class MainApplication : Application(), ReactApplication {
         val isDoNotTrackEnabled = sharedPref.getString("donottrack", "0")
         if (isDoNotTrackEnabled != "1") {
             Bugsnag.start(this)
+            IntegrityCheck.reportToBugsnag(this)
         }
     }
 

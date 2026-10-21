@@ -325,7 +325,7 @@ export const setLevels = async (levelAll: boolean) => {
     if (!levelAll) {
       console.debug('Disabling notifications as user opted out...');
       PushNotification.removeAllDeliveredNotifications();
-      PushNotification.setApplicationIconBadgeNumber(0);
+      setApplicationIconBadgeNumber(0);
       PushNotification.cancelAllLocalNotifications();
       await AsyncStorage.setItem(NOTIFICATIONS_NO_AND_DONT_ASK_FLAG, 'true');
       console.debug('Notifications disabled successfully');
@@ -622,7 +622,11 @@ export const removeDeliveredNotifications = (identifiers = []) => {
   PushNotification.removeDeliveredNotifications(identifiers);
 };
 
+// iOS only. On Android the launcher badge follows the delivered notifications, and the
+// library's native badge helper throws a NullPointerException on some OEM launchers
+// (Xiaomi HyperOS, Android 16), which crashed the app on every cold launch.
 export const setApplicationIconBadgeNumber = (badges: number) => {
+  if (Platform.OS !== 'ios') return;
   PushNotification.setApplicationIconBadgeNumber(badges);
 };
 
