@@ -2,9 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto">
 
+    <!-- A Maven dependency declares the camera as required, and the manifest merger
+         lets required="true" win, which hid the app from devices without a camera
+         (Play: "no longer supports 459 devices"). Scanning and ID checks degrade
+         without one, so keep it optional. -->
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false" />
+        android:required="false"
+        tools:replace="android:required" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
