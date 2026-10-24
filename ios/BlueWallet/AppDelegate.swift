@@ -60,6 +60,11 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
         _ = MenuElementsEmitter.sharedInstance()
         NSLog("[MenuElements] AppDelegate: Initialized emitter singleton")
         
+        // iOS 27 refuses to launch apps built with its SDK that don't use the UIScene
+        // lifecycle. SceneDelegate creates the React Native window inside the scene,
+        // so RCTAppDelegate must not create its own window here.
+        self.automaticallyLoadReactNativeWindow = false
+
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
@@ -227,7 +232,9 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
                     preferredStyle: .alert
                 )
                 alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-              self.window.rootViewController?.present(alert, animated: true, completion: nil)
+              // The window is created by SceneDelegate and may not exist yet.
+              let window: UIWindow? = self.window
+              window?.rootViewController?.present(alert, animated: true, completion: nil)
             }
         }
     }
@@ -500,5 +507,84 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
         } else {
             return super.canPerformAction(action, withSender: sender)
         }
+    }
+}
+
+// MARK: - UIScene lifecycle
+
+/// Owns the app's window. iOS 27 terminates apps built with its SDK that still
+/// create their window in the app delegate, so the React Native root view is
+/// created here, inside the scene. Launch URLs, quick actions and Handoff now
+/// arrive through the scene; they are converted back into the launchOptions keys
+/// that React Native's Linking and react-native-quick-actions read at startup.
+@objc(SceneDelegate)
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+    var window: UIWindow?
+
+    private var appDelegate: AppDelegate? {
+        UIApplication.shared.delegate as? AppDelegate
+    }
+
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene, let appDelegate = appDelegate else { return }
+
+        var launchOptions: [AnyHashable: Any] = [:]
+        if let url = connectionOptions.urlContexts.first?.url {
+            launchOptions[UIApplication.LaunchOptionsKey.url] = url
+        }
+        if let shortcutItem = connectionOptions.shortcutItem {
+            launchOptions[UIApplication.LaunchOptionsKey.shortcutItem] = shortcutItem
+        }
+        let userActivity = connectionOptions.userActivities.first
+        if let userActivity = userActivity {
+            launchOptions[UIApplication.LaunchOptionsKey.userActivityDictionary] = [
+                UIApplication.LaunchOptionsKey.userActivityType: userActivity.activityType,
+                "UIApplicationLaunchOptionsUserActivityKey": userActivity,
+            ]
+        }
+
+        let rootView = appDelegate.rootViewFactory().view(
+            withModuleName: appDelegate.moduleName ?? "AmericaBitcoinATM",
+            initialProperties: appDelegate.initialProps,
+            launchOptions: launchOptions
+        )
+        let rootViewController = appDelegate.createRootViewController()
+        appDelegate.setRootView(rootView, toRootViewController: rootViewController)
+
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = rootViewController
+        self.window = window
+        // Native modules and libraries look the window up on the app delegate.
+        appDelegate.window = window
+        window.makeKeyAndVisible()
+
+        // Handoff and widget activities that launched the app: same handling as a
+        // running app (the payload is also saved for JS to read once it starts).
+        if let userActivity = userActivity {
+            _ = appDelegate.application(UIApplication.shared, continue: userActivity) { _ in }
+        }
+    }
+
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        for context in URLContexts {
+            var options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+            if let sourceApplication = context.options.sourceApplication {
+                options[.sourceApplication] = sourceApplication
+            }
+            _ = RCTLinkingManager.application(UIApplication.shared, open: context.url, options: options)
+        }
+    }
+
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        _ = appDelegate?.application(UIApplication.shared, continue: userActivity) { _ in }
+    }
+
+    func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        RNQuickActionManager.onQuickActionPress(shortcutItem, completionHandler: completionHandler)
+    }
+
+    func windowScene(_ windowScene: UIWindowScene, didUpdate previousCoordinateSpace: UICoordinateSpace, interfaceOrientation previousInterfaceOrientation: UIInterfaceOrientation, traitCollection previousTraitCollection: UITraitCollection) {
+        NotificationCenter.default.post(name: NSNotification.Name("RCTWindowFrameDidChangeNotification"), object: self)
     }
 }
