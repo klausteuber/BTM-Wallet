@@ -52,6 +52,7 @@ jest.mock('@react-native-community/push-notification-ios', () => {
 });
 
 jest.mock('react-native-permissions', () => require('react-native-permissions/mock'));
+jest.mock('@react-native-community/netinfo', () => require('@react-native-community/netinfo/jest/netinfo-mock.js'));
 
 jest.mock('react-native-device-info', () => {
   return {
