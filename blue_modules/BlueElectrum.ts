@@ -4,9 +4,10 @@ import DefaultPreference from 'react-native-default-preference';
 import RNFS from 'react-native-fs';
 import Realm from 'realm';
 import { sha256 as _sha256 } from '@noble/hashes/sha256';
+import NetInfo from '@react-native-community/netinfo';
 
 import { LegacyWallet, SegwitBech32Wallet, SegwitP2SHWallet, TaprootWallet } from '../class';
-import presentAlert from '../components/Alert';
+import presentAlert, { AlertType } from '../components/Alert';
 import loc from '../loc';
 import { GROUP_SHARED_PREFS } from './currency';
 import { ElectrumServerItem } from '../screen/settings/ElectrumSettings';
@@ -104,6 +105,8 @@ let serverName: string | false = false;
 let disableBatching: boolean = false;
 let connectionAttempt: number = 0;
 let currentPeerIndex = Math.floor(Math.random() * hardcodedPeers.length);
+let stopWaitingForNetwork: (() => void) | undefined;
+let offlineNoticeShown: boolean = false;
 let latestBlock: { height: number; time: number } | { height: undefined; time: undefined } = { height: undefined, time: undefined };
 const txhashHeightCache: Record<string, number> = {};
 let _realm: Realm | undefined;
@@ -246,9 +249,52 @@ async function getSavedPeer(): Promise<Peer | null> {
   }
 }
 
+/**
+ * True only when the OS says the phone has no internet. `isInternetReachable` starts out
+ * `null` (not yet probed), which we treat as "maybe online" so a slow probe never blocks
+ * a connection that would have worked.
+ */
+async function isDeviceOffline(): Promise<boolean> {
+  try {
+    const state = await NetInfo.fetch();
+    return state.isConnected === false || state.isInternetReachable === false;
+  } catch (e) {
+    console.log('NetInfo.fetch failed, assuming online:', e);
+    return false;
+  }
+}
+
+/**
+ * The phone is offline: no Electrum server can be reached, so retrying and then blaming one
+ * server ("Unable to connect to X") is wrong. Say so once, then reconnect on our own as soon
+ * as the OS reports a connection again.
+ */
+function waitForNetworkThenConnect(reconnect: () => void): void {
+  connectionAttempt = 0;
+  if (!offlineNoticeShown) {
+    offlineNoticeShown = true;
+    presentAlert({ message: loc.errors.no_internet, type: AlertType.Toast, allowRepeat: false });
+  }
+  if (stopWaitingForNetwork) return; // already listening
+  console.log('Device offline; waiting for network before connecting to Electrum');
+  stopWaitingForNetwork = NetInfo.addEventListener(state => {
+    if (state.isConnected === false || state.isInternetReachable === false) return;
+    stopWaitingForNetwork?.();
+    stopWaitingForNetwork = undefined;
+    offlineNoticeShown = false;
+    console.log('Network is back; connecting to Electrum');
+    connectionAttempt = 0;
+    setTimeout(reconnect, 500);
+  });
+}
+
 export async function connectMain(): Promise<void> {
   if (await isDisabled()) {
     console.log('Electrum connection disabled by user. Skipping connectMain call');
+    return;
+  }
+  if (await isDeviceOffline()) {
+    waitForNetworkThenConnect(connectMain);
     return;
   }
   let usingPeer = getNextPeer();
@@ -328,6 +374,11 @@ export async function connectMain(): Promise<void> {
     mainClient?.close();
     mainClient = undefined;
     if (connectionAttempt >= 5) {
+      // The phone may have dropped off the network during the retries.
+      if (await isDeviceOffline()) {
+        waitForNetworkThenConnect(connectMain);
+        return;
+      }
       presentNetworkErrorAlert(usingPeer);
     } else {
       console.log('reconnection attempt #', connectionAttempt);
@@ -403,6 +454,10 @@ const presentNetworkErrorAlert = async (usingPeer?: Peer) => {
     console.log(
       'Electrum connection disabled by user. Perhaps we are attempting to show this network error alert after the user disabled connections.',
     );
+    return;
+  }
+  if (await isDeviceOffline()) {
+    waitForNetworkThenConnect(connectMain);
     return;
   }
 
