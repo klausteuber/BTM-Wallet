@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, AppState, Linking, ScrollView, StyleSheet } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Button from '../../components/Button';
 import { SecondButton } from '../../components/SecondButton';
@@ -33,6 +33,7 @@ const AbtmVerifyId: React.FC = () => {
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(true);
+  const awaitingAtmVerification = useRef(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -44,8 +45,17 @@ const AbtmVerifyId: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    mounted.current = true;
     load();
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active' && awaitingAtmVerification.current) {
+        awaitingAtmVerification.current = false;
+        setAgreed(false);
+        load();
+      }
+    });
     return () => {
+      subscription.remove();
       mounted.current = false;
     };
   }, [load]);
@@ -87,8 +97,14 @@ const AbtmVerifyId: React.FC = () => {
         await launch(accessToken, () => pairedWalletApi.refreshSelfieLinkToken(attemptId));
         result = await pollLink(attemptId);
       } else {
-        const { accessToken } = await pairedWalletApi.startIdVerification(options.consent.version);
-        await launch(accessToken, () => pairedWalletApi.refreshIdVerificationToken());
+        const started = await pairedWalletApi.startIdVerification(options.consent.version);
+        if ('verificationUrl' in started) {
+          if (started.verificationUrl !== 'https://verify.americabitcoinatm.com/login') throw new Error(loc.abtm.verify_unavailable);
+          awaitingAtmVerification.current = true;
+          await Linking.openURL(started.verificationUrl);
+          return;
+        }
+        await launch(started.accessToken, () => pairedWalletApi.refreshIdVerificationToken());
         result = await pollKyc();
       }
       if (!mounted.current) return;
@@ -99,8 +115,11 @@ const AbtmVerifyId: React.FC = () => {
       }
       setOutcome(result);
     } catch (e: any) {
-      if (mounted.current) setError(e.message);
-      await load();
+      awaitingAtmVerification.current = false;
+      if (mounted.current) {
+        await load();
+        if (mounted.current) setError(e.message);
+      }
     } finally {
       if (mounted.current) setBusy(false);
     }

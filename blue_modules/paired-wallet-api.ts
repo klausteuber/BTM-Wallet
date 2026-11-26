@@ -508,10 +508,10 @@ class PairedWalletApi {
     return (await this.rawRequest(`/kyc/link/status/${encodeURIComponent(attemptId)}`, {}, { auth: true })).state;
   }
 
-  async startIdVerification(consentVersion: string): Promise<{ accessToken: string }> {
+  async startIdVerification(consentVersion: string): Promise<{ accessToken: string } | { verificationUrl: string }> {
     return this.rawRequest(
       '/kyc/verify/start',
-      { method: 'POST', body: { biometricConsent: { version: consentVersion } } },
+      { method: 'POST', body: { biometricConsent: { version: consentVersion }, supportsHostedVerification: true } },
       { auth: true },
     );
   }
